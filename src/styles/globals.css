@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #1a365d;
+  --secondary: #2563eb;
+  --accent: #1e40af;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl mb-6;
+  }
+
+  h2 {
+    @apply text-2xl mb-4;
+  }
+
+  h3 {
+    @apply text-xl mb-3;
+  }
+}
+
+@layer components {
+  /* Boutons */
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full
+           font-medium transition duration-200 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700 text-white
+           hover:from-blue-700 hover:to-blue-800
+           shadow-lg hover:shadow-xl;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-gray-900 border border-gray-200
+           hover:bg-gray-50 hover:border-gray-300;
+  }
+
+  /* Cartes */
+  .card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-xl
+           transition duration-300 border border-gray-100;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg border border-gray-200
+           focus:ring-2 focus:ring-blue-500 focus:border-transparent
+           placeholder-gray-400 transition duration-200;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply text-gray-600 hover:text-blue-600 transition duration-200;
+  }
+
+  /* Conteneurs */
+  .container {
+    @apply px-4 mx-auto max-w-7xl;
+  }
+
+  /* Direction Cards */
+  .direction-card {
+    @apply bg-white rounded-xl shadow-md hover:shadow-xl
+           transition-all duration-300 ease-in-out
+           transform hover:-translate-y-1 hover:scale-[1.01];
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bounce-x {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes rotate-bounce {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(15deg);
+  }
+  75% {
+    transform: rotate(-15deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-bounce-x {
+  animation: bounce-x 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+.animate-rotate-bounce {
+  animation: rotate-bounce 1s ease-in-out infinite;
+}
+
+/* Personnalisation du défilement */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+}
+
+/* Utilitaires supplémentaires */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800;
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out hover:-translate-y-1;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-300 ease-out hover:scale-[1.02];
+  }
+
+  .hover-rotate {
+    @apply transition-transform duration-300 ease-out hover:rotate-2;
+  }
+
+  /* Animations delay utilities */
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  /* Background gradients */
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700;
+  }
+
+  .bg-gradient-subtle {
+    @apply bg-gradient-to-r from-blue-50 to-white;
+  }
+
+  /* Shadow effects */
+  .shadow-soft {
+    @apply shadow-lg shadow-blue-900/5;
+  }
+
+  .shadow-intense {
+    @apply shadow-xl shadow-blue-900/10;
+  }
+}
+@keyframes shine {
+  to {
+    transform: translateX(100%) skewX(12deg);
+  }
+}
+
+.animate-shine {
+  animation: shine 8s infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
