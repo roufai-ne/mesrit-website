@@ -14,7 +14,7 @@ import {
   BookOpen,
   GraduationCap
 } from 'lucide-react';
-import StatsSection from '../ministere/StatsSection';
+import StatsSection from './StatsSection';
 
 export default function MinisterePage() {
   const sections = [

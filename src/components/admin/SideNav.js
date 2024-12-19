@@ -1,7 +1,7 @@
 // src/components/admin/SideNav.js
 import React from 'react';
 import { useRouter } from 'next/router';
-import {Newspaper, Building, BarChart2, FileText, Image, Users, GitFork, Settings, Home, LogOut, CalendarClock } from 'lucide-react';
+import {Newspaper, Building, BarChart2, FileText, Image, Users, GitFork, Settings, Home, LogOut, CalendarClock, BarChart4 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SideNav() {
@@ -44,6 +44,12 @@ export default function SideNav() {
       label: 'Responsables',
       icon: <Users className="w-5 h-5" />,
       path: '/admin/directors'
+    },
+    { 
+      id: 'stat', 
+      label: 'Statistiques', 
+      icon: <BarChart4 className="w-5 h-5" />,
+      path: '/admin/Statistiques'
     },
     
     { 

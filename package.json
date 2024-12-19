@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@vitalets/google-translate-api": "^9.2.0",
+    "@radix-ui/react-dialog": "^1.1.4",
+    "clsx": "^2.1.1",
     "formidable": "^3.5.2",
-    "googletrans": "^1.0.21",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
     "lucide-react": "^0.468.0",
@@ -24,7 +24,9 @@
     "react-leaflet": "^4.2.1",
     "recharts": "^2.14.1",
     "sass": "^1.49.8",
+    "shadcn-ui": "^0.9.4",
     "swr": "^1.0.0",
+    "tailwind-merge": "^2.5.5",
     "yup": "^0.32.11",
     "zustand": "^3.7.0"
   },
