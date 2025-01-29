@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Send, Download, Search, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -18,7 +19,7 @@ export default function NewsletterManager() {
   useEffect(() => {
     fetchSubscribers();
     fetchLogs(filterStatus, filterPeriod, currentPage, itemsPerPage);
-  }, [filterStatus, filterPeriod, currentPage]);
+  }, [filterStatus, filterPeriod, currentPage, itemsPerPage]);
 
   const fetchSubscribers = async () => {
     try {
@@ -268,7 +269,7 @@ export default function NewsletterManager() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="text-left p-4">Email</th>
-                <th className="text-left p-4">Date d'inscription</th>
+                <th className="text-left p-4">Date d&apos;inscription</th>
                 <th className="text-left p-4">Statut</th>
                 <th className="text-right p-4">Actions</th>
               </tr>

@@ -17,7 +17,7 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
  });
  const [error, setError] = useState('');
  const [loading, setLoading] = useState(false);
- const [successMessage, setSuccessMessage] = useState('');
+ 
 
 
   const handleSubmit = async (e) => {

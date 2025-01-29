@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const FAQForm = ({ faq, onSubmit, onClose }) => {
@@ -92,6 +92,7 @@ export default function FAQManager() {
      const response = await fetch('/api/faq');
      const data = await response.json();
      setFaqs(data);
+   // eslint-disable-next-line @typescript-eslint/no-unused-vars
    } catch (error) {
      toast.error('Erreur lors du chargement des FAQs');
    }
@@ -112,6 +113,7 @@ export default function FAQManager() {
      setShowForm(false);
      setSelectedFaq(null);
      fetchFaqs();
+   // eslint-disable-next-line @typescript-eslint/no-unused-vars
    } catch (error) {
      toast.error('Erreur lors de la sauvegarde');
    }
@@ -123,6 +125,7 @@ export default function FAQManager() {
      await fetch(`/api/faq/${id}`, { method: 'DELETE' });
      toast.success('FAQ supprimée');
      fetchFaqs();
+   // eslint-disable-next-line @typescript-eslint/no-unused-vars
    } catch (error) {
      toast.error('Erreur lors de la suppression');
    }

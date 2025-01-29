@@ -1,6 +1,6 @@
 // src/components/admin/MissionsManager.js
-import React, { useState } from 'react';
-import { Plus, Trash, Save, Edit, CheckCircle, Circle } from 'lucide-react';
+import React from 'react';
+import { Plus, Trash, Save, Edit, Circle } from 'lucide-react';
 
 export default function MissionsManager() {
   // ... même état initial ...

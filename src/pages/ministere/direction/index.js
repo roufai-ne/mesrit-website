@@ -1,262 +1,302 @@
-//pages/ministere/direction/index.js
-import { useEffect, useState, useMemo } from 'react';
+import { React, useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Users, ChevronRight, Mail, Phone, ArrowLeft, X } from 'lucide-react';
+import { Users, ChevronRight, ArrowLeft, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Composant de chargement
-const LoadingSkeleton = () => (
-  <div className="animate-pulse space-y-8">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="h-[400px] bg-gray-200 rounded-xl" />
-      <div className="h-[400px] bg-gray-200 rounded-xl" />
-    </div>
-    <div className="h-48 bg-gray-200 rounded-xl" />
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="h-48 bg-gray-200 rounded-xl" />
-      <div className="h-48 bg-gray-200 rounded-xl" />
-    </div>
-  </div>
-);
-
-// Composant de fil d'ariane
-const Breadcrumb = () => (
-  <div className="flex items-center text-sm text-gray-500 mb-8 animate-fade-in">
-    <Link href="/" className="nav-link">Accueil</Link>
-    <ChevronRight className="w-4 h-4 mx-2" aria-hidden="true" />
-    <Link href="/ministere" className="nav-link">Le Ministère</Link>
-    <ChevronRight className="w-4 h-4 mx-2" aria-hidden="true" />
-    <span aria-current="page">Direction</span>
-  </div>
-);
-
-const MinisterSection = ({ ministre }) => {
-  if (!ministre) return null;
-
-  return (
-    <div className="card animate-fade-in p-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <div className="relative h-[500px] overflow-hidden rounded-xl shadow-lg">
-            <Image
-              src={ministre.photo || '/images/dir/default.jpg'}
-              alt={ministre.nom}
-              fill
-              priority
-              className="object-cover object-top"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
-          </div>
-        </div>
-
-        <div className="bg-blue-50 rounded-xl p-8 relative">
-          <h3 className="text-xl font-semibold text-gradient mb-6">Message du Ministre</h3>
-          <div className="space-y-6">
-            <p className="text-gray-700 italic leading-relaxed">
-              {ministre.message || "Message du ministre non disponible"}
-            </p>
-            <div className="text-right pt-4">
-              <p className="font-semibold text-gray-800">{ministre.nom}</p>
-              <p className="text-gray-600">{ministre.titre}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DirectionCard = ({ data, onClick, showDirections = false }) => {
-  if (!data) return null;
-
-  return (
-    <div 
-      className="direction-card"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyPress={(e) => e.key === 'Enter' && onClick()}
-      aria-label={`Voir les détails de ${data.titre}`}
-    >
-      <div className="flex items-center gap-8 p-6">
-        <div className="relative w-32 h-32 overflow-hidden rounded-full hover-scale">
-          <div className="absolute inset-0 bg-gradient-primary opacity-20" />
-          <Image
-            src={data.photo || '/images/dir/default.jpg'}
-            alt={data.nom}
-            fill
-            className="object-cover"
-            sizes="128px"
-          />
-        </div>
-        
-        <div className="flex-grow space-y-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gradient mb-1">{data.titre}</h2>
-            <p className="text-xl text-gray-700">{data.nom}</p>
-          </div>
-        </div>
-        
-        {showDirections && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center text-blue-600 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <span className="mr-2 font-medium">Voir les directions</span>
-            <ChevronRight className="w-5 h-5 animate-bounce-x" aria-hidden="true" />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const DirectionList = ({ directions, onDirectionClick, currentDirection }) => {
-  if (!directions?.length) return (
-    <p className="text-gray-500 animate-fade-in">Aucune direction disponible</p>
-  );
-
-  return (
-    <div className="space-y-6">
-      {directions.map((direction, index) => (
-        <div 
-          key={direction.key || direction.titre} 
-          className="animate-slide-in"
-          style={{ animationDelay: `${index * 100}ms` }}
-        >
-          <div 
-            className={`
-              card hover-lift group bg-gradient-subtle p-6 cursor-pointer
-              ${currentDirection?.key === direction.key ? 'shadow-intense ring-2 ring-blue-300' : 'shadow-soft'}
-            `}
-            onClick={() => onDirectionClick(direction)}
-            role="button"
-            tabIndex={0}
-            onKeyPress={(e) => e.key === 'Enter' && onDirectionClick(direction)}
-          >
-            {/* ... reste du contenu ... */}
-          </div>
-          {/* ... expansion du détail ... */}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 export default function DirectionPage() {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({ ministre: null, sg: null, dgs: [] });
+  const [ministre, setMinistre] = useState(null);
+  const [sg, setSg] = useState(null);
+  const [sga, setSga] = useState(null);
+  const [dgs, setDgs] = useState([]);
   const [currentSection, setCurrentSection] = useState(null);
   const [currentDirection, setCurrentDirection] = useState(null);
   const [sousDirections, setSousDirections] = useState({});
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDirectors = async () => {
-      try {
-        const response = await fetch('/api/directors');
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        const directorsData = await response.json();
-
-        setData({
-          ministre: directorsData.find(d => d.titre === "Ministre"),
-          sg: directorsData.find(d => d.key === "SG"),
-          dgs: directorsData.filter(d => ["DGES", "DGR"].includes(d.key))
-        });
-
-        const sousDir = directorsData
-          .filter(d => d.direction)
-          .reduce((acc, curr) => {
-            const parentKey = curr.direction;
-            if (!acc[parentKey]) acc[parentKey] = [];
-            acc[parentKey].push(curr);
-            return acc;
-          }, {});
-        setSousDirections(sousDir);
-      } catch (error) {
-        console.error('Erreur:', error);
-        setError("Une erreur est survenue lors du chargement des données.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDirectors();
   }, []);
 
-  const mainContent = useMemo(() => {
-    if (loading) return <LoadingSkeleton />;
-    if (error) return <div className="text-red-600">{error}</div>;
-    if (!data.ministre || !data.sg || data.dgs.length === 0) {
-      return <div>Aucune donnée disponible</div>;
+  const fetchDirectors = async () => {
+    try {
+      const response = await fetch('/api/directors');
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des données');
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        setMinistre(data.find(d => d.titre === "Ministre"));
+        setSg(data.find(d => d.key === "SG"));
+        setSga(data.find(d => d.key === "SGA"));
+        setDgs(data.filter(d => ["DGES", "DGR"].includes(d.key)));
+        
+        const sousDir = data.reduce((acc, curr) => {
+          if (curr.direction) {
+            if (!acc[curr.direction]) {
+              acc[curr.direction] = [];
+            }
+            acc[curr.direction].push(curr);
+          }
+          return acc;
+        }, {});
+        
+        setSousDirections(sousDir);
+      } else {
+        setError('Format de données invalide');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderMinisterSection = () => {
+    if (!ministre) return null;
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="relative h-[500px]">
+          <Image
+            src={ministre.photo || '/images/dir/default.jpg'}
+            alt={ministre.nom}
+            fill
+            className="object-cover object-top brightness-110"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+            <h2 className="text-3xl font-bold mb-2">{ministre.titre}</h2>
+            <p className="text-xl">{ministre.nom}</p>
+          </div>
+        </div>
+        <div className="p-8 flex flex-col">
+          <div className="bg-blue-50 rounded-lg p-8 mb-6 flex-grow">
+            <h3 className="text-2xl font-semibold text-blue-800 mb-6">Message du Ministre</h3>
+            <p className="text-gray-700 italic leading-relaxed text-lg text-justify">
+              {ministre.message || "Message du ministre non disponible"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderDirectionCard = (data, showDirections = false) => {
+    if (!data) return null;
+    
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-6 relative group">
+        <div className="flex items-center">
+          <div className="relative w-32 h-32">
+            <Image
+              src={data.photo || '/images/dir/default.jpg'}
+              alt={data.nom}
+              fill
+              className="rounded-full object-cover"
+              sizes="128px"
+            />
+          </div>
+          <div className="flex-grow ml-8">
+            <div className="bg-blue-50 inline-block px-3 py-1 rounded-full mb-2">
+              <span className="text-blue-600 text-sm font-medium">{data.key || "Direction"}</span>
+            </div>
+            <h2 className="text-2xl font-bold text-blue-800 mb-2">{data.titre}</h2>
+            <p className="text-xl text-gray-700">{data.nom}</p>
+          </div>
+        </div>
+        
+        {showDirections && sousDirections[data.key]?.length > 0 && (
+          <button 
+            onClick={() => setCurrentSection(data)}
+            className="absolute bottom-0 left-0 right-0 bg-gradient-to-l from-blue-500 to-blue-600 text-white px-6 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 rounded-r-lg"
+          >
+            <Users className="w-5 h-5" />
+            <span className="font-medium">Voir les directions</span>
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const renderSgaCard = (data) => {
+    if (!data) return null;
+
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-4 relative group">
+        <div className="flex items-center">
+          <div className="relative w-20 h-20">
+            <Image
+              src={data.photo || '/images/dir/default.jpg'}
+              alt={data.nom}
+              fill
+              className="rounded-full object-cover"
+              sizes="80px"
+            />
+          </div>
+          <div className="flex-grow ml-4">
+            <div className="bg-blue-50 inline-block px-3 py-1 rounded-full mb-1">
+              <span className="text-blue-600 text-sm font-medium">{data.key || "Direction"}</span>
+            </div>
+            <h3 className="text-lg font-semibold text-blue-800">{data.titre}</h3>
+            <p className="text-gray-700">{data.nom}</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSgSection = () => {
+    if (!sg) return null;
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2">
+          {renderDirectionCard(sg, true)}
+        </div>
+        <div>
+          {renderSgaCard(sga)}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDirectionList = (directions) => {
+    if (!directions?.length) {
+      return (
+        <div className="text-center py-8 text-gray-600">
+          Aucune direction disponible
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {directions.map((direction, index) => (
+          <div 
+            key={direction.id || index}
+            onClick={() => setCurrentDirection(direction)}
+            className="bg-white p-6 rounded-lg shadow hover:shadow-lg cursor-pointer transform hover:-translate-y-1 transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-lg text-blue-800">
+                {direction.nomComplet || direction.titre}
+              </h3>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderMainContent = () => {
+    if (loading) {
+      return (
+        <div className="animate-pulse space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="h-[400px] bg-gray-200 rounded-lg"></div>
+            <div className="h-[400px] bg-gray-200 rounded-lg"></div>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 h-48 bg-gray-200 rounded-lg"></div>
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-12">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button 
+            onClick={fetchDirectors}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Réessayer
+          </button>
+        </div>
+      );
+    }
+
+    if (!ministre && !sg && dgs.length === 0) {
+      return <div className="text-center py-12 text-gray-600">Aucune donnée disponible</div>;
     }
 
     return (
       <div className="space-y-12">
-        <MinisterSection ministre={data.ministre} />
+        {renderMinisterSection()}
+        
         <div className="space-y-8">
-          <DirectionCard 
-            data={data.sg} 
-            showDirections={true}
-            onClick={() => setCurrentSection(data.sg)}
-          />
+          {renderSgSection()}
+          
           <div className="grid md:grid-cols-2 gap-8">
-            {data.dgs.map((dg) => (
-              <DirectionCard
-                key={dg.key}
-                data={dg}
-                showDirections={true}
-                onClick={() => setCurrentSection(dg)}
-              />
+            {dgs.map((dg, index) => (
+              <div key={dg.id || index}>
+                {renderDirectionCard(dg, true)}
+              </div>
             ))}
           </div>
         </div>
       </div>
     );
-  }, [loading, error, data]);
+  };
 
   return (
     <MainLayout>
-      <div className="py-12 bg-gradient-subtle min-h-screen">
-        <div className="container">
-          <Breadcrumb />
+      <div className="py-12 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center text-sm text-gray-500 mb-8">
+            <Link href="/" className="hover:text-blue-600 transition-colors">Accueil</Link>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <Link href="/ministere" className="hover:text-blue-600 transition-colors">Le Ministère</Link>
+            <ChevronRight className="w-4 h-4 mx-2" />
+            <span>Direction</span>
+          </div>
 
           {currentDirection ? (
-            <div className="animate-fade-in">
+            <div className="space-y-6">
               <button
                 onClick={() => setCurrentDirection(null)}
-                className="btn btn-secondary mb-6"
+                className="flex items-center text-blue-600 mb-6 hover:text-blue-800"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour
               </button>
-              <DirectionCard data={currentDirection} />
+              {renderDirectionCard(currentDirection)}
             </div>
           ) : currentSection ? (
-            <div className="animate-fade-in">
+            <div className="space-y-6">
               <button
-                onClick={() => {
-                  setCurrentSection(null);
-                  setCurrentDirection(null);
-                }}
-                className="btn btn-secondary mb-6"
+                onClick={() => setCurrentSection(null)}
+                className="flex items-center text-blue-600 mb-6 hover:text-blue-800"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour
               </button>
-              <h2 className="text-2xl font-bold text-gradient mb-6">
+              <h2 className="text-2xl font-bold text-blue-800 mb-6">
                 Directions sous {currentSection.titre}
               </h2>
-              <div className="relative">
-                <DirectionList 
-                  directions={sousDirections[currentSection.key]}
-                  onDirectionClick={setCurrentDirection}
-                  currentDirection={currentDirection}
-                />
-              </div>
+              {renderDirectionList(sousDirections[currentSection.key])}
             </div>
-          ) : mainContent}
+          ) : (
+            renderMainContent()
+          )}
         </div>
       </div>
     </MainLayout>

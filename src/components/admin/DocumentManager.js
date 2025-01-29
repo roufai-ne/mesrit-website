@@ -4,15 +4,12 @@ import {
   Plus, 
   Edit, 
   Trash, 
-  Calendar, 
   FileText, 
   X, 
   Search,
-  Filter,
   Download,
-  Upload,
-  Eye,
-  EyeOff 
+  Upload
+ 
 } from 'lucide-react';
 
 

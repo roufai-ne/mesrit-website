@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash, PhotoIcon, X } from 'lucide-react';
+import { Plus, Edit, Trash, image, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const POSTES_DIRECTION = [
@@ -383,7 +383,7 @@ export default function DirectorManager() {
                       />
                     ) : (
                       <div className="w-24 h-24 bg-gray-50 rounded-lg border flex items-center justify-center">
-                        <PhotoIcon className="w-8 h-8 text-gray-400" />
+                        <image className="w-8 h-8 text-gray-400" />
                       </div>
                     )}
                     <div className="flex-1">

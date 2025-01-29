@@ -1,7 +1,90 @@
 import { React, useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Users, ChevronRight, Mail, Phone, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Users, ChevronRight, Mail, Phone, ArrowLeft, ChevronDown, Building } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+const DirectionCard = ({ data, showDirections, onShowDirections }) => (
+  <div className="direction-card group relative">
+    <div className="p-6">
+      <div className="flex items-center gap-8">
+        <div className="relative w-32 h-32 rounded-full overflow-hidden flex-shrink-0">
+          <Image
+            src={data.photo || '/images/dir/default.jpg'}
+            alt={data.nom}
+            fill
+            className="object-cover"
+            sizes="128px"
+          />
+        </div>
+        <div className="flex-grow">
+          <div className="bg-blue-50 inline-block px-3 py-1 rounded-full mb-2">
+            <span className="text-blue-600 text-sm font-medium">{data.key || "Direction"}</span>
+          </div>
+          <h2 className="text-2xl font-bold text-blue-800 mb-2">{data.titre}</h2>
+          <p className="text-xl text-gray-700 mb-4">{data.nom}</p>
+          
+          <div className="flex gap-6">
+            {data.email && (
+              <a 
+                href={`mailto:${data.email}`}
+                className="flex items-center text-gray-600 hover:text-blue-600 transition-colors group"
+              >
+                <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-2 group-hover:bg-blue-100">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <span>Contact</span>
+              </a>
+            )}
+            {data.telephone && (
+              <a 
+                href={`tel:${data.telephone}`}
+                className="flex items-center text-gray-600 hover:text-blue-600 transition-colors group"
+              >
+                <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center mr-2 group-hover:bg-blue-100">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <span>Téléphone</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {showDirections && (
+      <button 
+        onClick={onShowDirections}
+        className="absolute -bottom-px left-0 right-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 rounded-b-lg"
+      >
+        <Users className="w-5 h-5" />
+        <span className="font-medium">Voir les directions</span>
+        <ChevronDown className="w-5 h-5" />
+      </button>
+    )}
+  </div>
+);
+
+const SubDirectionCard = ({ direction, onClick }) => (
+  <div 
+    onClick={onClick}
+    className="direction-card cursor-pointer hover:scale-[1.02] transition-transform p-6"
+  >
+    <div className="flex items-center gap-4">
+      <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+        <Building className="w-6 h-6 text-blue-600" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-blue-800 mb-1">
+          {direction.nomComplet}
+        </h3>
+        {direction.nom && (
+          <p className="text-gray-600">{direction.nom}</p>
+        )}
+      </div>
+    </div>
+  </div>
+);
 
 export default function DirectionPage() {
   const [loading, setLoading] = useState(true);
@@ -40,187 +123,101 @@ export default function DirectionPage() {
     }
   };
 
-  const renderMinisterSection = () => {
-    if (!ministre) return null;
-
+  if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="relative h-[400px]">
-          <img 
-            src={ministre.photo || '/images/dir/default.jpg'}
-            alt={ministre.nom}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-            <h2 className="text-3xl font-bold mb-2">{ministre.titre}</h2>
-            <p className="text-xl">{ministre.nom}</p>
-          </div>
-        </div>
-        <div className="p-8 flex flex-col">
-          <div className="bg-blue-50 rounded-lg p-6 mb-6 flex-grow">
-            <h3 className="text-xl font-semibold text-blue-800 mb-4">Message du Ministre</h3>
-            <p className="text-gray-700 italic">
-              {ministre.message || "Message du ministre non disponible"}
-            </p>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center text-gray-600">
-              <Mail className="w-5 h-5 mr-3" />
-              <a href={`mailto:${ministre.email}`} className="hover:text-blue-600 transition-colors">
-                {ministre.email}
-              </a>
-            </div>
-            <div className="flex items-center text-gray-600">
-              <Phone className="w-5 h-5 mr-3" />
-              <a href={`tel:${ministre.telephone}`} className="hover:text-blue-600 transition-colors">
-                {ministre.telephone}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderDirectionCard = (data, showDirections = false) => {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6 relative group">
-        <div className="flex items-center">
-          <img 
-            src={data.photo || '/images/dir/default.jpg'}
-            alt={data.nom}
-            className="w-32 h-32 rounded-full object-cover mr-8"
-          />
-          <div className="flex-grow">
-            <h2 className="text-2xl font-bold text-blue-800 mb-2">{data.titre}</h2>
-            <p className="text-xl text-gray-700 mb-4">{data.nom}</p>
-            <div className="space-y-2">
-              <div className="flex items-center text-gray-600">
-                <Mail className="w-4 h-4 mr-2" />
-                <a href={`mailto:${data.email}`} className="hover:text-blue-600">
-                  {data.email}
-                </a>
-              </div>
-              <div className="flex items-center text-gray-600">
-                <Phone className="w-4 h-4 mr-2" />
-                <a href={`tel:${data.telephone}`} className="hover:text-blue-600">
-                  {data.telephone}
-                </a>
+      <MainLayout>
+        <div className="py-12 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+          <div className="container mx-auto px-4">
+            <div className="animate-pulse space-y-8">
+              <div className="h-4 bg-gray-200 w-48 rounded mb-8" />
+              <div className="grid gap-8">
+                <div className="h-64 bg-gray-200 rounded-xl" />
+                <div className="h-48 bg-gray-200 rounded-xl" />
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="h-48 bg-gray-200 rounded-xl" />
+                  <div className="h-48 bg-gray-200 rounded-xl" />
+                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        {showDirections && (
-          <button 
-            onClick={() => setCurrentSection(data)}
-            className="absolute bottom-0 left-0 right-0 bg-blue-50 text-blue-600 py-3 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 rounded-b-lg hover:bg-blue-100"
-          >
-            <Users className="w-5 h-5" />
-            <span>Voir les directions</span>
-            <ChevronDown className="w-5 h-5 animate-bounce" />
-          </button>
-        )}
-      </div>
+      </MainLayout>
     );
-  };
-
-  const renderDirectionList = (directions) => {
-    return (
-      <div className="space-y-4">
-        {directions?.map((direction, index) => (
-          <div 
-            key={index} 
-            onClick={() => setCurrentDirection(direction)}
-            className="bg-blue-50 p-6 rounded-lg shadow cursor-pointer hover:bg-blue-100 transition-all transform hover:-translate-y-1"
-          >
-            <span className="text-blue-800 font-semibold text-lg">{direction.nomComplet}</span>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderMainContent = () => {
-    if (loading) {
-      return (
-        <div className="animate-pulse space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="h-[400px] bg-gray-200 rounded-lg"></div>
-            <div className="h-[400px] bg-gray-200 rounded-lg"></div>
-          </div>
-          <div className="h-48 bg-gray-200 rounded-lg"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="h-48 bg-gray-200 rounded-lg"></div>
-            <div className="h-48 bg-gray-200 rounded-lg"></div>
-          </div>
-        </div>
-      );
-    }
-
-    if (!ministre || !sg || dgs.length === 0) {
-      return <div>Aucune donnée disponible</div>;
-    }
-
-    return (
-      <div className="space-y-12">
-        {renderMinisterSection()}
-        
-        <div className="space-y-8">
-          {renderDirectionCard(sg, true)}
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {dgs.map((dg, index) => (
-              <div key={index}>
-                {renderDirectionCard(dg, true)}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  }
 
   return (
     <MainLayout>
       <div className="py-12 bg-gradient-to-b from-blue-50 to-white min-h-screen">
         <div className="container mx-auto px-4">
           <div className="flex items-center text-sm text-gray-500 mb-8">
-            <Link href="/" className="hover:text-blue-600">Accueil</Link>
+            <Link href="/" className="hover:text-blue-600 transition-colors">Accueil</Link>
             <ChevronRight className="w-4 h-4 mx-2" />
-            <Link href="/ministere" className="hover:text-blue-600">Le Ministère</Link>
+            <Link href="/ministere" className="hover:text-blue-600 transition-colors">Le Ministère</Link>
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Direction</span>
           </div>
 
           {currentDirection ? (
-            <div>
+            <div className="space-y-6 animate-fade-in">
               <button
                 onClick={() => setCurrentDirection(null)}
-                className="flex items-center text-blue-600 mb-6 hover:text-blue-800"
+                className="btn btn-secondary inline-flex items-center"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour
               </button>
-              {renderDirectionCard(currentDirection)}
+              <DirectionCard data={currentDirection} />
             </div>
           ) : currentSection ? (
-            <div>
+            <div className="space-y-6 animate-fade-in">
               <button
                 onClick={() => setCurrentSection(null)}
-                className="flex items-center text-blue-600 mb-6 hover:text-blue-800"
+                className="btn btn-secondary inline-flex items-center"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Retour
               </button>
-              <h2 className="text-2xl font-bold text-blue-800 mb-6">
-                Directions sous {currentSection.titre}
-              </h2>
-              {renderDirectionList(sousDirections[currentSection.key])}
+              <div className="bg-white rounded-xl p-6 shadow-soft mb-8">
+                <h2 className="text-2xl font-bold text-gradient mb-2">
+                  Directions sous {currentSection.titre}
+                </h2>
+                <p className="text-gray-600">
+                  Découvrez les différentes directions et leurs responsables
+                </p>
+              </div>
+              <div className="grid gap-4 animate-slide-in">
+                {sousDirections[currentSection.key]?.map((direction, index) => (
+                  <SubDirectionCard
+                    key={direction.id || index}
+                    direction={direction}
+                    onClick={() => setCurrentDirection(direction)}
+                  />
+                ))}
+              </div>
             </div>
           ) : (
-            renderMainContent()
+            <div className="space-y-12">
+              <div className="grid gap-8">
+                {ministre && <DirectionCard data={ministre} />}
+                {sg && (
+                  <DirectionCard 
+                    data={sg}
+                    showDirections={true}
+                    onShowDirections={() => setCurrentSection(sg)}
+                  />
+                )}
+                <div className="grid md:grid-cols-2 gap-8">
+                  {dgs.map((dg, index) => (
+                    <DirectionCard
+                      key={dg.id || index}
+                      data={dg}
+                      showDirections={true}
+                      onShowDirections={() => setCurrentSection(dg)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

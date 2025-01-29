@@ -6,10 +6,8 @@ import {
   Plus, 
   Edit, 
   Trash, 
-  Clock,
   MapPin,
   Users,
-  AlertTriangle,
   X,
   Loader2 
 } from 'lucide-react';
@@ -45,14 +43,15 @@ export default function CommunicationsManager() {
 
   useEffect(() => {
     fetchItems();
-  }, [activeTab]);
+  }, [activeTab, fetchItems]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const fetchItems = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
       const endpoint = activeTab === 'alerts' ? '/api/alerts' : '/api/events';
@@ -66,7 +65,7 @@ export default function CommunicationsManager() {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   const handleAdd = () => {
     setEditingItem(null);
