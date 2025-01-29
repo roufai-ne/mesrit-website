@@ -1,8 +1,9 @@
 // src/pages/_app.js
-// src/pages/_app.js
 import '@/styles/globals.css'
 import { Inter } from 'next/font/google'
 import 'leaflet/dist/leaflet.css';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -12,8 +13,11 @@ const inter = Inter({
 
 export default function App({ Component, pageProps }) {
   return (
+    <AuthProvider>
     <main className={`${inter.variable} font-sans`}>
       <Component {...pageProps} />
+      <Toaster position="top-right" />
     </main>
+    </AuthProvider>
   )
 }

@@ -1,5 +1,5 @@
 // src/components/layout/Footer.js
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   MapPinIcon, 
@@ -10,6 +10,7 @@ import {
   LinkedinIcon, 
   ChevronRightIcon 
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function Footer() {
   const menuLinks = {
@@ -30,6 +31,42 @@ export default function Footer() {
       { title: 'FAQ', href: '/faq' },
       { title: 'Contact', href: '/contact' }
     ]
+  };
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    
+    if (!email || !email.trim()) {
+      toast.error('Veuillez entrer un email valide');
+      return;
+    }
+  
+    setStatus('loading');
+    
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() })
+      });
+  
+      const data = await response.json();
+      
+      if (!response.ok) {
+        toast.error(data.error);
+        setStatus('error');
+        return;
+      }
+  
+      toast.success(data.message || 'Inscription réussie !');
+      setStatus('success');
+      setEmail('');
+    } catch (error) {
+      toast.error('Une erreur est survenue');
+      setStatus('error');
+    }
   };
 
   return (
@@ -123,7 +160,37 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-
+        <div className="py-8 border-t border-gray-800">
+          <div className="max-w-md">
+            <h3 className="text-xl font-semibold mb-4">Newsletter</h3>
+            <p className="text-gray-400 mb-4">
+              Restez informé des dernières actualités du ministère
+            </p>
+            <form onSubmit={handleSubscribe} className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Votre email"
+                className="flex-1 px-4 py-2 bg-gray-800 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              <button 
+                type="submit"
+                disabled={status === 'loading'}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  status === 'loading' 
+                    ? 'bg-gray-600 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {status === 'loading' ? 'Envoi...' : 'S\'abonner'}
+              </button>
+            </form>
+          </div>
+        </div>
+        </div>
+        
         {/* Bottom Bar */}
         <div className="border-t border-gray-700/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-sm mb-4 md:mb-0">
@@ -149,8 +216,9 @@ export default function Footer() {
               );
             })}
           </div>
-        </div>
+       
       </div>
     </footer>
   );
 }
+      

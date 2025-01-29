@@ -3,11 +3,27 @@ import { connectDB } from '@/lib/mongodb';
 import { StudentStats } from '@/models/StudentStats';
 import { TeacherStats } from '@/models/TeacherStats';
 import { InstitutionStats } from '@/models/InstitutionStats';
+import jwt from 'jsonwebtoken';
 
 const models = {
   students: StudentStats,
   teachers: TeacherStats,
   institutions: InstitutionStats
+};
+
+// Middleware de vérification du token et du rôle
+const verifyToken = async (req) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      throw new Error('Token non fourni');
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (error) {
+    throw new Error('Non autorisé');
+  }
 };
 
 export default async function handler(req, res) {
@@ -18,6 +34,14 @@ export default async function handler(req, res) {
   try {
     await connectDB();
     const Model = models[req.query.type];
+
+    // Pour POST, vérifier que l'utilisateur est admin
+    if (req.method === 'POST') {
+      const decoded = await verifyToken(req);
+      if (decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Accès non autorisé. Seuls les administrateurs peuvent créer des statistiques.' });
+      }
+    }
 
     switch (req.method) {
       case 'GET':
@@ -34,6 +58,9 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Erreur API:', error);
+    if (error.message === 'Non autorisé') {
+      return res.status(401).json({ error: 'Non autorisé' });
+    }
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 }

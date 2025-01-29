@@ -1,9 +1,9 @@
-// pages/api/stats/[type]/[id].js
 import { connectDB } from '@/lib/mongodb';
 import { StudentStats } from '@/models/StudentStats';
 import { TeacherStats } from '@/models/TeacherStats';
 import { InstitutionStats } from '@/models/InstitutionStats';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 
 const models = {
   students: StudentStats,
@@ -11,20 +11,45 @@ const models = {
   institutions: InstitutionStats
 };
 
+// Middleware de vérification du token et du rôle
+const verifyToken = async (req) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      throw new Error('Token non fourni');
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (error) {
+    throw new Error('Non autorisé');
+  }
+};
+
 export default async function handler(req, res) {
   const { type, id } = req.query;
 
+  // Vérification du type de statistique
   if (!type || !models[type]) {
     return res.status(400).json({ error: 'Type de statistique non valide' });
   }
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  // Vérification de l'ID pour les opérations qui en ont besoin
+  if (id && !mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: 'ID non valide' });
   }
 
   try {
     await connectDB();
     const Model = models[type];
+
+    // Pour les méthodes de modification (PUT, DELETE), vérifier que l'utilisateur est admin
+    if (req.method !== 'GET') {
+      const decoded = await verifyToken(req);
+      if (decoded.role !== 'admin') {
+        return res.status(403).json({ error: 'Accès non autorisé. Seuls les administrateurs peuvent modifier les statistiques.' });
+      }
+    }
 
     switch (req.method) {
       case 'GET':
@@ -58,6 +83,9 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Erreur API:', error);
+    if (error.message === 'Non autorisé') {
+      return res.status(401).json({ error: 'Non autorisé' });
+    }
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 }

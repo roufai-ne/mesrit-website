@@ -1,23 +1,28 @@
-// src/pages/ministere/index.js
-import React from 'react';
+import React, { useMemo, Suspense } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import Link from 'next/link';
 import { 
   Users, 
   Building, 
   Target, 
   ChevronRight, 
-  ExternalLink,
   Mail,
-  Clock,
-  Calendar,
   BookOpen,
-  GraduationCap
+  GraduationCap,
+  Loader 
 } from 'lucide-react';
-import StatsSection from './StatsSection';
+
+// Lazy loading de la section stats qui est plus lourde
+const StatsSection = React.lazy(() => import('./StatsSection'));
+
+const LoadingFallback = () => (
+  <div className="flex justify-center items-center p-8">
+    <Loader className="w-8 h-8 animate-spin text-blue-600" />
+  </div>
+);
 
 export default function MinisterePage() {
-  const sections = [
+  // Mémoisation des données statiques
+  const sections = useMemo(() => [
     {
       title: "Notre Mission",
       icon: Target,
@@ -39,9 +44,9 @@ export default function MinisterePage() {
       link: "/ministere/direction",
       color: "bg-emerald-50 text-emerald-600"
     }
-  ];
+  ], []);
 
-  const quickLinks = [
+  const quickLinks = useMemo(() => [
     {
       title: "Nous contacter",
       icon: Mail,
@@ -60,21 +65,20 @@ export default function MinisterePage() {
       link: "/etablissements",
       description: "Explorer nos institutions d'enseignement"
     }
-  ];
-
+  ], []);
 
   return (
     <MainLayout>
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-blue-900 to-blue-800 text-white py-20">
         <div className="container mx-auto px-6">
-          <div className="flex items-center text-sm mb-4">
-            <Link href="/" className="hover:text-blue-200 transition-colors">
+          <nav aria-label="Breadcrumb" className="flex items-center text-sm mb-4">
+            <a href="/" className="hover:text-blue-200 transition-colors">
               Accueil
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
-            <span>Le Ministère</span>
-          </div>
+            </a>
+            <ChevronRight className="w-4 h-4 mx-2" aria-hidden="true" />
+            <span aria-current="page">Le Ministère</span>
+          </nav>
           
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Le Ministère de l'Enseignement Supérieur
@@ -84,60 +88,65 @@ export default function MinisterePage() {
             l'avenir de l'enseignement supérieur au Niger.
           </p>
 
-          {/* Stats */}
-          <div >
-          <StatsSection />
+          {/* Stats avec lazy loading */}
+          <div className="mt-12">
+            <Suspense fallback={<LoadingFallback />}>
+              <StatsSection />
+            </Suspense>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="py-20 bg-gray-50">
+      <main className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           {/* Sections principales */}
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            {sections.map((section, index) => {
-              const Icon = section.icon;
-              return (
-                <Link 
-                  href={section.link} 
-                  key={index}
-                  className="group"
-                >
-                  <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 h-full transform hover:-translate-y-1">
-                    <div className={`inline-flex rounded-lg p-3 ${section.color} mb-6`}>
-                      <Icon className="w-8 h-8" />
+          <section aria-labelledby="main-sections" className="mb-20">
+            <h2 id="main-sections" className="sr-only">Sections principales</h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {sections.map((section) => {
+                const Icon = section.icon;
+                return (
+                  <a 
+                    href={section.link} 
+                    key={section.title}
+                    className="group"
+                  >
+                    <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 h-full transform hover:-translate-y-1">
+                      <div className={`inline-flex rounded-lg p-3 ${section.color} mb-6`}>
+                        <Icon className="w-8 h-8" aria-hidden="true" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4 group-hover:text-blue-600 transition-colors">
+                        {section.title}
+                      </h3>
+                      <p className="text-gray-600 mb-6 line-clamp-3">
+                        {section.content}
+                      </p>
+                      <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700">
+                        <span>En savoir plus</span>
+                        <ChevronRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+                      </div>
                     </div>
-                    <h2 className="text-2xl font-bold mb-4 group-hover:text-blue-600 transition-colors">
-                      {section.title}
-                    </h2>
-                    <p className="text-gray-600 mb-6 line-clamp-3">
-                      {section.content}
-                    </p>
-                    <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700">
-                      <span>En savoir plus</span>
-                      <ChevronRight className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
 
           {/* Liens rapides */}
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-8">Liens rapides</h2>
+          <section aria-labelledby="quick-links" className="bg-white rounded-xl shadow-lg p-8">
+            <h2 id="quick-links" className="text-2xl font-bold mb-8">Liens rapides</h2>
             <div className="grid md:grid-cols-3 gap-6">
-              {quickLinks.map((link, index) => {
+              {quickLinks.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <Link 
-                    key={index}
+                  <a 
+                    key={link.title}
                     href={link.link} 
                     className="group flex items-start p-6 rounded-xl hover:bg-gray-50 transition-all duration-300"
                   >
                     <div className="bg-blue-50 rounded-lg p-3 mr-4">
-                      <Icon className="w-6 h-6 text-blue-600" />
+                      <Icon className="w-6 h-6 text-blue-600" aria-hidden="true" />
                     </div>
                     <div>
                       <h3 className="font-bold mb-2 group-hover:text-blue-600 transition-colors">
@@ -147,13 +156,13 @@ export default function MinisterePage() {
                         {link.description}
                       </p>
                     </div>
-                  </Link>
+                  </a>
                 );
               })}
             </div>
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </MainLayout>
   );
 }

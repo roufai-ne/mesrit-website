@@ -48,6 +48,20 @@ module.exports = {
           "0%": { transform: "translateY(0)" },
           "100%": { transform: "translateY(-10%)" },
         },
+        'subtle-ring': {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' },
+          '100%': { transform: 'scale(1)' }
+        },
+        'subtle-fade': {
+          '0%': { opacity: '0.8' },
+          '50%': { opacity: '1' },
+          '100%': { opacity: '0.8' }
+        },
+        'fade-in-down': {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
+        }
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out forwards',
@@ -55,6 +69,9 @@ module.exports = {
         "fade-out": "fade-out 0.3s ease-in-out",
         "slide-in-from-top": "slide-in-from-top 0.3s ease-out",
         "slide-out-to-top": "slide-out-to-top 0.3s ease-in",
+        'subtle-ring': 'subtle-ring 3s ease-in-out infinite',
+        'subtle-fade': 'subtle-fade 3s ease-in-out infinite',
+        'fade-in-down': 'fade-in-down 0.2s ease-out'
       },
     },
   },

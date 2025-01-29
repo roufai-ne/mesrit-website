@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { GlobeIcon, SearchIcon, UserCircleIcon, X } from 'lucide-react';
 import debounce from 'lodash/debounce';
-
+import NotificationBell from '@/components/communication/NotificationBell';
 
 export default function Header() {
   const router = useRouter();
@@ -102,7 +102,7 @@ const searchContent = useCallback(
                 }`}
               />
               {isSearchOpen && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl overflow-hidden z-30">
                   {searchResults.map((result) => (
                     <button
                       key={result._id}
@@ -137,6 +137,7 @@ const searchContent = useCallback(
               <UserCircleIcon className="w-5 h-5" />
               <span>Connexion</span>
             </button>
+            <NotificationBell />
           </div>
         </div>
       </div>

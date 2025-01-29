@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { User, Lock, ArrowLeft, Loader, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,22 +18,10 @@ export default function LoginForm() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        router.push('/admin/Dashboard');
-      } else {
-        setError('Identifiants invalides');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Erreur de connexion');
+      await login(credentials);
+      router.push('/admin/Dashboard');
+    } catch (error) {
+      setError('Nom d\'utilisateur ou mot de passe incorrect');
     } finally {
       setLoading(false);
     }
@@ -64,11 +54,11 @@ export default function LoginForm() {
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center">
-                <AlertCircle className="w-5 h-5 mr-2" />
-                {error}
-              </div>
-            )}
+  <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg flex items-center mb-4">
+    <AlertCircle className="w-5 h-5 mr-2" />
+    {error}
+  </div>
+)}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -81,6 +71,7 @@ export default function LoginForm() {
                   </div>
                   <input
                     type="text"
+                    autoComplete="username"
                     required
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     value={credentials.username}
@@ -103,6 +94,7 @@ export default function LoginForm() {
                   </div>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     required
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     value={credentials.password}

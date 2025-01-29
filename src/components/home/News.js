@@ -62,7 +62,15 @@ export default function News() {
           </Link>
         </div>
 
-        {news.length > 0 && <HomeNewsCarousel news={news} />}
+        {news.length > 0 && (
+  <HomeNewsCarousel 
+    news={news}
+    autoplay={5000}
+    indicators
+    navigation
+    onSlideChange={(index) => console.log(`Slide ${index}`)}
+  />
+)}
       </div>
     </section>
   );

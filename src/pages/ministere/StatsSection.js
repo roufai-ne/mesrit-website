@@ -462,7 +462,8 @@ export default function StatsSection() {
       type: "students",
       bgColor: "bg-blue-50",
       iconColor: "text-blue-500",
-      borderColor: "border-blue-200"
+      borderColor: "border-blue-200",
+      hoverColor: "hover:border-blue-400"
     },
     {
       label: "Enseignants",
@@ -474,7 +475,8 @@ export default function StatsSection() {
       type: "teachers",
       bgColor: "bg-purple-50",
       iconColor: "text-purple-500",
-      borderColor: "border-purple-200"
+      borderColor: "border-purple-200",
+      hoverColor: "hover:border-purple-400"
     },
     {
       label: "Établissements",
@@ -483,7 +485,8 @@ export default function StatsSection() {
       type: "institutions",
       bgColor: "bg-emerald-50",
       iconColor: "text-emerald-500",
-      borderColor: "border-emerald-200"
+      borderColor: "border-emerald-200",
+      hoverColor: "hover:border-emerald-400"
     }
   ];
 
@@ -493,11 +496,16 @@ export default function StatsSection() {
         {statBoxes.map((stat, index) => (
           <div
             key={index}
-            className={`${stat.bgColor} border-2 ${stat.borderColor} rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-pointer`}
+            className={`group relative ${stat.bgColor} border-2 ${stat.borderColor} ${stat.hoverColor} rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 cursor-pointer`}
             onClick={() => handleStatClick(stat.type)}
           >
+            {/* Badge "Cliquez pour plus de détails" */}
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-white border shadow-sm rounded-full text-xs font-medium text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              Cliquez pour plus de détails
+            </div>
+
             <div className="flex flex-col items-center text-center">
-              <div className={`rounded-full p-4 bg-white shadow-sm mb-4`}>
+              <div className={`rounded-full p-4 bg-white shadow-sm mb-4 transition-transform duration-300 group-hover:scale-110`}>
                 <stat.icon className={`w-8 h-8 ${stat.iconColor}`} />
               </div>
               <div className={`text-3xl font-bold mb-2 ${stat.iconColor}`}>
@@ -506,7 +514,18 @@ export default function StatsSection() {
               <div className="text-gray-700 font-medium">
                 {stat.label}
               </div>
+              
+              {/* Indicateur visuel "Plus d'infos" */}
+              <div className={`mt-4 text-sm ${stat.iconColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2`}>
+                <span>Plus d'informations</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </div>
             </div>
+
+            {/* Effet de surbrillance au hover */}
+            <div className={`absolute inset-0 ${stat.iconColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-xl`}></div>
           </div>
         ))}
       </div>

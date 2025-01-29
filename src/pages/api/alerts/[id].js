@@ -1,3 +1,4 @@
+//pages\api\alerts\[id].js
 import { connectDB } from '@/lib/mongodb';
 import Alert from '@/models/Alert';
 

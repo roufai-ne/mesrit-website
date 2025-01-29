@@ -24,7 +24,7 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-20">
       <div className="container mx-auto px-6">
         <ul className="flex flex-wrap">
           {menuItems.map((item, index) => {
