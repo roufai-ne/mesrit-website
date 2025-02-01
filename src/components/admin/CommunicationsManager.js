@@ -1,5 +1,5 @@
 // src/pages/admin/communications.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback} from 'react';
 import { 
   Bell, 
   Calendar,
