@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // middleware/auth.js
 export function requireRole(role) {
     return async (req, res, next) => {
