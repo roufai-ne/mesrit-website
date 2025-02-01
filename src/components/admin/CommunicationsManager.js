@@ -1,5 +1,5 @@
 // src/pages/admin/communications.js
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect} from 'react';
 import { 
   Bell, 
   Calendar,
@@ -19,6 +19,7 @@ export default function CommunicationsManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [notification, setNotification] = useState(null);
+  
 
   const alertInitialState = {
     title: '',
@@ -51,7 +52,7 @@ export default function CommunicationsManager() {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchItems = useCallback(async () => {
+  const fetchItems = async () => {
     try {
       setLoading(true);
       const endpoint = activeTab === 'alerts' ? '/api/alerts' : '/api/events';
@@ -65,7 +66,11 @@ export default function CommunicationsManager() {
     } finally {
       setLoading(false);
     }
-  });
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, [activeTab, fetchItems]);
 
   const handleAdd = () => {
     setEditingItem(null);
