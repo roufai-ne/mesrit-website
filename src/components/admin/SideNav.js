@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermission } from '@/hooks/usePermission';
 import {
-  Newspaper, Building, BarChart2, FileText, Image, Users,
+  Newspaper, Building, BarChart2, FileText, Users,
   GitFork, Settings, Home, LogOut, CalendarClock, BarChart4,
   User, Key, Bell, Mail, HelpCircle
 } from 'lucide-react';
@@ -13,7 +13,7 @@ import ChangePasswordModal from '@/components/admin/ChangePasswordModal';
 export default function SideNav() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { canManageUsers, canManageStats } = usePermission();
+  const { canManageUsers } = usePermission();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const handleLogout = () => {

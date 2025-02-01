@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/components/auth/LoginForm.js
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';

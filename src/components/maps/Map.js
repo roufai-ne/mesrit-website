@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { Building2, MapPin, Globe, Phone } from 'lucide-react';
+import { MapPin, Globe, Phone } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 

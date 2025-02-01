@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Building2, BookOpen, Loader2 } from 'lucide-react';
 
 import { PieChart, Pie, Cell,  Tooltip,  ResponsiveContainer } from 'recharts';
+import Image from 'next/image';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -49,10 +50,15 @@ const Dhis2Button = () => (
     className="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
   >
     <div className="relative w-8 h-8">
-      <img
-        src="/images/dhis2-logo.png" // Assurez-vous d'avoir ce logo dans votre dossier public
-        alt="DHIS2"
+      <Image
+        src="/images/dhis2-logo.png"
+        alt="DHIS2 Logo" 
         className="w-full h-full object-contain"
+        priority={true}
+        loading="eager"
+        width={160}
+        height={80}
+        quality={90}
       />
     </div>
     <span className="font-medium">

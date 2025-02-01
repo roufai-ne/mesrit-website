@@ -10,19 +10,11 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
 
-  const handleLanguageChange = (e) => {
-    const newLocale = e.target.value;
-    // Obtenir le chemin actuel sans la locale
-    const path = router.asPath;
-    // Rediriger vers la même page avec la nouvelle locale
-    router.push(path, path, { locale: newLocale });
-  };
 
-  // Direction du texte pour l'arabe
-  const isRTL = router.locale === 'ar';
+  
+ 
   // Fonction de recherche avec debounce
   // Dans votre Header.js
 const searchContent = useCallback(

@@ -12,6 +12,7 @@ export default async function handler(req, res) {
     }).sort({ createdAt: -1 });
     
     return res.status(200).json(notifications);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return res.status(500).json({ error: 'Erreur serveur' });
   }

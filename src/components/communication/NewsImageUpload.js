@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // components/communication/NewsImageUpload.js
 import { useState } from 'react';
-import { ImageIcon, Upload } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 

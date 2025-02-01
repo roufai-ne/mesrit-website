@@ -1,6 +1,6 @@
 // src/pages/contact/ContactForm.js
 import React, { useState } from 'react';
-import { Send, Loader } from 'lucide-react';
+import { Send, Loader, AlertCircle } from 'lucide-react';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -12,6 +12,7 @@ export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [errors, setErrors] = useState({});
+
 
   const validateForm = () => {
     const newErrors = {};
@@ -87,50 +88,67 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold mb-6">Nous contacter</h2>
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft p-8 animate-slide-in-from-top">
+      <h2 className="text-xl font-bold text-gray-900 mb-2">Envoyez-nous un message</h2>
+      <p className="text-gray-600 mb-8">Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nom complet
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Votre nom"
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-          )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Nom complet
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className={`
+                w-full px-4 py-3 bg-white rounded-xl border-2 
+                focus:ring-2 focus:ring-blue-100 transition-all duration-200
+                ${errors.name 
+                  ? 'border-red-200 bg-red-50/50' 
+                  : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+              `}
+              placeholder="Jean Dupont"
+            />
+            {errors.name && (
+              <div className="flex items-center mt-1.5 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                <span>{errors.name}</span>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`
+                w-full px-4 py-3 bg-white rounded-xl border-2 
+                focus:ring-2 focus:ring-blue-100 transition-all duration-200
+                ${errors.email 
+                  ? 'border-red-200 bg-red-50/50' 
+                  : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+              `}
+              placeholder="jean@exemple.com"
+            />
+            {errors.email && (
+              <div className="flex items-center mt-1.5 text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                <span>{errors.email}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="votre@email.com"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Sujet
           </label>
           <input
@@ -138,48 +156,70 @@ export default function ContactForm() {
             name="subject"
             value={formData.subject}
             onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-              errors.subject ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Sujet de votre message"
+            className={`
+              w-full px-4 py-3 bg-white rounded-xl border-2 
+              focus:ring-2 focus:ring-blue-100 transition-all duration-200
+              ${errors.subject 
+                ? 'border-red-200 bg-red-50/50' 
+                : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+            `}
+            placeholder="Le sujet de votre message"
           />
           {errors.subject && (
-            <p className="mt-1 text-sm text-red-600">{errors.subject}</p>
+            <div className="flex items-center mt-1.5 text-red-500 text-sm">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              <span>{errors.subject}</span>
+            </div>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Message
           </label>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange}
-            rows="5"
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-              errors.message ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="Votre message"
+            rows="6"
+            className={`
+              w-full px-4 py-3 bg-white rounded-xl border-2 
+              focus:ring-2 focus:ring-blue-100 transition-all duration-200
+              ${errors.message 
+                ? 'border-red-200 bg-red-50/50' 
+                : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+            `}
+            placeholder="Écrivez votre message ici..."
           ></textarea>
           {errors.message && (
-            <p className="mt-1 text-sm text-red-600">{errors.message}</p>
+            <div className="flex items-center mt-1.5 text-red-500 text-sm">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              <span>{errors.message}</span>
+            </div>
           )}
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-blue-400"
+          className="
+            w-full px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700
+            text-white text-lg font-medium rounded-xl
+            hover:from-blue-700 hover:to-blue-800
+            focus:ring-4 focus:ring-blue-100
+            transform transition-all duration-200
+            disabled:opacity-70 disabled:cursor-not-allowed
+            flex items-center justify-center
+          "
         >
           {loading ? (
             <>
-              <Loader className="w-5 h-5 mr-2 animate-spin" />
+              <Loader className="w-5 h-5 mr-3 animate-spin" />
               Envoi en cours...
             </>
           ) : (
             <>
-              <Send className="w-5 h-5 mr-2" />
+              <Send className="w-5 h-5 mr-3" />
               Envoyer le message
             </>
           )}
@@ -188,9 +228,20 @@ export default function ContactForm() {
 
       {/* Notification */}
       {notification && (
-        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white animate-fade-in`}>
+        <div 
+          className={`
+            fixed bottom-4 right-4 px-6 py-4 rounded-xl shadow-lg
+            animate-slide-in-from-top flex items-center
+            ${notification.type === 'success' 
+              ? 'bg-green-500 text-white' 
+              : 'bg-red-500 text-white'}
+          `}
+        >
+          {notification.type === 'success' ? (
+            <div className="w-2 h-2 rounded-full bg-white mr-3 animate-pulse" />
+          ) : (
+            <AlertCircle className="w-5 h-5 mr-3" />
+          )}
           {notification.message}
         </div>
       )}

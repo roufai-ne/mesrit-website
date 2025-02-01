@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
 import { Bell, X, Info, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';

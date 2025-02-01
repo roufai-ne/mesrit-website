@@ -21,8 +21,9 @@ export const useNewsCache = () => {
   useEffect(() => {
     const now = Date.now();
     const newCache = Object.fromEntries(
-      Object.entries(cache).filter(([_, value]) => 
-        value.timestamp > now - CACHE_DURATION
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Object.entries(cache).filter(([_, { timestamp }]) => 
+        timestamp > now - CACHE_DURATION
       )
     );
 

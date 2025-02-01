@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Loader 
 } from 'lucide-react';
+import Link from 'next/link';
 
 // Lazy loading de la section stats qui est plus lourde
 const StatsSection = React.lazy(() => import('./StatsSection'));
@@ -73,9 +74,9 @@ export default function MinisterePage() {
       <div className="bg-gradient-to-b from-blue-900 to-blue-800 text-white py-20">
         <div className="container mx-auto px-6">
           <nav aria-label="Breadcrumb" className="flex items-center text-sm mb-4">
-            <a href="/" className="hover:text-blue-200 transition-colors">
+            <Link href="/" className="hover:text-blue-200 transition-colors">
               Accueil
-            </a>
+            </Link>
             <ChevronRight className="w-4 h-4 mx-2" aria-hidden="true" />
             <span aria-current="page">Le Ministère</span>
           </nav>

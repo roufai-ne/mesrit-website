@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/pages/api/news/index.js
 import { connectDB } from '@/lib/mongodb';
 import News from '@/models/News';

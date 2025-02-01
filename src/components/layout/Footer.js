@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/components/layout/Footer.js
 import React, { useState } from 'react';
 import Link from 'next/link';

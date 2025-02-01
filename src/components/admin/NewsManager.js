@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash, Calendar, Tag, Image as ImageIcon, X, Search, Filter } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { Plus, Edit, Trash, X, Search } from 'lucide-react';
+
 import  NewsImageUpload from '../communication/NewsImageUpload'; // Assurez-vous que le chemin est correct
 import { toast } from 'react-hot-toast';
 
 const NewsManager = ({
   categories = ['Actualités', 'Événements', 'Communiqués', 'Annonces'],
-  maxImageSize = 2 * 1024 * 1024, // 2MB
-  allowedImageTypes = ['image/jpeg', 'image/png'],
-}) => {
-  const router = useRouter();
+  }) => {
+  
   const [news, setNews] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingNews, setEditingNews] = useState(null);

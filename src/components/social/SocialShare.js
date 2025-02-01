@@ -1,6 +1,6 @@
 // src/components/social/SocialShare.js
 import React from 'react';
-import { Facebook, Twitter, Linkedin, Share2 } from 'lucide-react';
+import { Facebook, Twitter, Linkedin } from 'lucide-react';
 
 export default function SocialShare() {
   const shareUrl = encodeURIComponent(window.location.href);
@@ -15,7 +15,7 @@ export default function SocialShare() {
           target="_blank"
           rel="noopener noreferrer"
           className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
-        >
+        <a>
           <Facebook className="w-5 h-5" />
         </a>
         
@@ -23,7 +23,7 @@ export default function SocialShare() {
           target="_blank"
           rel="noopener noreferrer"
           className="p-2 text-blue-400 hover:bg-blue-50 rounded-full"
-        >
+        <a>
           <Twitter className="w-5 h-5" />
         </a>
         
@@ -31,7 +31,7 @@ export default function SocialShare() {
           target="_blank"
           rel="noopener noreferrer"
           className="p-2 text-blue-700 hover:bg-blue-50 rounded-full"
-        >
+        <a>
           <Linkedin className="w-5 h-5" />
         </a>
       </div>

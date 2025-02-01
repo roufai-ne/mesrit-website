@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash, image, X } from 'lucide-react';
+import { Plus, Edit, Trash, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const POSTES_DIRECTION = [

@@ -1,6 +1,6 @@
 import { React, useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Users, ChevronRight, ArrowLeft, ChevronDown } from 'lucide-react';
+import { Users, ChevronRight, ArrowLeft} from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 

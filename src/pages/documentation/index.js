@@ -2,11 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { 
-  Book, 
-  ChevronRight, 
-  Download, 
-  Search,
-  FileText,
+   Download, 
+    FileText,
   Calendar,
   BookOpen,
   Filter,
@@ -17,7 +14,7 @@ export default function DocumentationPage() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const categories = [

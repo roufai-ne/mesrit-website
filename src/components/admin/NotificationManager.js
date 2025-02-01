@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Send, AlertTriangle, Info, CheckCircle, Search, Edit2, Trash2 } from 'lucide-react';
+import { Bell, AlertTriangle, Info, CheckCircle, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const NotificationForm = ({ notification, onSubmit, onClose }) => {
@@ -138,6 +138,7 @@ export default function NotificationManager() {
       const response = await fetch('/api/notifications');
       const data = await response.json();
       setNotifications(data);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Erreur lors du chargement');
     }
@@ -152,6 +153,7 @@ export default function NotificationManager() {
       if (!response.ok) throw new Error('Erreur lors de la suppression');
       toast.success('Notification supprimée');
       fetchNotifications();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Erreur lors de la suppression');
     }

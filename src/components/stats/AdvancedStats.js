@@ -1,6 +1,6 @@
 // src/components/stats/AdvancedStats.js
 import React from 'react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 export default function AdvancedStats() {
   const studentData = [

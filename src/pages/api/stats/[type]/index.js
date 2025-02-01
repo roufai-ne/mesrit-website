@@ -21,6 +21,7 @@ const verifyToken = async (req) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return decoded;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     throw new Error('Non autorisé');
   }

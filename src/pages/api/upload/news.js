@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       maxFileSize: 5 * 1024 * 1024, // 5MB
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);

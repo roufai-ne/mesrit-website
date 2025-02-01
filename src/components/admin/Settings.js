@@ -1,6 +1,6 @@
 // src/components/admin/Settings.js
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Save, Globe, Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Globe, Mail, Phone, MapPin, Facebook} from 'lucide-react';
 
 export default function Settings() {
   const [settings, setSettings] = useState({

@@ -1,6 +1,6 @@
 // src/components/home/MinisterialAgenda.js
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, Users, Loader2 } from 'lucide-react';
+import { Clock, MapPin, Users } from 'lucide-react';
 
 
 export default function MinisterialAgenda() {
