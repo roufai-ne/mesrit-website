@@ -3,6 +3,8 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Users, ChevronRight, ArrowLeft} from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { secureApi } from '@/lib/secureApi';
+
 
 export default function DirectionPage() {
   const [loading, setLoading] = useState(true);
@@ -21,13 +23,9 @@ export default function DirectionPage() {
 
   const fetchDirectors = async () => {
     try {
-      const response = await fetch('/api/directors');
-      
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des données');
-      }
-
-      const data = await response.json();
+      setLoading(true);
+      // Utiliser secureApi sans authentification (endpoint public)
+      const data = await secureApi.get('/api/directors', false);
 
       if (Array.isArray(data)) {
         setMinistre(data.find(d => d.titre === "Ministre"));
@@ -51,7 +49,7 @@ export default function DirectionPage() {
       }
     } catch (error) {
       console.error('Erreur:', error);
-      setError(error.message);
+      setError(error.message || 'Erreur lors du chargement des données');
     } finally {
       setLoading(false);
     }

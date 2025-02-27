@@ -10,6 +10,7 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
 
 
@@ -123,7 +124,7 @@ const searchContent = useCallback(
               )}
             </button>
             <button 
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/auth/login')}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 rounded-lg transition-colors"
             >
               <UserCircleIcon className="w-5 h-5" />

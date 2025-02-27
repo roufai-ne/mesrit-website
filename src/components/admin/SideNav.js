@@ -52,12 +52,7 @@ export default function SideNav() {
       icon: <Users className="w-5 h-5" />,
       path: '/admin/directors'
     },
-    {
-      id: 'organigramme',
-      label: 'Organigramme',
-      icon: <GitFork className="w-5 h-5" />,
-      path: '/admin/organigramme'
-    },
+    
     {
       id: 'dashboard',
       label: 'Tableau de bord',
@@ -73,6 +68,12 @@ export default function SideNav() {
       icon: <BarChart4 className="w-5 h-5" />,
       path: '/admin/Statistiques',
       requiresAdmin: true
+    },
+    {
+      id: 'Etablissements',
+      label: 'Etablissements',
+      icon: <GitFork className="w-5 h-5" />,
+      path: '/admin/establishments'
     },
     {
       id: 'faq',

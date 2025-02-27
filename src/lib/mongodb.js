@@ -1,6 +1,7 @@
 // src/lib/mongodb.js
 import mongoose from 'mongoose';
 
+
 if (!process.env.MONGODB_URI) {
   throw new Error('Veuillez définir la variable d\'environnement MONGODB_URI');
 }

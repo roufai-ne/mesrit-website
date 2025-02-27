@@ -1,14 +1,7 @@
-// src/pages/documentation/index.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-   Download, 
-    FileText,
-  Calendar,
-  BookOpen,
-  Filter,
-  AlertTriangle
-} from 'lucide-react';
+import { Download, FileText, Calendar, BookOpen, Filter, AlertTriangle } from 'lucide-react';
+import { secureApi } from '@/lib/secureApi';
 
 export default function DocumentationPage() {
   const [documents, setDocuments] = useState([]);
@@ -32,10 +25,7 @@ export default function DocumentationPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/documents');
-      if (!response.ok) throw new Error('Erreur lors du chargement des documents');
-      const data = await response.json();
-      // Filtrer uniquement les documents publiés
+      const data = await secureApi.get('/api/documents', false); // Public endpoint
       setDocuments(data.filter(doc => doc.status === 'published'));
     } catch (error) {
       console.error('Erreur:', error);

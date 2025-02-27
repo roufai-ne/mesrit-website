@@ -1,3 +1,4 @@
+//pages/api/faq/[id].js
 import { connectDB } from '@/lib/mongodb';
 import FAQ from '@/models/FAQ';
 

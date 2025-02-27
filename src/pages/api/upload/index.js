@@ -1,6 +1,9 @@
-// src/pages/api/upload/index.js
-import { join } from 'path';
+// pages/api/upload/index.js
+import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
 import formidable from 'formidable';
+import { join } from 'path';
+import { mkdir, unlink } from 'fs/promises';
+import crypto from 'crypto';
 
 export const config = {
   api: {
@@ -8,55 +11,91 @@ export const config = {
   },
 };
 
-export default async function handler(req, res) {
+async function createUploadDir() {
+  const uploadDir = join(process.cwd(), 'public', 'documents');
+  await mkdir(uploadDir, { recursive: true });
+  return uploadDir;
+}
+
+async function uploadHandler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Méthode non autorisée' });
   }
+
+  // Vérification de l'utilisateur (fourni par securityMiddleware)
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentification requise' });
+  }
+
+  let filePath; // Pour stocker le chemin du fichier temporaire à nettoyer en cas d'erreur
 
   try {
+    const uploadDir = await createUploadDir();
+
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB
-      uploadDir: join(process.cwd(), 'public', 'documents'),
+      uploadDir,
       keepExtensions: true,
-      filename: (_name, _ext, part) => {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-        return `${uniqueSuffix}${part.originalFilename}`;
-      }
+      filename: (name, ext) => {
+        const randomString = crypto.randomBytes(16).toString('hex');
+        return `${Date.now()}-${randomString}${ext}`;
+      },
     });
 
-    return new Promise((resolve, reject) => {
-      form.parse(req, async (err, fields, files) => {
-        if (err) {
-          console.error('Erreur upload:', err);
-          reject(err);
-          return res.status(500).json({ error: 'Erreur lors de l\'upload du fichier' });
-        }
-
-        const file = files.file[0];
-        
-        // Validation du type de fichier
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedTypes.includes(file.mimetype)) {
-          return res.status(400).json({ error: 'Type de fichier non autorisé' });
-        }
-
-        try {
-          // Retourner l'URL du fichier
-          const fileUrl = `/documents/${file.newFilename}`;
-          resolve(res.status(200).json({
-            url: fileUrl,
-            size: file.size,
-            type: file.mimetype
-          }));
-        } catch (error) {
-          console.error('Erreur sauvegarde:', error);
-          reject(error);
-          return res.status(500).json({ error: 'Erreur lors de la sauvegarde du fichier' });
-        }
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
       });
     });
+
+    const file = Array.isArray(files.file) ? files.file[0] : files.file;
+    if (!file) {
+      return res.status(400).json({ error: 'Aucun fichier fourni' });
+    }
+
+    filePath = file.filepath; // Sauvegarde pour un éventuel nettoyage
+
+    const allowedTypes = new Set([
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ]);
+
+    if (!allowedTypes.has(file.mimetype)) {
+      await unlink(filePath).catch(() => {}); // Nettoyage si type invalide
+      return res.status(400).json({ error: 'Format de fichier non supporté' });
+    }
+
+    const response = {
+      url: `/documents/${file.newFilename}`,
+      size: file.size,
+      type: file.mimetype,
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
-    console.error('Erreur générale:', error);
-    return res.status(500).json({ error: 'Erreur serveur' });
+    console.error("Erreur lors de l'upload:", error);
+
+    // Nettoyage du fichier en cas d'erreur
+    if (filePath) {
+      await unlink(filePath).catch((err) =>
+        console.error('Erreur lors du nettoyage:', err)
+      );
+    }
+
+    if (error.code === 'ENOENT') {
+      return res.status(500).json({ error: 'Erreur de configuration du serveur' });
+    }
+    if (error.httpCode === 413) {
+      return res.status(413).json({ error: 'Fichier trop volumineux (max 10MB)' });
+    }
+    return res.status(500).json({ error: "Erreur lors de l'upload" });
   }
 }
+
+// Utilisation de apiHandler avec la structure correcte pour les méthodes
+export default apiHandler(
+  { POST: uploadHandler },  // Objet avec les méthodes
+  { POST: ROUTE_TYPES.PROTECTED }  // Objet avec les types de route
+);

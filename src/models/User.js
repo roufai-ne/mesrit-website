@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   isFirstLogin: { type: Boolean, default: true }
 }, { timestamps: true });
 
-// Méthode de comparaison du mot de passe modifiée
+// Méthode de comparaison du mot de passe
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   try {
     console.log('Comparing passwords');
@@ -27,6 +27,21 @@ UserSchema.methods.comparePassword = async function(candidatePassword) {
   }
 };
 
-// Export modifié pour s'assurer que le modèle est correctement créé
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
+// Vérifier si nous sommes côté serveur avant d'utiliser mongoose
+let User;
+
+try {
+  // Vérifier que nous sommes dans un environnement serveur
+  if (typeof window === 'undefined') {
+    User = mongoose.models.User || mongoose.model('User', UserSchema);
+  } else {
+    // Dans un environnement client, définir un objet User vide ou factice
+    User = { name: 'User' };
+  }
+} catch (error) {
+  console.error('Error creating User model:', error);
+  // Créer un modèle factice en cas d'erreur
+  User = { name: 'User' };
+}
+
 export { User };

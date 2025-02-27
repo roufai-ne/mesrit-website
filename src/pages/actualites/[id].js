@@ -1,10 +1,14 @@
+//src/pages/actualités/[id].js
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layout/MainLayout';
-import { Calendar, ArrowLeft, ArrowRight, Tag } from 'lucide-react';
+import { Calendar, ArrowLeft, ArrowRight, Tag, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Head from 'next/head';
+import { secureApi } from '@/lib/secureApi';
+
+import ImageSlideshow from '@/components/ImageSlideshow';
 
 export default function ActualiteDetail() {
   const router = useRouter();
@@ -16,6 +20,8 @@ export default function ActualiteDetail() {
     previous: null,
     next: null
   });
+  const [showSlideshow, setShowSlideshow] = useState(false);
+  
 
   useEffect(() => {
     const fetchActualite = async () => {
@@ -23,13 +29,11 @@ export default function ActualiteDetail() {
       
       try {
         setLoading(true);
-        const response = await fetch(`/api/news/${id}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Actualité non trouvée');
-        }
-
+        
+        // secureApi.get() renvoie directement les données JSON
+        const data = await secureApi.get(`/api/news/${id}`, false);
+        
+        // Les données sont déjà disponibles, pas besoin d'appeler .json()
         if (data.news) {
           setActualite(data.news);
           setNavigation(data.navigation);
@@ -149,7 +153,50 @@ export default function ActualiteDetail() {
               </div>
             </div>
           )}
+          {actualite.images && actualite.images.length > 0 && (
+            <div className="mt-8 mb-12">
+              <button
+                onClick={() => setShowSlideshow(true)}
+                className="w-full group relative overflow-hidden rounded-xl border bg-gray-50 hover:bg-gray-100"
+              >
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-4">
+                  {actualite.images.slice(0, 4).map((img, index) => (
+                    <div 
+                      key={index} 
+                      className={`relative aspect-video ${
+                        index === 0 ? 'md:col-span-2 md:row-span-2' : ''
+                      }`}
+                    >
+                      <Image
+                        src={img.url}
+                        alt={img.description || ''}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                      {index === 3 && actualite.images.length > 4 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                          <span className="text-white text-xl font-medium">
+                            +{actualite.images.length - 4}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center py-4 text-gray-600 flex items-center justify-center gap-2">
+                  <ImageIcon className="w-5 h-5" />
+                  <span>Voir toutes les photos ({actualite.images.length})</span>
+                </div>
+              </button>
 
+              {showSlideshow && (
+                <ImageSlideshow
+                  images={actualite.images}
+                  onClose={() => setShowSlideshow(false)}
+                />
+              )}
+            </div>
+          )}
           {/* Contenu */}
           <div className="prose prose-lg max-w-none mb-8">
             {actualite.summary && (

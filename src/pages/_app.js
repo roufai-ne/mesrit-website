@@ -1,7 +1,6 @@
 // src/pages/_app.js
 import '@/styles/globals.css'
 import { Inter } from 'next/font/google'
-import 'leaflet/dist/leaflet.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
 

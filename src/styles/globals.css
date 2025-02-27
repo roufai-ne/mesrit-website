@@ -83,7 +83,24 @@
            transition-all duration-300 ease-in-out
            transform hover:-translate-y-1 hover:scale-[1.01];
   }
+
+  .custom-popup .leaflet-popup-content-wrapper {
+    background: transparent;
+    border-radius: 12px;
+    box-shadow: none;
+    padding: 0;
+  }
+  .custom-popup .leaflet-popup-content {
+    margin: 0;
+    min-width: 240px;
+  }
+  .custom-popup .leaflet-popup-tip {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
 }
+
 
 /* Animations */
 @keyframes fadeIn {

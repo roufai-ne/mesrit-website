@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash, X } from 'lucide-react';
+import { Plus, Edit, Trash, X, Loader } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { secureApi, useApiAction } from '@/lib/secureApi';
 
 const POSTES_DIRECTION = [
   // Haute direction
@@ -9,13 +10,13 @@ const POSTES_DIRECTION = [
   { value: 'sg', label: 'Secrétaire Général', category: 'cabinet' },
   { value: 'sga', label: 'Secrétaire Général Adjoint', category: 'cabinet' },
   { value: 'dges', label: 'Directeur Général de l\'Enseignement Supérieur', category: 'cabinet' },
-  { value: 'dgr', label: 'Directeur Général de la Recherche', category: 'cabinet' },
+  { value: 'dgr', label: 'Directrice Général de la Recherche', category: 'cabinet' },
   { value: 'igs', label: 'Inspecteur Général des Services', category: 'cabinet' },
 
   // Directions nationales SG
-  { value: 'daf', label: 'Direction des Affaires Financières', category: 'sg' },
+  { value: 'daf', label: 'Direction des Affaires Financières et du Matériel', category: 'sg' },
   { value: 'drh', label: 'Direction des Ressources Humaines', category: 'sg' },
-  { value: 'dmp', label: 'Direction des Marchés Publics', category: 'sg' },
+  { value: 'dmp', label: 'Direction des Marchés Publics et Délégation des Services', category: 'sg' },
   { value: 'dsi', label: 'Direction des Statistiques et de l\'Informatique', category: 'sg' },
   { value: 'daidrp', label: 'Direction des Archives, de l\'Information, de la Documentation et des Relations Publiques', category: 'sg' },
 
@@ -33,8 +34,8 @@ export default function DirectorManager() {
   const [directors, setDirectors] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingDirector, setEditingDirector] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [notification, setNotification] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const { execute, loading: actionLoading } = useApiAction();
   const [uploading, setUploading] = useState(false);
 
   const initialFormState = {
@@ -48,34 +49,22 @@ export default function DirectorManager() {
   };
 
   const [formData, setFormData] = useState(initialFormState);
-  const [imagePreview, setImagePreview] = useState(formData.photo || null);
-
-  const showNotification = useCallback((message, type = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => {
-      setNotification(null);
-    }, 3000);
-  }, []);
+  
 
   const fetchDirectors = useCallback(async () => {
     try {
-      const response = await fetch('/api/directors');
-      if (response.ok) {
-        const data = await response.json();
-        const sortedData = data.sort((a, b) => {
-          const posteA = POSTES_DIRECTION.find(p => p.label === a.titre);
-          const posteB = POSTES_DIRECTION.find(p => p.label === b.titre);
-          return POSTES_DIRECTION.indexOf(posteA) - POSTES_DIRECTION.indexOf(posteB);
-        });
-        setDirectors(sortedData);
-      }
+      const data = await secureApi.get('/api/directors', true);
+      const sortedData = data.sort((a, b) => {
+        const posteA = POSTES_DIRECTION.find(p => p.label === a.titre);
+        const posteB = POSTES_DIRECTION.find(p => p.label === b.titre);
+        return POSTES_DIRECTION.indexOf(posteA) - POSTES_DIRECTION.indexOf(posteB);
+      });
+      setDirectors(sortedData);
     } catch (error) {
       console.error('Erreur:', error);
-      showNotification('Erreur lors du chargement des données', 'error');
-    } finally {
-      setLoading(false);
+      toast.error(error.message || 'Erreur lors du chargement des données');
     }
-  }, [showNotification]);
+  }, []);
 
   useEffect(() => {
     fetchDirectors();
@@ -96,44 +85,37 @@ export default function DirectorManager() {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
-    // Vérifications de base
+
+    // Vérifications côté client
     if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
       toast.error('Format de fichier non supporté. Utilisez JPG, PNG ou GIF');
       return;
     }
-  
+
     if (file.size > 5 * 1024 * 1024) { // 5MB
       toast.error('Le fichier est trop volumineux. Taille maximale : 5MB');
       return;
     }
-  
-    const formData = new FormData();
-    formData.append('file', file);
-  
+
+    const formDataFile = new FormData();
+    formDataFile.append('file', file);
+
     setUploading(true);
+    setImagePreview(URL.createObjectURL(file));
+    
     try {
-      console.log('Envoi du fichier :', file); // Log pour déboguer
-      const response = await fetch('/api/upload/dir', {
-        method: 'POST',
-        body: formData
-      });
-  
-      console.log('Réponse de l\'API :', response); // Log pour déboguer
-  
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('Erreur de l\'API :', error); // Log pour déboguer
-        throw new Error(error.message || 'Erreur lors de l\'upload');
+      const result = await secureApi.uploadFile('/api/upload/dir', file);
+      
+      if (result.success) {
+        setFormData(prev => ({ ...prev, photo: result.url }));
+        toast.success('Photo uploadée avec succès');
+      } else {
+        toast.error(result.error || 'Erreur lors de l\'upload');
+        setImagePreview(null);
       }
-  
-      const data = await response.json();
-      console.log('Données reçues :', data); // Log pour déboguer
-      setFormData(prev => ({ ...prev, photo: data.url }));
-      setImagePreview(URL.createObjectURL(file));
-      toast.success('Photo uploadée avec succès');
     } catch (error) {
-      toast.error(error.message);
+      setImagePreview(null);
+      toast.error(error.message || 'Erreur lors de l\'upload');
       console.error('Upload error:', error);
     } finally {
       setUploading(false);
@@ -143,60 +125,66 @@ export default function DirectorManager() {
   const handleSave = async (e) => {
     e.preventDefault();
     
-    try {
-      const url = editingDirector 
-        ? `/api/directors/${editingDirector}` 
-        : '/api/directors';
-      
-      const response = await fetch(url, {
-        method: editingDirector ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+    await execute(async () => {
+      try {
+        // Validation côté client
+        if (!formData.titre || !formData.nom) {
+          toast.error('Le titre et le nom sont requis');
+          return;
+        }
+        
+        let result;
+        if (editingDirector) {
+          result = await secureApi.put(`/api/directors/${editingDirector}`, formData);
+        } else {
+          result = await secureApi.post('/api/directors', formData);
+        }
 
-      if (response.ok) {
-        showNotification(
-          editingDirector 
+        if (result.success) {
+          toast.success(editingDirector 
             ? 'Responsable mis à jour avec succès' 
             : 'Nouveau responsable ajouté avec succès'
-        );
-        setShowForm(false);
-        setFormData(initialFormState);
-        setEditingDirector(null);
-        fetchDirectors();
+          );
+          setShowForm(false);
+          setFormData(initialFormState);
+          setEditingDirector(null);
+          setImagePreview(null);
+          fetchDirectors();
+        } else {
+          toast.error(result.error || 'Une erreur est survenue');
+        }
+      } catch (error) {
+        toast.error(error.message || 'Une erreur est survenue');
       }
-    } catch (error) {
-      console.error('Erreur:', error);
-      showNotification('Une erreur est survenue', 'error');
-    }
+    });
   };
+
 
   const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce responsable ?')) {
-      try {
-        const response = await fetch(`/api/directors/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          showNotification('Responsable supprimé avec succès');
-          fetchDirectors();
+      await execute(async () => {
+        try {
+          const result = await secureApi.delete(`/api/directors/${id}`);
+          
+          if (result.success) {
+            toast.success('Responsable supprimé avec succès');
+            fetchDirectors();
+          } else {
+            toast.error(result.error || 'Erreur lors de la suppression');
+          }
+        } catch (error) {
+          toast.error(error.message || 'Erreur lors de la suppression');
         }
-      } catch (error) {
-        console.error('Erreur:', error);
-        showNotification('Erreur lors de la suppression', 'error');
-      }
+      });
     }
   };
 
   const handleEdit = (director) => {
-    console.log('Directeur à éditer :', director); // Log pour déboguer
     if (!director || !director._id) {
-      console.error('Directeur invalide :', director);
+      console.error('Directeur invalide:', director);
       return;
     }
+    
     setEditingDirector(director._id);
     setFormData({
       titre: director.titre || '',
@@ -218,6 +206,14 @@ export default function DirectorManager() {
 
   return (
     <div className="p-6">
+      {actionLoading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-4 shadow-md flex items-center">
+            <Loader className="w-5 h-5 mr-3 animate-spin" />
+            <span>Traitement en cours...</span>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Gestion des responsables</h2>
         <button 
@@ -233,7 +229,7 @@ export default function DirectorManager() {
         </button>
       </div>
 
-      {loading ? (
+      {actionLoading ? (
         <div className="text-center py-4">Chargement...</div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -461,15 +457,7 @@ export default function DirectorManager() {
         </div>
       )}
 
-      {notification && (
-        <div
-          className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
-            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-          } text-white`}
-        >
-          {notification.message}
-        </div>
-      )}
+      
     </div>
   );
 }

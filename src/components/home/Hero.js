@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const timerRef = useRef(null);
-  const slideDuration = 7000; // 8 secondes par slide
+  const slideDuration = 7000; // 7 secondes par slide
   
   const slides = [
     {
@@ -43,7 +44,6 @@ export default function Hero() {
 
   useEffect(() => {
     resetTimer();
-    
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -70,7 +70,7 @@ export default function Hero() {
   };
 
   return (
-    <div className="relative h-[500px] bg-gradient-to-b from-blue-900 to-blue-800">
+    <div className="relative min-h-[300px] md:h-[500px] bg-gradient-to-b from-blue-900 to-blue-800">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
@@ -83,12 +83,14 @@ export default function Hero() {
         >
           {/* Image background */}
           <div className="absolute inset-0">
-            <img
+            <Image
               src={slide.image}
               alt={slide.title}
+              fill
               className={`absolute inset-0 w-full h-full object-cover object-center opacity-60 transition-transform duration-[8000ms] ${
                 index === currentSlide ? 'scale-105' : 'scale-100'
               }`}
+              priority={index === 0} // Priorité pour le premier slide
             />
           </div>
 
@@ -105,7 +107,7 @@ export default function Hero() {
               </span>
 
               <h1 className={`
-                text-4xl font-bold text-white leading-tight mb-4
+                text-3xl md:text-4xl font-bold text-white leading-tight mb-4
                 transform transition-all duration-700 delay-500
                 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
               `}>
@@ -113,7 +115,7 @@ export default function Hero() {
               </h1>
 
               <p className={`
-                text-lg text-gray-100 mb-6
+                text-base md:text-lg text-gray-100 mb-6
                 transform transition-all duration-700 delay-700
                 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
               `}>
@@ -145,6 +147,7 @@ export default function Hero() {
           disabled={isTransitioning}
           className="p-2 rounded-lg bg-white/10 backdrop-blur-sm text-white 
                    hover:bg-white hover:text-blue-900 transition-all group"
+          aria-label="Slide précédent"
         >
           <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
@@ -154,6 +157,7 @@ export default function Hero() {
           disabled={isTransitioning}
           className="p-2 rounded-lg bg-white/10 backdrop-blur-sm text-white 
                    hover:bg-white hover:text-blue-900 transition-all group"
+          aria-label="Slide suivant"
         >
           <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
         </button>

@@ -1,7 +1,8 @@
-// pages/api/upload/dir.js
+import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
 import formidable from 'formidable';
 import path from 'path';
 import fs from 'fs/promises';
+import crypto from 'crypto';
 
 export const config = {
   api: {
@@ -9,12 +10,20 @@ export const config = {
   },
 };
 
-export default async function handler(req, res) {
+const uploadDirImage = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // Vérifier l'authentification
+    if (!req.user) {
+      return res.status(401).json({ 
+        success: false,
+        error: 'Non authentifié' 
+      });
+    }
+
     // Définir le chemin de destination
     const uploadDir = path.join(process.cwd(), 'public/images/dir');
 
@@ -25,18 +34,30 @@ export default async function handler(req, res) {
       await fs.mkdir(uploadDir, { recursive: true });
     }
 
+    // Créer un nom de fichier sécurisé
+    const generateSecureFilename = (originalFilename) => {
+      const timestamp = Date.now();
+      const randomString = crypto.randomBytes(16).toString('hex');
+      const extension = path.extname(originalFilename);
+      return `dir_${timestamp}_${randomString}${extension}`;
+    };
+
     const form = formidable({
       uploadDir,
       keepExtensions: true,
       maxFileSize: 5 * 1024 * 1024, // 5MB
+      filename: (name, ext, part) => {
+        if (part.mimetype && !part.mimetype.includes('image/')) {
+          throw new Error('Seules les images sont autorisées');
+        }
+        return generateSecureFilename(part.originalFilename || 'image.jpg');
+      },
       filter: ({ mimetype }) => {
-        // Valider que le fichier est une image
         return mimetype && mimetype.includes('image');
       }
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [fields, files] = await new Promise((resolve, reject) => {
+    const [files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
         resolve([fields, files]);
@@ -45,25 +66,36 @@ export default async function handler(req, res) {
 
     const file = files.file;
     if (!file) {
-      throw new Error('Aucun fichier uploadé ou le fichier n\'est pas une image valide');
+      return res.status(400).json({ 
+        success: false,
+        error: 'Aucun fichier uploadé ou le fichier n\'est pas une image valide' 
+      });
     }
 
-    console.log('Fichier uploadé :', file); // Log pour déboguer
+    // Vérification du type MIME
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      await fs.unlink(file.filepath);
+      return res.status(400).json({ 
+        success: false,
+        error: 'Type de fichier non autorisé. Utilisez JPG, PNG ou GIF.' 
+      });
+    }
 
-    // Générer un nom de fichier unique
-    const fileName = `dir_${Date.now()}${path.extname(file.name || file.filename || file.originalFilename)}`;
-    const newPath = path.join(uploadDir, fileName);
-
-    // Renommer le fichier avec le nouveau nom
-    await fs.rename(file.filepath, newPath);
-
-    // Retourner le chemin relatif pour le stockage en base de données
     return res.status(200).json({
-      url: `/images/dir/${fileName}`
+      success: true,
+      url: `/images/dir/${path.basename(file.filepath)}`
     });
-
   } catch (error) {
     console.error('Upload error:', error);
-    return res.status(500).json({ error: error.message || 'Erreur lors de l\'upload du fichier' });
+    return res.status(500).json({ 
+      success: false,
+      error: error.message || 'Erreur lors de l\'upload du fichier' 
+    });
   }
-}
+};
+
+export default apiHandler(
+  { POST: uploadDirImage },
+  { POST: ROUTE_TYPES.PROTECTED }
+);

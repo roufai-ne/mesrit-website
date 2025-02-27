@@ -4,6 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { ChevronRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { secureApi } from '@/lib/secureApi';
 
 const Breadcrumb = () => (
   <nav className="bg-white border-b">
@@ -63,13 +64,13 @@ export default function DirectionsList() {
   useEffect(() => {
     const fetchDirections = async () => {
       try {
-        const response = await fetch('/api/directors');
-        if (!response.ok) throw new Error('Erreur lors du chargement des directions');
-        const data = await response.json();
+        setLoading(true);
+        // Utiliser secureApi sans authentification (endpoint public)
+        const data = await secureApi.get('/api/directors', false);
         setDirections(data);
       } catch (error) {
         console.error('Erreur:', error);
-        setError(error.message);
+        setError(error.message || 'Erreur lors du chargement des directions');
       } finally {
         setLoading(false);
       }

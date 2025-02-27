@@ -1,5 +1,5 @@
 // src/pages/admin/communications.js
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Bell, 
   Calendar,
@@ -42,35 +42,49 @@ export default function CommunicationsManager() {
 
   const [formData, setFormData] = useState(alertInitialState);
 
-  useEffect(() => {
-    fetchItems();
-  }, [activeTab, fetchItems]);
-
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
-  };
+  }, []);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true);
       const endpoint = activeTab === 'alerts' ? '/api/alerts' : '/api/events';
       const response = await fetch(endpoint);
-      if (!response.ok) throw new Error('Erreur de chargement');
+      
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setItems(data);
+      const formattedData = Array.isArray(data) ? data : [];
+      
+      if (activeTab === 'events') {
+        formattedData.forEach(event => {
+          if (event.date && !(event.date instanceof Date)) {
+            event.date = new Date(event.date);
+          }
+        });
+      }
+      
+      setItems(formattedData);
     } catch (error) {
       console.error('Erreur:', error);
-      showNotification(`Erreur lors du chargement des ${activeTab === 'alerts' ? 'alertes' : 'événements'}`, 'error');
+      showNotification(
+        `Erreur lors du chargement des ${activeTab === 'alerts' ? 'alertes' : 'événements'}: ${error.message}`,
+        'error'
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]); // Retirer showNotification des dépendances
 
+  // UseEffect pour le fetch initial et les changements d'onglet
   useEffect(() => {
     fetchItems();
-  }, [activeTab, fetchItems]);
+  }, [activeTab]);
 
   const handleAdd = () => {
     setEditingItem(null);
@@ -95,13 +109,31 @@ export default function CommunicationsManager() {
     setShowForm(true);
   };
 
+  const isValidDate = (date) => {
+    const d = new Date(date);
+    return d instanceof Date && !isNaN(d);
+  };
+
+  // Mise à jour de handleSubmit pour la validation des données
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
+      // Valider les données avant l'envoi
+      if (activeTab === 'events') {
+        if (!isValidDate(formData.date)) {
+          throw new Error('Date invalide');
+        }
+        if (!formData.time.match(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+          throw new Error('Format d\'heure invalide');
+        }
+      }
+
       const endpoint = activeTab === 'alerts' ? 'alerts' : 'events';
       const url = editingItem 
         ? `/api/${endpoint}/${editingItem}` 
         : `/api/${endpoint}`;
+      
       const method = editingItem ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -110,18 +142,21 @@ export default function CommunicationsManager() {
         body: JSON.stringify(formData)
       });
 
-      if (!response.ok) throw new Error('Erreur lors de la sauvegarde');
+      if (!response.ok) {
+        throw new Error('Erreur lors de la sauvegarde');
+      }
 
       showNotification(
         editingItem ? 
           `${activeTab === 'alerts' ? 'Alerte' : 'Événement'} mis(e) à jour avec succès` : 
           `${activeTab === 'alerts' ? 'Alerte' : 'Événement'} créé(e) avec succès`
       );
+      
       setShowForm(false);
-      fetchItems();
+      fetchItems(); // Rafraîchir la liste après la création/modification
     } catch (error) {
       console.error('Erreur:', error);
-      showNotification('Erreur lors de la sauvegarde', 'error');
+      showNotification(error.message, 'error');
     }
   };
 

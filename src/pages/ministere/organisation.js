@@ -122,7 +122,7 @@ export default function OrganisationPage() {
                    </OrgSection>
 
                    <OrgSection 
-                     title="Direction Générale de la Recherche et de l'Innovation (DGR/I)"
+                     title="Direction Générale de la Recherche et de l'Innovation Technologique (DGR/IT)"
                      icon={FlaskConical}
                      color="purple"
                    >
@@ -144,12 +144,13 @@ export default function OrganisationPage() {
                        <DirectionList items={[
                          "Direction des Études et de la Programmation (DEP)",
                          "Direction des Ressources Humaines (DRH)",
-                         "Direction des Ressources Financières et des Marchés Publics (DRF/M/MP/DSP)",
+                         "Direction des Ressources Financières et Matérielles (DRFM)",
+                         "Direction des Marchés Publics et Delegation des Services (DMP/DSP)",
                          "Direction des Statistiques et de l'Informatique (DSI)"
                        ]} />
                        <DirectionList items={[
                          "Direction de la Législation (DL)",
-                         "Direction des Archives et Relations Publiques (DAIDR/P)",
+                         "Direction des Archives, de l'Information et Relations Publiques (DAIDR/P)",
                          "Direction des Infrastructures et Equipements Universitaires (DI/EU)"
                        ]} />
                      </div>

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { ImageIcon } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { secureApi } from '@/lib/secureApi';
+import Image from 'next/image';
 
 
 export default function NewsImageUpload({ value, onChange, required }) {
@@ -27,21 +29,16 @@ export default function NewsImageUpload({ value, onChange, required }) {
    formData.append('file', file);
 
    try {
-     const response = await fetch('/api/upload/news', {
-       method: 'POST',
-       body: formData
-     });
-
-     if (!response.ok) throw new Error('Erreur upload');
-
-     const data = await response.json();
-     onChange(data.url);
-   } catch (error) {
-     toast.error('Erreur lors de l\'upload');
-   } finally {
-     setUploading(false);
-   }
- };
+    const response = await secureApi.uploadFile('/api/upload/news', file, true); // Utilise uploadFile
+    onChange(response.url);
+    toast.success('Image téléchargée avec succès');
+  } catch (error) {
+    console.error('Erreur lors de l’upload:', error);
+    toast.error(error.message || 'Erreur lors de l’upload');
+  } finally {
+    setUploading(false);
+  }
+};
 
  return (
    <div className="space-y-4">
@@ -53,12 +50,13 @@ export default function NewsImageUpload({ value, onChange, required }) {
      >
        {value ? (
          <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-           <img
-             src={value}
-             alt="Preview"
-             className="w-full h-full object-cover"
-           />
-         </div>
+         <Image
+           src={value}
+           alt="Preview"
+           fill
+           className="object-cover"
+         />
+       </div>
        ) : (
          <>
            <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />

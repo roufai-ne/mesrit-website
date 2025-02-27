@@ -1,15 +1,15 @@
 
+'use client';
 import React from 'react';
-import { useRouter } from 'next/router';
+
 import Header from './Header';
 import Navigation from './Navigation';
 import Footer from './Footer';
 
 export default function MainLayout({ children }) {
-  const router = useRouter(); // Initialisation du hook à l'intérieur du composant
-  const isRTL = router.locale === 'ar';
+  
   return (
-    <div dir={isRTL ? 'rtl' : 'ltr'}>
+    
     <div className="min-h-screen flex flex-col relative">
       {/* Image en filigrane */}
       <div 
@@ -27,7 +27,7 @@ export default function MainLayout({ children }) {
           animation: 'float 6s ease-in-out infinite'
         }}
       />
-    <div className="min-h-screen flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen flex flex-col">
       
       <Header />
       
@@ -39,6 +39,6 @@ export default function MainLayout({ children }) {
      
     </div>
     </div>
-    </div>
+    
   );
 }

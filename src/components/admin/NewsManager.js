@@ -1,20 +1,21 @@
+// components/admin/NewsManager.js
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Plus, Edit, Trash, X, Search } from 'lucide-react';
-
-import  NewsImageUpload from '../communication/NewsImageUpload'; // Assurez-vous que le chemin est correct
+import NewsImageUpload from '../communication/NewsImageUpload';
 import { toast } from 'react-hot-toast';
+import { secureApi, useApiAction } from '@/lib/secureApi';
 
 const NewsManager = ({
   categories = ['Actualités', 'Événements', 'Communiqués', 'Annonces'],
-  }) => {
-  
+}) => {
   const [news, setNews] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const { execute, loading } = useApiAction();
 
   // État initial du formulaire
   const initialFormState = {
@@ -25,7 +26,8 @@ const NewsManager = ({
     image: '',
     content: '',
     tags: [],
-    summary: ''
+    summary: '',
+    images: []
   };
   const [formData, setFormData] = useState(initialFormState);
   const [newTag, setNewTag] = useState('');
@@ -38,13 +40,12 @@ const NewsManager = ({
   // Récupérer les actualités
   const fetchNews = async () => {
     try {
-      const response = await fetch('/api/news');
-      if (response.ok) {
-        const data = await response.json();
-        setNews(data);
-      }
+      // Utiliser secureApi avec authentification (true)
+      const data = await secureApi.get('/api/news', true);
+      setNews(data);
     } catch (error) {
       console.error('Erreur lors du chargement des actualités:', error);
+      toast.error(error.message || 'Erreur lors du chargement des actualités');
     }
   };
 
@@ -57,16 +58,17 @@ const NewsManager = ({
 
   // Ouvrir le formulaire pour éditer
   const handleEdit = (item) => {
-    setEditingNews(item._id); // Utiliser _id de MongoDB
+    setEditingNews(item._id);
     setFormData({
       title: item.title,
-      date: new Date(item.date).toISOString().split('T')[0], // Formatage correct de la date
+      date: new Date(item.date).toISOString().split('T')[0],
       category: item.category,
       status: item.status,
       image: item.image,
       content: item.content,
       summary: item.summary || '',
-      tags: item.tags || []
+      tags: item.tags || [],
+      images: item.images || []
     });
     setShowForm(true);
   };
@@ -75,20 +77,13 @@ const NewsManager = ({
   const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')) {
       try {
-        const response = await fetch(`/api/news/${id}`, {
-          method: 'DELETE',
-        });
-
-        if (response.ok) {
-          // Mettre à jour l'état local après suppression
+        await execute(async () => {
+          await secureApi.delete(`/api/news/${id}`);
           setNews(prevNews => prevNews.filter(item => item._id !== id));
           toast.success('Actualité supprimée avec succès');
-        } else {
-          toast.error('Erreur lors de la suppression');
-        }
+        });
       } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-        toast.error('Erreur lors de la suppression');
+        toast.error(error.message || 'Erreur lors de la suppression');
       }
     }
   };
@@ -118,64 +113,34 @@ const NewsManager = ({
     e.preventDefault();
 
     try {
-      if (editingNews) {
-        // Mise à jour
-        const response = await fetch(`/api/news/${editingNews}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            date: new Date(formData.date).toISOString() // Format de date correct
-          }),
-        });
+      await execute(async () => {
+        const formattedData = {
+          ...formData,
+          date: new Date(formData.date).toISOString() // Format de date correct
+        };
 
-        if (response.ok) {
-          const updatedNews = await response.json();
+        if (editingNews) {
+          // Mise à jour
+          const updatedNews = await secureApi.put(`/api/news/${editingNews}`, formattedData);
           setNews(prevNews =>
             prevNews.map(item =>
               item._id === editingNews ? updatedNews : item
             )
           );
           toast.success('Actualité mise à jour avec succès');
-          setShowForm(false);
         } else {
-          toast.error('Erreur lors de la mise à jour');
-        }
-      } else {
-        // Création
-        const response = await fetch('/api/news', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            date: new Date(formData.date).toISOString()
-          }),
-        });
-
-        if (response.ok) {
-          const newNews = await response.json();
+          // Création
+          const newNews = await secureApi.post('/api/news', formattedData);
           setNews(prevNews => [...prevNews, newNews]);
           toast.success('Actualité créée avec succès');
-          setShowForm(false);
-        } else {
-          toast.error('Erreur lors de la création');
         }
-      }
 
-      // Rafraîchir la liste après modification
-      const refreshResponse = await fetch('/api/news');
-      if (refreshResponse.ok) {
-        const refreshedNews = await refreshResponse.json();
-        setNews(refreshedNews);
-      }
-
+        setShowForm(false);
+        // Rafraîchir la liste après modification
+        await fetchNews();
+      });
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Une erreur est survenue');
+      toast.error(error.message || 'Une erreur est survenue');
     }
   };
 
@@ -364,7 +329,76 @@ const NewsManager = ({
                     required
                   />
                 </div>
+                <div className="space-y-4">
+                <label className="block text-sm font-medium">Images supplémentaires</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {formData.images.map((img, index) => (
+                    <div key={index} className="relative group">
+                      <Image
+                        src={img.url}
+                        alt={img.description}
+                        width={500}
+                        height={300}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={img.description}
+                        onChange={(e) => {
+                          const newImages = [...formData.images];
+                          newImages[index].description = e.target.value;
+                          setFormData({...formData, images: newImages});
+                        }}
+                        className="mt-2 w-full p-2 border rounded"
+                        placeholder="Description"
+                      />
+                      <button
+                        onClick={() => {
+                          const newImages = formData.images.filter((_, i) => i !== index);
+                          setFormData({...formData, images: newImages});
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
 
+                  <div 
+                    className="h-48 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500"
+                    onClick={() => document.getElementById('additionalImages').click()}
+                  >
+                    <input
+                      id="additionalImages"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        for (let file of e.target.files) {
+                          const formData = new FormData();
+                          formData.append('file', file);
+
+                          try {
+                            const response = await secureApi.uploadFile('/api/upload/news', file, true);
+
+                            if (response.ok) {
+                              const { url } = await response.json();
+                              setFormData(prev => ({
+                                ...prev,
+                                images: [...prev.images, { url, description: '' }]
+                              }));
+                            }
+                          } catch (error) {
+                            toast.error(`Erreur lors de l'upload de ${file.name}`);
+                          }
+                        }
+                      }}
+                    />
+                    <Plus className="w-8 h-8 text-gray-400" />
+                  </div>
+                </div>
+                </div>
                 {/* Résumé */}
                 <div>
                   <label className="block text-sm font-medium mb-1">Résumé</label>

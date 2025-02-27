@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Calendar, ArrowRight} from 'lucide-react';
+import { Calendar, ArrowRight, Copy, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useNewsCache } from '@/hooks/useNewsCache';
@@ -12,13 +12,7 @@ const Toast = ({ message }) => (
 );
 
 export default function Actualites() {
-  const {
-    fetchNews,
-    
-    getCachedData,
-    loading,
-    
-  } = useNewsCache();
+  const { fetchNews, getCachedData, loading } = useNewsCache();
 
   const [actualites, setActualites] = useState([]);
   const [error, setError] = useState(null);
@@ -28,6 +22,9 @@ export default function Actualites() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [shareTitle, setShareTitle] = useState(''); // Pour le titre dans les partages sociaux
 
   const categories = ['Communiqués', 'Événements', 'Annonces'];
 
@@ -41,16 +38,14 @@ export default function Actualites() {
     let isMounted = true;
     const loadNews = async () => {
       if (!isMounted) return;
-      
+
       try {
         setIsSearching(true);
-        // Vérifier d'abord le cache
         const cachedData = getCachedData(filter, currentPage, searchTerm);
         if (cachedData && isMounted) {
           setActualites(cachedData);
         }
 
-        // Charger les données fraîches
         const data = await fetchNews(filter, currentPage, searchTerm);
         if (isMounted) {
           setActualites(data);
@@ -68,7 +63,7 @@ export default function Actualites() {
     };
 
     const timer = setTimeout(loadNews, searchTerm ? 300 : 0);
-    
+
     return () => {
       isMounted = false;
       clearTimeout(timer);
@@ -86,19 +81,72 @@ export default function Actualites() {
     setCurrentPage(1);
   };
 
-  const handleShare = async (actualite) => {
-    try {
-      await navigator.share({
-        title: actualite.title,
-        text: actualite.summary,
-        url: `/actualites/${actualite._id}`
-      });
-      displayToast('Article partagé avec succès !');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      navigator.clipboard.writeText(window.location.origin + `/actualites/${actualite._id}`);
-      displayToast('Lien copié dans le presse-papier !');
+  const handleShare = (actualite) => {
+    if (typeof window === 'undefined') {
+      displayToast('Le partage n’est pas disponible dans cet environnement.', 'error');
+      return;
     }
+
+    const url = `${window.location.origin}/actualites/${actualite._id}`;
+    setShareUrl(url);
+    setShareTitle(actualite.title); // Stocker le titre pour les partages sociaux
+    setShowModal(true); // Afficher la modale immédiatement
+
+    // Tentative de copie automatique
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = url;
+    tempTextarea.style.position = 'fixed';
+    tempTextarea.style.opacity = '0';
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        displayToast('Lien copié dans le presse-papier !');
+      } else {
+        displayToast('Échec de la copie, utilisez les options ci-dessous.');
+      }
+    } catch (err) {
+      displayToast('Échec de la copie, utilisez les options ci-dessous.');
+    } finally {
+      document.body.removeChild(tempTextarea);
+    }
+  };
+
+  const handleCopyClick = () => {
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = shareUrl;
+    tempTextarea.style.position = 'fixed';
+    tempTextarea.style.opacity = '0';
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+
+    try {
+      document.execCommand('copy');
+      displayToast('Lien copié dans le presse-papier !');
+    } catch (err) {
+      displayToast('Erreur lors de la copie, veuillez copier manuellement.', 'error');
+    } finally {
+      document.body.removeChild(tempTextarea);
+    }
+  };
+
+  // Fonctions pour générer des URLs de partage social
+  const getTwitterShareUrl = () => {
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`;
+  };
+
+  const getFacebookShareUrl = () => {
+    return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+  };
+
+  const getLinkedInShareUrl = () => {
+    return `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`;
+  };
+
+  const getWhatsAppShareUrl = () => {
+    return `https://wa.me/?text=${encodeURIComponent(`${shareTitle} - ${shareUrl}`)}`;
   };
 
   if (loading && actualites.length === 0) {
@@ -132,7 +180,7 @@ export default function Actualites() {
         </div>
 
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          <button 
+          <button
             onClick={() => handleFilterChange('all')}
             className={`${filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100'} 
               px-4 py-2 rounded-lg transition-all duration-300 hover:shadow-md`}
@@ -140,7 +188,7 @@ export default function Actualites() {
             Tout
           </button>
           {categories.map(cat => (
-            <button 
+            <button
               key={cat}
               onClick={() => handleFilterChange(cat)}
               className={`${filter === cat ? 'bg-blue-600 text-white' : 'bg-gray-100'} 
@@ -174,20 +222,18 @@ export default function Actualites() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {filteredActualites.map((actu) => (
-            <article 
-              key={actu._id} 
+            <article
+              key={actu._id}
               className="bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
             >
               <div className="relative h-48 group">
-              <Image
-                src={actu.image || '/images/placeholder.jpg'}
-                alt={actu.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 
-                      (max-width: 1200px) 50vw, 
-                      33vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+                <Image
+                  src={actu.image || '/images/placeholder.jpg'}
+                  alt={actu.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
               </div>
               <div className="p-6">
@@ -229,6 +275,83 @@ export default function Actualites() {
             </article>
           ))}
         </div>
+
+        {/* Modale personnalisée avec options de partage */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Partager cet article</h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Copiez le lien ou partagez directement sur vos réseaux sociaux :
+              </p>
+              <div className="flex items-center space-x-2 mb-4">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="w-full p-2 border rounded-lg bg-gray-100 text-gray-700 focus:outline-none"
+                />
+                <button
+                  onClick={handleCopyClick}
+                  className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  title="Copier le lien"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <a
+                  href={getTwitterShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors text-center"
+                >
+                  Twitter
+                </a>
+                <a
+                  href={getFacebookShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-center"
+                >
+                  Facebook
+                </a>
+                <a
+                  href={getLinkedInShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors text-center"
+                >
+                  LinkedIn
+                </a>
+                <a
+                  href={getWhatsAppShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-center"
+                >
+                  WhatsApp
+                </a>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showToast && <Toast message={toastMessage} />}
       </div>

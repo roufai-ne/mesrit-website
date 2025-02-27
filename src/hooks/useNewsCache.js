@@ -1,11 +1,14 @@
 // hooks/useNewsCache.js
 import { useState, useEffect, useCallback } from 'react';
+import { secureApi } from '@/lib/secureApi';
 
 const CACHE_KEY = 'news_cache';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useNewsCache = () => {
   const [cache, setCache] = useState(() => {
+    if (typeof window === 'undefined') return {};
+    
     try {
       const savedCache = localStorage.getItem(CACHE_KEY);
       return savedCache ? JSON.parse(savedCache) : {};
@@ -19,9 +22,10 @@ export const useNewsCache = () => {
 
   // Nettoyage du cache en une seule fois au montage
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const now = Date.now();
     const newCache = Object.fromEntries(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       Object.entries(cache).filter(([_, { timestamp }]) => 
         timestamp > now - CACHE_DURATION
       )
@@ -55,23 +59,22 @@ export const useNewsCache = () => {
         search
       });
 
-      const response = await fetch(`/api/news?${params}`);
-      if (!response.ok) throw new Error('Erreur lors de la récupération des actualités');
-
-      const result = await response.json();
-      const data = Array.isArray(result) ? result : (result.data || []);
+      // Utiliser secureApi à la place de fetch
+      const data = await secureApi.get(`/api/news?${params}`, false); // public endpoint
 
       // Mise à jour du cache
-      const newCacheEntry = {
-        data,
-        timestamp: Date.now()
-      };
+      if (typeof window !== 'undefined') {
+        const newCacheEntry = {
+          data,
+          timestamp: Date.now()
+        };
 
-      setCache(prevCache => {
-        const newCache = { ...prevCache, [cacheKey]: newCacheEntry };
-        localStorage.setItem(CACHE_KEY, JSON.stringify(newCache));
-        return newCache;
-      });
+        setCache(prevCache => {
+          const newCache = { ...prevCache, [cacheKey]: newCacheEntry };
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newCache));
+          return newCache;
+        });
+      }
 
       return data;
     } catch (error) {
@@ -83,6 +86,8 @@ export const useNewsCache = () => {
   }, [cache, getCacheKey]);
 
   const clearCache = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    
     setCache({});
     localStorage.removeItem(CACHE_KEY);
   }, []);

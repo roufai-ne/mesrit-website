@@ -9,9 +9,8 @@ import {
   Search,
   Download,
   Upload
- 
 } from 'lucide-react';
-
+import { secureApi, useApiAction } from '@/lib/secureApi';
 
 export default function DocumentManager() {
   const [documents, setDocuments] = useState([]);
@@ -22,6 +21,7 @@ export default function DocumentManager() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [notification, setNotification] = useState(null);
   const [file, setFile] = useState(null);
+  const { execute, loading } = useApiAction();
 
   // État initial du formulaire
   const initialFormState = {
@@ -47,11 +47,9 @@ export default function DocumentManager() {
 
   const fetchDocuments = async () => {
     try {
-      const response = await fetch('/api/documents');
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data);
-      }
+      // Utiliser l'API sécurisée avec authentification requise (true)
+      const data = await secureApi.get('/api/documents', true);
+      setDocuments(data);
     } catch (error) {
       console.error('Erreur lors du chargement des documents:', error);
       showNotification('Erreur lors du chargement des documents', 'error');
@@ -95,113 +93,58 @@ export default function DocumentManager() {
   const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) {
       try {
-        const response = await fetch(`/api/documents/${id}`, {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
+        await execute(async () => {
+          await secureApi.delete(`/api/documents/${id}`);
           setDocuments(prev => prev.filter(doc => doc._id !== id));
           showNotification('Document supprimé avec succès');
-        } else {
-          showNotification('Erreur lors de la suppression', 'error');
-        }
+        });
       } catch (error) {
-        console.error('Erreur:', error);
-        showNotification('Erreur lors de la suppression', 'error');
+        showNotification(error.message || 'Erreur lors de la suppression', 'error');
       }
     }
   };
 
-  // Mettre à jour la fonction handleSave dans DocumentManager.js
-const handleSave = async (e) => {
-  e.preventDefault();
-  
-  try {
-    let fileUrl = formData.url;
-    let fileSize = formData.size;
-    let fileType = formData.type;
+  const handleSave = async (e) => {
+    e.preventDefault();
+    
+    try {
+      await execute(async () => {
+        let fileUrl = formData.url;
+        let fileSize = formData.size;
+        let fileType = formData.type;
 
-    if (file) {
-      // Vérifier le type de fichier
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
-        showNotification('Type de fichier non autorisé. Utilisez PDF ou Word.', 'error');
-        return;
-      }
-
-      // Vérifier la taille du fichier
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        showNotification('Le fichier est trop volumineux (max 10MB)', 'error');
-        return;
-      }
-
-      // Créer le FormData
-      const formDataFile = new FormData();
-      formDataFile.append('file', file);
-
-      // Upload du fichier
-      try {
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formDataFile
-        });
-
-        if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json();
-          throw new Error(errorData.error || "Erreur lors de l'upload du fichier");
+        if (file) {
+          // Upload du fichier si présent
+          const uploadResult = await secureApi.uploadFile('/api/upload', file);
+          fileUrl = uploadResult.url;
+          fileSize = `${(uploadResult.size / (1024 * 1024)).toFixed(2)} MB`;
+          fileType = uploadResult.type.split('/')[1];
         }
 
-        const uploadResult = await uploadResponse.json();
-        fileUrl = uploadResult.url;
-        fileSize = `${(uploadResult.size / (1024 * 1024)).toFixed(2)} MB`;
-        fileType = uploadResult.type.split('/')[1];
-      } catch (uploadError) {
-        console.error('Erreur upload:', uploadError);
-        showNotification(uploadError.message, 'error');
-        return;
-      }
+        // Préparer les données du document
+        const documentData = {
+          ...formData,
+          url: fileUrl,
+          size: fileSize,
+          type: fileType
+        };
+
+        // Créer ou mettre à jour le document
+        if (editingDocument) {
+          await secureApi.put(`/api/documents/${editingDocument}`, documentData);
+          showNotification('Document mis à jour avec succès');
+        } else {
+          await secureApi.post('/api/documents', documentData);
+          showNotification('Document créé avec succès');
+        }
+        
+        setShowForm(false);
+        fetchDocuments();
+      });
+    } catch (error) {
+      showNotification(error.message || 'Erreur lors de la sauvegarde', 'error');
     }
-
-    // Préparer les données du document
-    const documentData = {
-      ...formData,
-      url: fileUrl,
-      size: fileSize,
-      type: fileType
-    };
-
-    // Créer ou mettre à jour le document
-    const response = await fetch(
-      editingDocument 
-        ? `/api/documents/${editingDocument}`
-        : '/api/documents',
-      {
-        method: editingDocument ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(documentData)
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Erreur lors de la sauvegarde du document");
-    }
-
-    showNotification(
-      editingDocument 
-        ? 'Document mis à jour avec succès'
-        : 'Document créé avec succès'
-    );
-    setShowForm(false);
-    fetchDocuments();
-  } catch (error) {
-    console.error('Erreur:', error);
-    showNotification(error.message, 'error');
-  }
-};
+  };
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,7 +158,7 @@ const handleSave = async (e) => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Gestion des Documents</h2>
-        <button 
+        <button
           onClick={handleAdd}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
@@ -286,25 +229,28 @@ const handleSave = async (e) => {
                   </div>
                 </td>
                 <td className="p-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    doc.category === 'regulatory' ? 'bg-purple-100 text-purple-700' :
-                    doc.category === 'policy' ? 'bg-blue-100 text-blue-700' :
-                    doc.category === 'reports' ? 'bg-green-100 text-green-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      doc.category === 'regulatory'
+                        ? 'bg-purple-100 text-purple-700'
+                        : doc.category === 'policy'
+                        ? 'bg-blue-100 text-blue-700'
+                        : doc.category === 'reports'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
                     {doc.category}
                   </span>
                 </td>
-                <td className="p-4 text-sm">
-                  {new Date(doc.publicationDate).toLocaleDateString('fr-FR')}
-                </td>
+                <td className="p-4 text-sm">{new Date(doc.publicationDate).toLocaleDateString('fr-FR')}</td>
                 <td className="p-4 text-sm uppercase">{doc.type}</td>
                 <td className="p-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    doc.status === 'published' 
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      doc.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
                     {doc.status === 'published' ? 'Publié' : 'Brouillon'}
                   </span>
                 </td>
@@ -423,9 +369,11 @@ const handleSave = async (e) => {
                     >
                       <Upload className="w-5 h-5 mr-2 text-gray-400" />
                       <span className="text-gray-600">
-                        {file ? file.name : 
-                         formData.url ? 'Modifier le document' : 
-                         'Cliquer pour sélectionner un document'}
+                        {file
+                          ? file.name
+                          : formData.url
+                          ? 'Modifier le document (<15Mo)'
+                          : 'Cliquer pour sélectionner un document (<15Mo)'}
                       </span>
                     </label>
                     {formData.url && !file && (
@@ -478,9 +426,11 @@ const handleSave = async (e) => {
 
       {/* Notifications */}
       {notification && (
-        <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
-          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-        } text-white animate-fade-in`}>
+        <div
+          className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
+            notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          } text-white animate-fade-in`}
+        >
           {notification.message}
         </div>
       )}

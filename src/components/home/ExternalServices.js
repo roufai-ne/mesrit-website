@@ -42,7 +42,7 @@ export default function ExternalServices() {
  return (
    <section className="py-16 bg-gray-50">
      <div className="container mx-auto">
-       <h2 className="text-3xl font-bold text-center mb-4 text-gradient">Services Externes</h2>
+       <h2 className="text-3xl font-bold text-center mb-4 text-gradient">Services rattachés</h2>
        <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
          Accédez directement aux services des institutions rattachées
        </p>

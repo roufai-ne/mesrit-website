@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import HomeNewsCarousel from './NewsCarousel';
+import { secureApi, useApiAction } from '@/lib/secureApi';
 
 export default function News() {
   const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { execute, loading, error } = useApiAction();
 
   useEffect(() => {
     fetchNews();
@@ -13,18 +14,22 @@ export default function News() {
 
   const fetchNews = async () => {
     try {
-      const response = await fetch('/api/news');
-      if (response.ok) {
-        const data = await response.json();
+      await execute(async () => {
+        // Utiliser secureApi.get avec false pour indiquer que c'est un endpoint public
+        const data = await secureApi.get('/api/news', false);
+
+        if (!Array.isArray(data)) {
+          throw new Error('Format de données invalide');
+        }
+
         const publishedNews = data
           .filter(item => item.status === 'published')
           .sort((a, b) => new Date(b.date) - new Date(a.date));
+
         setNews(publishedNews);
-      }
+      });
     } catch (error) {
-      console.error('Erreur:', error);
-    } finally {
-      setLoading(false);
+      console.error('Erreur lors du chargement des actualités:', error);
     }
   };
 
@@ -36,6 +41,16 @@ export default function News() {
             <div className="h-[400px] bg-gray-200 rounded-xl"></div>
             <div className="h-24 bg-gray-200 rounded-xl"></div>
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="text-red-500">Erreur: {error}</div>
         </div>
       </section>
     );
@@ -63,14 +78,14 @@ export default function News() {
         </div>
 
         {news.length > 0 && (
-  <HomeNewsCarousel 
-    news={news}
-    autoplay={5000}
-    indicators
-    navigation
-    onSlideChange={(index) => console.log(`Slide ${index}`)}
-  />
-)}
+          <HomeNewsCarousel
+            news={news}
+            autoplay={5000}
+            indicators
+            navigation
+            onSlideChange={(index) => console.log(`Slide ${index}`)}
+          />
+        )}
       </div>
     </section>
   );

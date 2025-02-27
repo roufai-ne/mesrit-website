@@ -1,6 +1,7 @@
 // src/pages/contact/ContactForm.js
 import React, { useState } from 'react';
-import { Send, Loader, AlertCircle } from 'lucide-react';
+import { Send, Loader, AlertCircle, XCircle } from 'lucide-react';
+import { secureApi, useApiAction } from '@/lib/secureApi';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -9,10 +10,10 @@ export default function ContactForm() {
     subject: '',
     message: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState(null);
   const [errors, setErrors] = useState({});
-
+  const [notification, setNotification] = useState(null);
+  const [serverErrors, setServerErrors] = useState([]);
+  const { execute, loading } = useApiAction();
 
   const validateForm = () => {
     const newErrors = {};
@@ -29,6 +30,8 @@ export default function ContactForm() {
     }
     if (!formData.message.trim()) {
       newErrors.message = 'Le message est requis';
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Le message doit contenir au moins 10 caractères';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -43,32 +46,42 @@ export default function ContactForm() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    setLoading(true);
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+    // Réinitialiser les erreurs serveur
+    setServerErrors([]);
 
-      if (response.ok) {
-        showNotification('Message envoyé avec succès', 'success');
-        setFormData({
-          name: '',
-          email: '',
-          subject: '',
-          message: ''
-        });
-      } else {
-        showNotification('Erreur lors de l\'envoi du message', 'error');
-      }
+    try {
+      await execute(async () => {
+        // Utiliser secureApi
+        const result = await secureApi.post('/api/contact', formData, false);
+        
+        if (result.success) {
+          showNotification('Message envoyé avec succès', 'success');
+          setFormData({
+            name: '',
+            email: '',
+            subject: '',
+            message: ''
+          });
+        } else {
+          // Gestion des erreurs de validation du serveur
+          if (result.validationErrors && Array.isArray(result.validationErrors)) {
+            setServerErrors(result.validationErrors);
+          } else {
+            showNotification(result.error || 'Erreur lors de l\'envoi du message', 'error');
+          }
+        }
+      });
     } catch (error) {
-      console.error('Erreur:', error);
-      showNotification('Erreur lors de l\'envoi du message', 'error');
-    } finally {
-      setLoading(false);
+      console.error('Erreur contact:', error);
+      
+      // Gestion différenciée des erreurs réseau
+      if (!navigator.onLine) {
+        showNotification('Pas de connexion internet. Veuillez vérifier votre connexion.', 'error');
+      } else if (error.message?.includes('timeout')) {
+        showNotification('Le serveur met trop de temps à répondre. Veuillez réessayer.', 'error');
+      } else {
+        showNotification(error.message || 'Une erreur est survenue lors de l\'envoi', 'error');
+      }
     }
   };
 
@@ -78,12 +91,18 @@ export default function ContactForm() {
       ...prev,
       [name]: value
     }));
-    // Effacer l'erreur quand l'utilisateur commence à taper
+    
+    // Effacer l'erreur correspondante
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
       }));
+    }
+    
+    // Effacer les erreurs serveur lors de la modification
+    if (serverErrors.length > 0) {
+      setServerErrors([]);
     }
   };
 
@@ -92,6 +111,20 @@ export default function ContactForm() {
       <h2 className="text-xl font-bold text-gray-900 mb-2">Envoyez-nous un message</h2>
       <p className="text-gray-600 mb-8">Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
       
+      {/* Afficher les erreurs serveur en haut du formulaire */}
+      {serverErrors.length > 0 && (
+        <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-6">
+          <div className="flex items-center text-red-600 font-medium mb-2">
+            <AlertCircle className="w-5 h-5 mr-2" />
+            Veuillez corriger les erreurs suivantes:
+          </div>
+          <ul className="list-disc list-inside text-red-600 text-sm space-y-1">
+            {serverErrors.map((err, index) => (
+              <li key={index}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}      
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
@@ -110,7 +143,7 @@ export default function ContactForm() {
                   ? 'border-red-200 bg-red-50/50' 
                   : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
               `}
-              placeholder="Jean Dupont"
+              placeholder="Nom Prénom"
             />
             {errors.name && (
               <div className="flex items-center mt-1.5 text-red-500 text-sm">
@@ -136,7 +169,7 @@ export default function ContactForm() {
                   ? 'border-red-200 bg-red-50/50' 
                   : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
               `}
-              placeholder="jean@exemple.com"
+              placeholder="mail@exemple.com"
             />
             {errors.email && (
               <div className="flex items-center mt-1.5 text-red-500 text-sm">
@@ -231,18 +264,27 @@ export default function ContactForm() {
         <div 
           className={`
             fixed bottom-4 right-4 px-6 py-4 rounded-xl shadow-lg
-            animate-slide-in-from-top flex items-center
+            animate-slide-in-from-top flex items-center justify-between
             ${notification.type === 'success' 
               ? 'bg-green-500 text-white' 
               : 'bg-red-500 text-white'}
+            max-w-md
           `}
         >
-          {notification.type === 'success' ? (
-            <div className="w-2 h-2 rounded-full bg-white mr-3 animate-pulse" />
-          ) : (
-            <AlertCircle className="w-5 h-5 mr-3" />
-          )}
-          {notification.message}
+          <div className="flex items-center">
+            {notification.type === 'success' ? (
+              <div className="w-2 h-2 rounded-full bg-white mr-3 animate-pulse" />
+            ) : (
+              <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+            )}
+            <span>{notification.message}</span>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-4 text-white hover:text-white/70"
+          >
+            <XCircle className="w-5 h-5" />
+          </button>
         </div>
       )}
     </div>
