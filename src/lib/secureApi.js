@@ -1,6 +1,14 @@
 // lib/secureApi.js
-import { verifyToken } from './auth';
-import { connectDB } from './mongodb';
+import { AppError, parseApiError, handleFetchError, ERROR_TYPES } from '@/lib/errorHandler';
+import router from 'next/router';
+
+// Lazy AuthContext/Toast import to avoid circular deps
+let logoutFn = null;
+let toastFn = null;
+export function registerAuthUtils({ logout, toast }) {
+  logoutFn = logout;
+  toastFn = toast;
+}
 
 /**
  * Client API sécurisé pour les appels frontend et backend
@@ -8,38 +16,22 @@ import { connectDB } from './mongodb';
 export const secureApi = {
   async fetch(url, options = {}, requireAuth = false) {
     try {
-      // Initialiser la connexion à MongoDB côté serveur uniquement si authentification requise
-      if (requireAuth && typeof window === 'undefined') {
-        await connectDB();
-      }
-
       // Headers de base avec la clé API
       const headers = {
         'Content-Type': 'application/json',
-        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || process.env.API_KEY,
       };
+
+      // Ajouter l'API key seulement si elle est disponible
+      const apiKey = process.env.NEXT_PUBLIC_API_KEY || process.env.API_KEY;
+      if (apiKey) {
+        headers['X-API-Key'] = apiKey;
+      }
 
       // Ajouter le token d'authentification uniquement si nécessaire
       if (requireAuth) {
-        let token;
-        // Côté serveur : utiliser verifyToken avec req
-        if (typeof window === 'undefined') {
-          const req = options.req;
-          if (!req) throw new Error('Requête non fournie côté serveur');
-          const user = await verifyToken(req);
-          if (!user) throw new Error('Non authentifié');
-          token = req.headers.authorization?.replace('Bearer ', '');
-        } else {
-          // Côté client : récupérer le token depuis localStorage ou cookies
-          if (typeof window !== 'undefined') {
-            token = localStorage.getItem('token') || document.cookie.match(/token=([^;]+)/)?.[1];
-            if (!token) throw new Error('Non authentifié');
-          }
-        }
-        
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
+        // Côté client : récupérer le token depuis les cookies (httpOnly cookies are handled automatically)
+        // For client-side requests, cookies will be sent automatically
+        // No need to manually add authorization header for httpOnly cookies
       }
 
       // Log uniquement en développement
@@ -49,6 +41,7 @@ export const secureApi = {
 
       const response = await fetch(url, {
         ...options,
+        credentials: 'include', // Ensure cookies are sent with requests
         headers: {
           ...headers,
           ...options.headers,
@@ -58,6 +51,15 @@ export const secureApi = {
       // Gérer les différents types de réponses
       const contentType = response.headers.get('content-type');
       if (!response.ok) {
+        // Gestion centralisée session expirée
+        if (response.status === 401 || response.status === 403) {
+          if (logoutFn) logoutFn();
+          if (toastFn) toastFn.error('Votre session a expiré, veuillez vous reconnecter.');
+          if (typeof window !== 'undefined') {
+            router.push('/auth/login');
+          }
+          throw new AppError('Session expirée', ERROR_TYPES.AUTHENTICATION, response.status);
+        }
         let errorData;
         try {
           if (contentType && contentType.includes('application/json')) {
@@ -68,8 +70,8 @@ export const secureApi = {
         } catch (e) {
           errorData = { message: `Erreur HTTP ${response.status}` };
         }
-        
-        throw new Error(errorData.message || 'Une erreur est survenue');
+        const appError = await parseApiError(response);
+        throw appError;
       }
 
       // Retourner le bon format selon le content-type
@@ -82,7 +84,11 @@ export const secureApi = {
       }
     } catch (error) {
       console.error('API Error:', error);
-      throw error;
+      if (error instanceof AppError) {
+        throw error;
+      }
+      const handledError = await handleFetchError(error, url);
+      throw handledError;
     }
   },
 
@@ -133,14 +139,8 @@ export const secureApi = {
       };
 
       // Ajouter le token d'authentification si nécessaire
-      if (requireAuth && typeof window !== 'undefined') {
-        const token = localStorage.getItem('token') || document.cookie.match(/token=([^;]+)/)?.[1];
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        } else if (requireAuth) {
-          throw new Error('Non authentifié');
-        }
-      }
+      // With httpOnly cookies, authentication is handled automatically
+      // No need to manually add authorization header
 
       // Préparer les données du fichier
       const formData = new FormData();
@@ -153,6 +153,7 @@ export const secureApi = {
 
       const response = await fetch(url, {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent
         headers,
         body: formData
       });
@@ -164,13 +165,18 @@ export const secureApi = {
         } catch (e) {
           errorData = { message: `Erreur HTTP ${response.status}` };
         }
-        throw new Error(errorData.message || "Erreur lors de l'upload");
+        const appError = await parseApiError(response);
+        throw appError;
       }
 
       return response.json();
     } catch (error) {
       console.error('Upload Error:', error);
-      throw error;
+      if (error instanceof AppError) {
+        throw error;
+      }
+      const handledError = await handleFetchError(error, url);
+      throw handledError;
     }
   },
   

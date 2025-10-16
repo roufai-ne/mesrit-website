@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Lock, EyeOff, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { secureApi } from '@/lib/secureApi';
 
 export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
  const [showPassword, setShowPassword] = useState({
@@ -44,24 +45,12 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
 
     try {
       setLoading(true);
-      const response = await fetch('/api/users/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          currentPassword: passwords.currentPassword,
-          newPassword: passwords.newPassword
-        })
-      });
+      const response = await secureApi.post('/api/users/change-password', {
+        currentPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword
+      }, true);
   
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message);
-      }
-  
-      if (response.ok) {
+      if (response) {
         toast.success('Mot de passe modifié avec succès', {
           duration: 3000,
           position: 'top-right',
@@ -91,11 +80,11 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
     <div className={`fixed inset-0 z-50 ${isOpen ? 'block' : 'hidden'}`}>
       <div className="absolute inset-0 bg-black/50" />
       <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="bg-white rounded-xl w-full max-w-md relative">
+        <div className="bg-white rounded-xl w-full max-w-md relative dark:bg-secondary-800">
           {!isFirstLogin && (
             <button 
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 dark:text-niger-green-light dark:text-muted-foreground"
             >
               <X className="w-5 h-5" />
             </button>
@@ -104,11 +93,11 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
           <div className="p-6">
             <div className="flex items-center justify-center mb-6">
               <div className="bg-blue-100 rounded-full p-3">
-                <Lock className="w-6 h-6 text-blue-600" />
+                <Lock className="w-6 h-6 text-blue-600 text-niger-orange dark:text-niger-orange" />
               </div>
             </div>
  
-            <h2 className="text-xl font-bold text-center mb-2">
+            <h2 className="text-xl font-bold text-center mb-2 text-niger-green dark:text-niger-green-light">
               {isFirstLogin ? 'Premier changement de mot de passe' : 'Changer le mot de passe'}
             </h2>
             
@@ -120,7 +109,7 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
  
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-niger-green dark:text-niger-green-light">
                   {isFirstLogin ? 'Mot de passe actuel (Admin@2024)' : 'Mot de passe actuel'}
                 </label>
                 <div className="relative">
@@ -132,13 +121,13 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
                       currentPassword: e.target.value
                     })}
                     placeholder="••••••••"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-4 pr-10 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-4 pr-10 text-gray-900 placeholder-gray-500 dark:text-niger-green-light dark:border-secondary-600"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(prev => ({...prev, current: !prev.current}))}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:text-muted-foreground"
                   >
                     {showPassword.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -146,7 +135,7 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
               </div>
  
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-niger-green dark:text-niger-green-light">
                   Nouveau mot de passe
                 </label>
                 <div className="relative">
@@ -158,43 +147,43 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
                       newPassword: e.target.value
                     })}
                     placeholder="••••••••"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-4 pr-10 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-4 pr-10 text-gray-900 placeholder-gray-500 dark:text-niger-green-light dark:border-secondary-600"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(prev => ({...prev, new: !prev.new}))}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:text-muted-foreground"
                   >
                     {showPassword.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                <ul className="mt-2 space-y-1 text-sm text-gray-500">
+                <ul className="mt-2 space-y-1 text-sm text-gray-500 dark:text-muted-foreground">
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2 dark:bg-secondary-700"></span>
                     8 caractères minimum
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2 dark:bg-secondary-700"></span>
                     Au moins une majuscule
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2 dark:bg-secondary-700"></span>
                     Au moins une minuscule
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2 dark:bg-secondary-700"></span>
                     Au moins un chiffre
                   </li>
                   <li className="flex items-center">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2 dark:bg-secondary-700"></span>
                     Au moins un caractère spécial (@$!%*?&)
                   </li>
                 </ul>
               </div>
  
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-niger-green dark:text-niger-green-light">
                   Confirmer le mot de passe
                 </label>
                 <div className="relative">
@@ -206,13 +195,13 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
                       confirmPassword: e.target.value
                     })}
                     placeholder="••••••••" 
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-4 pr-10 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-4 pr-10 text-gray-900 placeholder-gray-500 dark:text-niger-green-light dark:border-secondary-600"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(prev => ({...prev, confirm: !prev.confirm}))}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-muted-foreground dark:text-muted-foreground"
                   >
                     {showPassword.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -230,7 +219,7 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-colors"
+                    className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-gray-700 transition-colors dark:bg-secondary-700 dark:text-niger-green-light dark:border-secondary-600 dark:hover:bg-secondary-700/50"
                     disabled={loading}
                   >
                     Annuler
@@ -238,7 +227,7 @@ export default function ChangePasswordModal({ isOpen, onClose, isFirstLogin }) {
                 )}
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300 font-medium transition-colors flex items-center"
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300 font-medium transition-colors flex items-center bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
                   disabled={loading}
                 >
                   {loading ? (

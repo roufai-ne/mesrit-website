@@ -24,6 +24,7 @@ const HomeNewsCarousel = ({ news }) => {
             src={news[activeIndex]?.image}
             alt={news[activeIndex]?.title}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
             className="w-full h-full object-cover transition-transform duration-700 ease-out"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -73,6 +74,7 @@ const HomeNewsCarousel = ({ news }) => {
                     src={article.image}
                     alt={article.title}
                     fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="w-full h-full object-cover"
                   />
                   <div className={`absolute inset-0 bg-black/20 transition-opacity duration-300 ${
@@ -106,6 +108,7 @@ const HomeNewsCarousel = ({ news }) => {
                 src={item.image}
                 alt={item.title}
                 fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className="w-full h-full object-cover"
               />
               <div className="absolute bottom-4 left-4">

@@ -49,10 +49,10 @@ export default function RoleManager() {
 
   return (
     <div className="p-6">
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white rounded-lg shadow dark:bg-secondary-800">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold flex items-center">
+            <h2 className="text-2xl font-bold flex items-center text-niger-green dark:text-niger-green-light">
               <Shield className="w-6 h-6 mr-2" />
               Gestion des rôles
             </h2>
@@ -66,7 +66,7 @@ export default function RoleManager() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50">
+                <tr className="bg-gray-50 dark:bg-secondary-700">
                   <th className="p-4 text-left">Rôle</th>
                   {allPermissions.map(permission => (
                     <th key={permission.id} className="p-4 text-left">
@@ -83,7 +83,7 @@ export default function RoleManager() {
                       <td key={`${role.id}-${permission.id}`} className="p-4">
                         <button
                           onClick={() => togglePermission(role.id, permission.id)}
-                          className="text-gray-500 hover:text-blue-600"
+                          className="text-gray-500 hover:text-blue-600 dark:text-muted-foreground text-niger-orange dark:text-niger-orange"
                         >
                           {role.permissions.includes(permission.id) || 
                            role.permissions.includes('all') ? (

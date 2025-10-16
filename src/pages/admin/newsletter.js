@@ -5,7 +5,7 @@ import NewsletterManager from '@/components/admin/NewsletterManager';
 export default function NewsletterPage() {
   return (
     <AccessControl>
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-gray-100 dark:bg-secondary-700">
         <SideNav />
         <main className="flex-1">
           <NewsletterManager />

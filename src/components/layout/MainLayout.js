@@ -1,7 +1,7 @@
 
 'use client';
+'use client';
 import React from 'react';
-
 import Header from './Header';
 import Navigation from './Navigation';
 import Footer from './Footer';
@@ -30,8 +30,6 @@ export default function MainLayout({ children }) {
     <div className="min-h-screen flex flex-col">
       
       <Header />
-      
-      <Navigation />
       <main className="flex-grow">
         {children}
       </main>

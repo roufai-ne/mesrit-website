@@ -1,0 +1,27 @@
+# Robots.txt pour MESRI Niger
+# https://mesri.ne
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://mesri.ne/api/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /test-*
+
+# Allow important pages
+Allow: /
+Allow: /actualites/
+Allow: /ministere/
+Allow: /services/
+Allow: /services-etudiants/
+Allow: /contact/
+Allow: /faq/
+Allow: /search/
+
+# Crawl delay (optional)
+Crawl-delay: 1

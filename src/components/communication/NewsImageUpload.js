@@ -14,8 +14,8 @@ export default function NewsImageUpload({ value, onChange, required }) {
    const file = e.target.files[0];
    if (!file) return;
 
-   if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
-     toast.error('Format non supporté. Utilisez JPG ou PNG');
+   if (!file.type.match(/^image\/(jpeg|png)$/)) {
+     toast.error('Format non supporté. Utilisez JPG ou PNG uniquement');
      return;
    }
 

@@ -3,12 +3,14 @@ import { connectDB } from '@/lib/mongodb';
 import { StudentStats } from '@/models/StudentStats';
 import { TeacherStats } from '@/models/TeacherStats';
 import { InstitutionStats } from '@/models/InstitutionStats';
+import { PublicationStats } from '@/models/PublicationStats';
 import jwt from 'jsonwebtoken';
 
 const models = {
   students: StudentStats,
   teachers: TeacherStats,
-  institutions: InstitutionStats
+  institutions: InstitutionStats,
+  publications: PublicationStats
 };
 
 // Middleware de vérification du token et du rôle

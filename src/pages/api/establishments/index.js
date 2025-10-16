@@ -2,6 +2,7 @@
 import { connectDB } from '@/lib/mongodb';
 import Establishment from '@/models/Establishment';
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
+import logger, { LOG_TYPES } from '@/lib/logger';
 
 // Handler GET (public)
 const getEstablishments = async (req, res) => {
@@ -63,6 +64,23 @@ const createEstablishment = async (req, res) => {
     });
 
     await establishment.save();
+    
+    // Logger la création d'établissement
+    await logger.success(
+      LOG_TYPES.CONTENT_CREATED,
+      `Nouvel établissement créé: ${establishment.nom}`,
+      {
+        establishmentId: establishment._id,
+        nom: establishment.nom,
+        type: establishment.type,
+        statut: establishment.statut,
+        region: establishment.region,
+        ville: establishment.ville,
+        createdBy: req.user?.username || req.user?.id || 'system'
+      },
+      req
+    );
+    
     return res.status(201).json({
       success: true,
       data: establishment

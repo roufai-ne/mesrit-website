@@ -1,17 +1,15 @@
-import AccessControl from '@/components/admin/AccessControl';
+import React from 'react';
+import AdminLayout from '@/components/layout/AdminLayout';
 import CommunicationsManager from '@/components/admin/CommunicationsManager';
-import SideNav from '@/components/admin/SideNav';
 
 export default function CommunicationsPage() {
-
   return (
-    <AccessControl>
-      <div className="flex min-h-screen bg-gray-100">
-        <SideNav />
-        <main className="flex-1">
-        <CommunicationsManager />
-        </main>
-      </div>
-    </AccessControl>
+    <AdminLayout 
+      title="Gestion des communications" 
+      subtitle="Communications officielles et annonces"
+      requiredPermission="canManageCommunications"
+    >
+      <CommunicationsManager />
+    </AdminLayout>
   );
 }

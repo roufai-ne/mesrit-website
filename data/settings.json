@@ -1,0 +1,117 @@
+{
+  "site": {
+    "title": "MESRIT Niger",
+    "description": "Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique",
+    "email": "contact@mesrit.ne",
+    "phone": "+227 90905646",
+    "address": "Niamey, Niger"
+  },
+  "social": {
+    "facebook": "",
+    "twitter": "",
+    "linkedin": ""
+  },
+  "external": {
+    "anab": "https://anab.ne",
+    "bac": "https://bac.ne",
+    "bts": "https://bts.ne"
+  },
+  "header": {
+    "backgroundImage": "/uploads/1757954768106_03fee39e234418d3775ebb12e5de8c06.jpg",
+    "opacity": 5,
+    "logo": "/uploads/1757954517908_f85cc76d4957ac8837770138b3260c7d.png",
+    "logoSize": "medium",
+    "logoPosition": "left"
+  },
+  "services": {
+    "categories": [
+      "etudiants",
+      "etablissements",
+      "recherche",
+      "administration",
+      "formation"
+    ],
+    "defaultIcon": "Settings",
+    "maxFeatures": 3
+  },
+  "ministryStats": {
+    "mission": {
+      "enabled": true,
+      "stats": [
+        {
+          "id": "programs",
+          "label": "Programmes",
+          "value": 25,
+          "unit": "",
+          "order": 1
+        },
+        {
+          "id": "partnerships",
+          "label": "Partenariats",
+          "value": 12,
+          "unit": "",
+          "order": 2
+        },
+        {
+          "id": "initiatives",
+          "label": "Initiatives",
+          "value": 8,
+          "unit": "",
+          "order": 3
+        }
+      ]
+    },
+    "organisation": {
+      "enabled": true,
+      "stats": [
+        {
+          "id": "directions",
+          "label": "Directions",
+          "value": 8,
+          "unit": "",
+          "order": 1
+        },
+        {
+          "id": "services",
+          "label": "Services",
+          "value": 24,
+          "unit": "",
+          "order": 2
+        },
+        {
+          "id": "departments",
+          "label": "Départements",
+          "value": 15,
+          "unit": "",
+          "order": 3
+        }
+      ]
+    },
+    "direction": {
+      "enabled": true,
+      "stats": [
+        {
+          "id": "executives",
+          "label": "Cadres",
+          "value": 15,
+          "unit": "",
+          "order": 1
+        },
+        {
+          "id": "experience",
+          "label": "Années d'exp.",
+          "value": 180,
+          "unit": "+",
+          "order": 2
+        },
+        {
+          "id": "projects",
+          "label": "Projets menés",
+          "value": 45,
+          "unit": "",
+          "order": 3
+        }
+      ]
+    }
+  }
+}

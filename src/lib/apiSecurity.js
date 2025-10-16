@@ -1,29 +1,41 @@
 import crypto from 'crypto';
 import NodeCache from 'node-cache';
+import { SecretsValidator } from './secretsValidator';
 
 class ApiSecurity {
   static cache = new NodeCache({ stdTTL: 300 }); // Cache de 5 minutes
 
   static async validateApiKey(providedKey) {
     try {
-      const validApiKey = process.env.API_KEY;
-      if (!validApiKey) {
-        console.error('API_KEY non défini dans les variables d’environnement');
-        return false;
-      }
+      const validApiKey = SecretsValidator.validateAPIKey();
+      
       if (!providedKey) {
         console.error('Clé API non fournie dans la requête');
         return false;
       }
 
-      const isValid = crypto.timingSafeEqual(
-        Buffer.from(providedKey),
-        Buffer.from(validApiKey)
-      );
-      if (!isValid) {
-        console.warn('Clé API invalide fournie:', providedKey);
+      // ✅ CORRECTION: Comparaison temporellement sûre
+      try {
+        // Normaliser les longueurs pour éviter les fuites timing
+        const maxLength = Math.max(providedKey.length, validApiKey.length);
+        const normalizedProvided = providedKey.padEnd(maxLength, '\0');
+        const normalizedValid = validApiKey.padEnd(maxLength, '\0');
+        
+        const providedBuffer = Buffer.from(normalizedProvided, 'utf8');
+        const validBuffer = Buffer.from(normalizedValid, 'utf8');
+        
+        const isValid = crypto.timingSafeEqual(providedBuffer, validBuffer);
+        
+        if (!isValid) {
+          console.warn('Clé API invalide fournie - longueur:', providedKey?.length || 0);
+        }
+        
+        return isValid;
+      } catch (error) {
+        // En cas d'erreur dans timingSafeEqual, rejeter
+        console.error('Erreur dans la comparaison sécurisée:', error);
+        return false;
       }
-      return isValid;
     } catch (error) {
       console.error('Erreur lors de la validation de la clé API:', error);
       return false;

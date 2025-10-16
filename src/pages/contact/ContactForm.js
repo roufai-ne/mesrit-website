@@ -107,18 +107,21 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft p-8 animate-slide-in-from-top">
-      <h2 className="text-xl font-bold text-gray-900 mb-2">Envoyez-nous un message</h2>
-      <p className="text-gray-600 mb-8">Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
+    <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-niger-orange/10 p-8">
+      <div className="flex items-center gap-2 mb-6">
+        <Send className="w-6 h-6 text-niger-orange" />
+        <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Envoyez-nous un message</h2>
+      </div>
+      <p className="text-readable-muted dark:text-muted-foreground mb-8">Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
       
       {/* Afficher les erreurs serveur en haut du formulaire */}
       {serverErrors.length > 0 && (
-        <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-6">
-          <div className="flex items-center text-red-600 font-medium mb-2">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+          <div className="flex items-center text-red-600 dark:text-red-400 font-medium mb-2">
             <AlertCircle className="w-5 h-5 mr-2" />
             Veuillez corriger les erreurs suivantes:
           </div>
-          <ul className="list-disc list-inside text-red-600 text-sm space-y-1">
+          <ul className="list-disc list-inside text-red-600 dark:text-red-400 text-sm space-y-1">
             {serverErrors.map((err, index) => (
               <li key={index}>{err}</li>
             ))}
@@ -128,7 +131,7 @@ export default function ContactForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
               Nom complet
             </label>
             <input
@@ -137,11 +140,11 @@ export default function ContactForm() {
               value={formData.name}
               onChange={handleChange}
               className={`
-                w-full px-4 py-3 bg-white rounded-xl border-2 
-                focus:ring-2 focus:ring-blue-100 transition-all duration-200
+                w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+                focus:ring-2 focus:ring-niger-orange/20
                 ${errors.name 
-                  ? 'border-red-200 bg-red-50/50' 
-                  : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+                  ? 'border-red-200 bg-red-50/50 dark:bg-red-900/20 dark:border-red-800' 
+                  : 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'}
               `}
               placeholder="Nom Prénom"
             />

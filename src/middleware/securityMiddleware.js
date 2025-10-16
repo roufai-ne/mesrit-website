@@ -4,6 +4,8 @@ import { verifyToken } from '@/lib/auth';
 import rateLimit from 'express-rate-limit';
 import { sanitize } from 'express-mongo-sanitize';
 import crypto from 'crypto';
+import { applySecurityHeaders, getCSPForPage } from '@/lib/securityHeaders';
+import { sanitizeInput } from '@/lib/sanitize';
 
 // Configuration du rate limiting avec options avancées
 const limiter = rateLimit({
@@ -29,15 +31,75 @@ const ROUTE_TYPES = {
   PROTECTED: 'protected' // Nécessite API key + authentification
 };
 
-// Headers de sécurité par défaut
-const securityHeaders = {
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'X-XSS-Protection': '1; mode=block',
-  'Content-Security-Policy': "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';",
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+// Enhanced security headers with helmet.js integration
+const getEnhancedSecurityHeaders = (routeType = 'api') => {
+  const baseHeaders = {
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), ambient-light-sensor=(), accelerometer=()',
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Resource-Policy': 'same-origin',
+    'Cross-Origin-Embedder-Policy': 'require-corp',
+  };
+
+  // Enhanced CSP based on route type
+  const cspDirectives = {
+    'default-src': ["'self'"],
+    'script-src': [
+      "'self'",
+      "'strict-dynamic'",
+      process.env.NODE_ENV === 'development' ? "'unsafe-eval'" : "",
+      "https://fonts.googleapis.com"
+    ].filter(Boolean),
+    'style-src': [
+      "'self'",
+      "'unsafe-inline'", // Needed for CSS-in-JS libraries
+      "https://fonts.googleapis.com"
+    ],
+    'font-src': [
+      "'self'",
+      "https://fonts.gstatic.com"
+    ],
+    'img-src': [
+      "'self'",
+      "data:",
+      "https:",
+      "blob:"
+    ],
+    'connect-src': [
+      "'self'",
+      process.env.NODE_ENV === 'development' ? "ws: wss:" : ""
+    ].filter(Boolean),
+    'frame-src': ["'none'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+    'frame-ancestors': ["'none'"],
+    'upgrade-insecure-requests': process.env.NODE_ENV === 'production' ? [] : null,
+    'block-all-mixed-content': process.env.NODE_ENV === 'production' ? [] : null,
+  };
+
+  // Build CSP string
+  const csp = Object.entries(cspDirectives)
+    .filter(([_, value]) => value !== null)
+    .map(([directive, sources]) => {
+      if (Array.isArray(sources) && sources.length === 0) {
+        return directive; // Directives without sources
+      }
+      return `${directive} ${Array.isArray(sources) ? sources.join(' ') : sources}`;
+    })
+    .join('; ');
+
+  return {
+    ...baseHeaders,
+    'Content-Security-Policy': csp,
+    'Cache-Control': routeType === 'api' 
+      ? 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      : 'public, max-age=31536000, immutable'
+  };
 };
 
 // Configuration des limites de requête
@@ -61,15 +123,15 @@ const validateContentType = (req) => {
   return contentType && contentType.includes('application/json');
 };
 
-// Middleware de sanitization avancée
+// Enhanced sanitization with DOMPurify integration
 const sanitizeRequest = (req) => {
   // Validation de la taille de la requête
   const contentLength = parseInt(req.headers['content-length'] || 0);
   if (contentLength > REQUEST_LIMITS.MAX_BODY_SIZE) {
-    throw new Error('Requête trop volumineuse');
+    throw new Error('Request too large');
   }
 
-  // Sanitization profonde des données
+  // Enhanced sanitization using our custom sanitize utility
   const deepSanitize = (obj) => {
     if (Array.isArray(obj)) {
       return obj.map(deepSanitize);
@@ -78,13 +140,16 @@ const sanitizeRequest = (req) => {
       const sanitizedObj = {};
       for (const [key, value] of Object.entries(obj)) {
         if (Object.keys(sanitizedObj).length >= REQUEST_LIMITS.MAX_FIELDS) {
-          throw new Error('Trop de champs dans la requête');
+          throw new Error('Too many fields in request');
         }
-        sanitizedObj[sanitize(key)] = deepSanitize(value);
+        // Use both mongo sanitize and our custom sanitizer
+        const cleanKey = sanitize(key);
+        sanitizedObj[cleanKey] = deepSanitize(value);
       }
       return sanitizedObj;
     }
-    return sanitize(obj);
+    // Use our enhanced sanitization for strings
+    return typeof obj === 'string' ? sanitizeInput(sanitize(obj)) : sanitize(obj);
   };
 
   req.body = deepSanitize(req.body);
@@ -132,35 +197,39 @@ const handleError = (error, req, res) => {
 export function securityMiddleware(routeType = ROUTE_TYPES.PUBLIC) {
   return async (req, res, next) => {
     try {
-      console.log(`Méthode: ${req.method}, Route type: ${routeType}`);
-      // Reste du code inchangé...
-      Object.entries(securityHeaders).forEach(([key, value]) => {
+      console.log(`Method: ${req.method}, Route type: ${routeType}`);
+      
+      // Apply enhanced security headers
+      const headers = getEnhancedSecurityHeaders('api');
+      Object.entries(headers).forEach(([key, value]) => {
         res.setHeader(key, value);
       });
 
       const origin = req.headers.origin;
       if (origin && !await ApiSecurity.validateOrigin(origin)) {
-        throw new Error('Origine non autorisée');
+        throw new Error('Unauthorized origin');
       }
 
       if (!validateContentType(req)) {
-        throw new Error('Content-Type non supporté');
+        throw new Error('Unsupported Content-Type');
       }
 
-      const apiKey = req.headers['x-api-key'];
-      if (!apiKey || !await ApiSecurity.validateApiKey(apiKey)) {
-        throw new Error('Clé API invalide');
-      }
-
-      sanitizeRequest(req);
-
+      // Pour les routes protégées, vérifier d'abord l'authentification par token
       if (routeType === ROUTE_TYPES.PROTECTED) {
         const user = await verifyToken(req);
         if (!user) {
-          throw new Error('Non authentifié');
+          throw new Error('Not authenticated');
         }
         req.user = user;
+      } else {
+        // Pour les routes publiques, vérifier l'API key pour s'assurer que seul le site officiel peut accéder
+        const apiKey = req.headers['x-api-key'];
+        if (!apiKey || !await ApiSecurity.validateApiKey(apiKey)) {
+          throw new Error('Invalid API key');
+        }
       }
+
+      sanitizeRequest(req);
 
       const metadata = await ApiSecurity.getRequestMetadata(req);
       console.log('Request metadata:', metadata);

@@ -1,18 +1,31 @@
-// src/pages/admin/establishments.js
+// src/pages/admin/establishments/index.js
 import React from 'react';
-import AccessControl from '@/components/admin/AccessControl';
+import AdminLayout from '@/components/layout/AdminLayout';
 import EstablishmentManager from '@/components/admin/EstablishmentManager';
-import SideNav from '@/components/admin/SideNav';
+import { ReadOnlyGuard } from '@/components/admin/PermissionGuard';
+import { usePermission } from '@/hooks/usePermission';
 
 export default function AdminEstablishments() {
+  const permissions = usePermission();
+  
   return (
-    <AccessControl>
-      <div className="flex min-h-screen bg-gray-100">
-        <SideNav />
-        <main className="flex-1">
-          <EstablishmentManager />
-        </main>
-      </div>
-    </AccessControl>
+    <AdminLayout 
+      title="Gestion des établissements" 
+      subtitle="Réseau des établissements d'enseignement supérieur"
+      requiredPermissions={['canManageEstablishments', 'canViewEstablishments']}
+      requireAll={false}
+    >
+      {permissions.canManageEstablishments ? (
+        <EstablishmentManager />
+      ) : (
+        <ReadOnlyGuard
+          editPermission="canManageEstablishments"
+          viewPermission="canViewEstablishments"
+          readOnlyMessage="Consultation des établissements - Mode lecture seule"
+        >
+          <EstablishmentManager readOnly={true} />
+        </ReadOnlyGuard>
+      )}
+    </AdminLayout>
   );
 }

@@ -1,18 +1,17 @@
-// src/pages/admin/dashboard.js
+// src/pages/admin/Dashboard.js
 import React from 'react';
-import AccessControl from '@/components/admin/AccessControl';
-import Dashboard from '@/components/admin/Dashboard';
-import SideNav from '@/components/admin/SideNav';
+import AdminLayout from '@/components/layout/AdminLayout';
+import RoleDashboard from '@/components/admin/RoleDashboard';
 
 export default function AdminDashboard() {
   return (
-    <AccessControl>
-      <div className="flex min-h-screen bg-gray-100">
-        <SideNav />
-        <main className="flex-1">
-          <Dashboard />
-        </main>
-      </div>
-    </AccessControl>
+    <AdminLayout 
+      title="Tableau de bord" 
+      subtitle="Vue d'ensemble de l'administration"
+      requiredPermission="canAccessDashboard"
+      showRoleIndicator={true}
+    >
+      <RoleDashboard />
+    </AdminLayout>
   );
 }

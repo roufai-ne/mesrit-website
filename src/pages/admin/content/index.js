@@ -12,19 +12,19 @@ export default function AdminContent() {
 
   return (
     <AccessControl>
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-gray-100 dark:bg-secondary-700">
         <SideNav />
         <main className="flex-1">
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold">Gestion du contenu</h1>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded flex items-center">
+              <h1 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Gestion du contenu</h1>
+              <button className="bg-blue-600 text-white px-4 py-2 rounded flex items-center bg-gradient-to-r from-niger-orange to-niger-green">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouveau contenu
               </button>
             </div>
 
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white rounded-lg shadow dark:bg-secondary-800">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
@@ -37,7 +37,7 @@ export default function AdminContent() {
                 </thead>
                 <tbody>
                   {contentItems.map((item) => (
-                    <tr key={item.id} className="border-b hover:bg-gray-50">
+                    <tr key={item.id} className="border-b hover:bg-gray-50 dark:bg-secondary-700 dark:hover:bg-secondary-700/50">
                       <td className="p-4">{item.title}</td>
                       <td className="p-4">{item.type}</td>
                       <td className="p-4">{item.date}</td>
@@ -50,7 +50,7 @@ export default function AdminContent() {
                       </td>
                       <td className="p-4">
                         <div className="flex space-x-2">
-                          <button className="p-1 hover:text-blue-600">
+                          <button className="p-1 hover:text-blue-600 text-niger-orange dark:text-niger-orange">
                             <Edit className="w-4 h-4" />
                           </button>
                           <button className="p-1 hover:text-red-600">

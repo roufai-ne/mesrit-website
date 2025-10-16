@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermission } from '@/hooks/usePermissionRBAC';
 
 const FAQForm = ({ faq, onSubmit, onClose }) => {
  const [formData, setFormData] = useState({
@@ -21,7 +23,7 @@ const FAQForm = ({ faq, onSubmit, onClose }) => {
          type="text"
          value={formData.question}
          onChange={e => setFormData({...formData, question: e.target.value})}
-         className="w-full p-2 border rounded"
+         className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          required
        />
      </div>
@@ -31,7 +33,7 @@ const FAQForm = ({ faq, onSubmit, onClose }) => {
        <textarea
          value={formData.answer}
          onChange={e => setFormData({...formData, answer: e.target.value})}
-         className="w-full p-2 border rounded min-h-[150px]"
+         className="w-full p-2 border rounded min-h-[150px] border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          required
        />
      </div>
@@ -42,7 +44,7 @@ const FAQForm = ({ faq, onSubmit, onClose }) => {
          type="text"
          value={formData.category}
          onChange={e => setFormData({...formData, category: e.target.value})}
-         className="w-full p-2 border rounded"
+         className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          required
        />
      </div>
@@ -61,13 +63,13 @@ const FAQForm = ({ faq, onSubmit, onClose }) => {
        <button 
          type="button"
          onClick={onClose}
-         className="px-4 py-2 border rounded hover:bg-gray-50"
+         className="px-4 py-2 border rounded hover:bg-gray-50 dark:bg-secondary-700 dark:hover:bg-secondary-700/50 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
        >
          Annuler
        </button>
        <button 
          type="submit"
-         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
        >
          {faq ? 'Modifier' : 'Ajouter'}
        </button>
@@ -77,13 +79,34 @@ const FAQForm = ({ faq, onSubmit, onClose }) => {
 };
 
 export default function FAQManager() {
+ const { user } = useAuth();
+ const permissions = usePermission();
  const [faqs, setFaqs] = useState([]);
  const [showForm, setShowForm] = useState(false);
  const [selectedFaq, setSelectedFaq] = useState(null);
  const [searchTerm, setSearchTerm] = useState('');
  const [categoryFilter, setCategoryFilter] = useState('all');
 
- useEffect(() => {
+ // Permissions RBAC granulaires pour les FAQ
+ const canCreateFAQ = permissions.canManageFAQ;
+ const canEditOwnFAQ = permissions.canManageFAQ;
+ const canEditAllFAQ = permissions.isContentAdmin || permissions.isAdmin;
+ const canDeleteFAQ = permissions.isContentAdmin || permissions.isAdmin;
+ const canPublishFAQ = permissions.isContentAdmin || permissions.isAdmin;
+
+ // Fonction pour vérifier si l'utilisateur peut éditer une FAQ spécifique
+ const canEditFAQ = (faq) => {
+   if (canEditAllFAQ) return true;
+   if (canEditOwnFAQ && faq.createdBy === user?._id) return true;
+   return false;
+ };
+
+ // Fonction pour vérifier si l'utilisateur peut supprimer une FAQ spécifique
+ const canDeleteFAQItem = (faq) => {
+   if (canDeleteFAQ) return true;
+   return false;
+ };
+  useEffect(() => {
    fetchFaqs();
  }, []);
 
@@ -134,14 +157,16 @@ export default function FAQManager() {
  return (
    <div className="p-6 space-y-6">
      <div className="flex justify-between items-center">
-       <h2 className="text-2xl font-bold">Gestion des FAQs</h2>
-       <button 
-         onClick={() => setShowForm(true)}
-         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-       >
-         <Plus className="w-4 h-4" />
-         Nouvelle FAQ
-       </button>
+       <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Gestion des FAQs</h2>
+       {canCreateFAQ && (
+         <button 
+           onClick={() => setShowForm(true)}
+           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
+         >
+           <Plus className="w-4 h-4" />
+           Nouvelle FAQ
+         </button>
+       )}
      </div>
 
      <div className="flex gap-4 mb-6">
@@ -150,12 +175,12 @@ export default function FAQManager() {
          placeholder="Rechercher..."
          value={searchTerm}
          onChange={e => setSearchTerm(e.target.value)}
-         className="flex-1 p-2 border rounded"
+         className="flex-1 p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
        />
        <select
           value={categoryFilter}
           onChange={e => setCategoryFilter(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         >
           <option value="all">Toutes les catégories</option>
           {Array.isArray(faqs) && [...new Set(faqs.map(f => f.category))].map(cat => (
@@ -175,13 +200,13 @@ export default function FAQManager() {
         })
   
          .map(faq => (
-           <div key={faq._id} className="bg-white p-4 rounded-lg shadow border">
+           <div key={faq._id} className="bg-white p-4 rounded-lg shadow border dark:bg-secondary-800">
              <div className="flex justify-between items-start">
                <div className="flex-1">
                  <h3 className="font-bold mb-2">{faq.question}</h3>
-                 <p className="text-gray-600">{faq.answer}</p>
+                 <p className="text-gray-600 dark:text-muted-foreground">{faq.answer}</p>
                  <div className="mt-2 flex gap-2">
-                   <span className="text-sm bg-gray-100 px-2 py-1 rounded">
+                   <span className="text-sm bg-gray-100 px-2 py-1 rounded dark:bg-secondary-700">
                      {faq.category}
                    </span>
                    <span className={`text-sm px-2 py-1 rounded ${
@@ -192,21 +217,25 @@ export default function FAQManager() {
                  </div>
                </div>
                <div className="flex gap-2">
-                 <button
-                   onClick={() => {
-                     setSelectedFaq(faq);
-                     setShowForm(true);
-                   }}
-                   className="p-2 hover:bg-gray-100 rounded"
-                 >
-                   <Edit2 className="w-4 h-4" />
-                 </button>
-                 <button
-                   onClick={() => handleDelete(faq._id)}
-                   className="p-2 hover:bg-red-100 text-red-600 rounded"
-                 >
-                   <Trash2 className="w-4 h-4" />
-                 </button>
+                 {canEditFAQ(faq) && (
+                   <button
+                     onClick={() => {
+                       setSelectedFaq(faq);
+                       setShowForm(true);
+                     }}
+                     className="p-2 hover:bg-gray-100 rounded dark:bg-secondary-700 dark:hover:bg-secondary-700/50"
+                   >
+                     <Edit2 className="w-4 h-4" />
+                   </button>
+                 )}
+                 {canDeleteFAQItem(faq) && (
+                   <button
+                     onClick={() => handleDelete(faq._id)}
+                     className="p-2 hover:bg-red-100 text-red-600 rounded"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                   </button>
+                 )}
                </div>
              </div>
            </div>
@@ -215,8 +244,8 @@ export default function FAQManager() {
 
      {showForm && (
        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-         <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-           <h3 className="text-xl font-bold mb-4">
+         <div className="bg-white rounded-lg p-6 max-w-2xl w-full dark:bg-secondary-800">
+           <h3 className="text-xl font-bold mb-4 text-niger-green dark:text-niger-green-light">
              {selectedFaq ? 'Modifier la FAQ' : 'Nouvelle FAQ'}
            </h3>
            <FAQForm

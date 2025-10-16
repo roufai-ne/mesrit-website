@@ -77,7 +77,7 @@ export default function StatsAdmin() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex space-x-4 mb-6">
-        {['students', 'teachers', 'institutions'].map((type) => (
+        {['students', 'teachers', 'institutions', 'publications'].map((type) => (
           <button
             key={type}
             onClick={() => setActiveType(type)}
@@ -90,6 +90,7 @@ export default function StatsAdmin() {
             {type === 'students' && 'Étudiants'}
             {type === 'teachers' && 'Enseignants'}
             {type === 'institutions' && 'Établissements'}
+            {type === 'publications' && 'Publications Scientifiques'}
           </button>
         ))}
       </div>
@@ -99,7 +100,7 @@ export default function StatsAdmin() {
           setEditingData({});
           setIsEditing(true);
         }}
-        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
       >
         Ajouter
       </button>
@@ -110,18 +111,18 @@ export default function StatsAdmin() {
         <div className="text-center text-red-600 py-4">{error}</div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-secondary-600">
+            <thead className="bg-gray-50 dark:bg-secondary-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-muted-foreground">
                   Année
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-muted-foreground">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200 dark:bg-secondary-800 dark:divide-secondary-600">
               {stats.length > 0 ? (
                 stats.map((stat) => (
                   <tr key={stat._id}>
@@ -132,7 +133,7 @@ export default function StatsAdmin() {
                           setEditingData(stat);
                           setIsEditing(true);
                         }}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors dark:bg-secondary-700 dark:border-secondary-600 dark:hover:bg-secondary-700/50"
                       >
                         Modifier
                       </button>
@@ -147,7 +148,7 @@ export default function StatsAdmin() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="2" className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan="2" className="px-6 py-4 text-center text-gray-500 dark:text-muted-foreground">
                     Aucune donnée disponible
                   </td>
                 </tr>
@@ -159,14 +160,14 @@ export default function StatsAdmin() {
 
       {isEditing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto dark:bg-secondary-800">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">
+              <h2 className="text-lg font-semibold text-niger-green dark:text-niger-green-light">
                 {editingData?._id ? 'Modifier les statistiques' : 'Ajouter des statistiques'}
               </h2>
               <button
                 onClick={() => setIsEditing(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 dark:text-niger-green-light dark:text-muted-foreground"
               >
                 ×
               </button>
@@ -176,7 +177,7 @@ export default function StatsAdmin() {
   {activeType === 'students' && (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">Année</label>
+        <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Année</label>
         <input
           type="number"
           value={editingData?.year || ''}
@@ -184,13 +185,13 @@ export default function StatsAdmin() {
             ...editingData,
             year: parseInt(e.target.value)
           })}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">
+        <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">
           Nombre total d'étudiants
         </label>
         <input
@@ -200,13 +201,13 @@ export default function StatsAdmin() {
             ...editingData,
             totalStudents: parseInt(e.target.value)
           })}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">
+        <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">
           Étudiants pour 100k habitants
         </label>
         <input
@@ -216,14 +217,14 @@ export default function StatsAdmin() {
             ...editingData,
             studentsPerCapita: parseInt(e.target.value)
           })}
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
           required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Hommes</label>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Hommes</label>
           <input
             type="number"
             value={editingData?.genderDistribution?.male || ''}
@@ -234,12 +235,12 @@ export default function StatsAdmin() {
                 male: parseInt(e.target.value)
               }
             })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Femmes</label>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Femmes</label>
           <input
             type="number"
             value={editingData?.genderDistribution?.female || ''}
@@ -250,7 +251,7 @@ export default function StatsAdmin() {
                 female: parseInt(e.target.value)
               }
             })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
             required
           />
         </div>
@@ -260,7 +261,7 @@ export default function StatsAdmin() {
         <legend className="text-sm font-medium px-2">Secteur Public</legend>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Total Public</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total Public</label>
             <input
               type="number"
               value={editingData?.sectorDistribution?.public?.total || ''}
@@ -277,13 +278,13 @@ export default function StatsAdmin() {
                   }
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Universités</label>
+              <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Universités</label>
               <input
                 type="number"
                 value={editingData?.sectorDistribution?.public?.universities || ''}
@@ -302,12 +303,12 @@ export default function StatsAdmin() {
                     }
                   });
                 }}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Grandes Écoles</label>
+              <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Grandes Écoles</label>
               <input
                 type="number"
                 value={editingData?.sectorDistribution?.public?.grandesEcoles || ''}
@@ -326,7 +327,7 @@ export default function StatsAdmin() {
                     }
                   });
                 }}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                 required
               />
             </div>
@@ -338,7 +339,7 @@ export default function StatsAdmin() {
         <legend className="text-sm font-medium px-2">Secteur Privé</legend>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Total Privé</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total Privé</label>
             <input
               type="number"
               value={editingData?.sectorDistribution?.private?.total || ''}
@@ -355,13 +356,13 @@ export default function StatsAdmin() {
                   }
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Universités</label>
+              <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Universités</label>
               <input
                 type="number"
                 value={editingData?.sectorDistribution?.private?.universities || ''}
@@ -380,12 +381,12 @@ export default function StatsAdmin() {
                     }
                   });
                 }}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Grandes Écoles</label>
+              <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Grandes Écoles</label>
               <input
                 type="number"
                 value={editingData?.sectorDistribution?.private?.grandesEcoles || ''}
@@ -404,7 +405,7 @@ export default function StatsAdmin() {
                     }
                   });
                 }}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                 required
               />
             </div>
@@ -418,7 +419,7 @@ export default function StatsAdmin() {
 {activeType === 'teachers' && (
   <div className="space-y-4">
     <div>
-      <label className="block text-sm font-medium mb-1">Année</label>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Année</label>
       <input
         type="number"
         value={editingData?.year || ''}
@@ -426,7 +427,7 @@ export default function StatsAdmin() {
           ...editingData,
           year: parseInt(e.target.value)
         })}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         required
       />
     </div>
@@ -454,7 +455,7 @@ export default function StatsAdmin() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Grade</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Grade</label>
             <input
               type="text"
               value={grade.grade || ''}
@@ -469,13 +470,13 @@ export default function StatsAdmin() {
                   publicUniversities: newPublicUniversities
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Total</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total</label>
             <input
               type="number"
               value={grade.total || ''}
@@ -490,14 +491,14 @@ export default function StatsAdmin() {
                   publicUniversities: newPublicUniversities
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Hommes</label>
+              <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Hommes</label>
               <input
                 type="number"
                 value={grade.genderDistribution?.male || ''}
@@ -515,12 +516,12 @@ export default function StatsAdmin() {
                     publicUniversities: newPublicUniversities
                   });
                 }}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Femmes</label>
+              <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Femmes</label>
               <input
                 type="number"
                 value={grade.genderDistribution?.female || ''}
@@ -538,7 +539,7 @@ export default function StatsAdmin() {
                     publicUniversities: newPublicUniversities
                   });
                 }}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                 required
               />
             </div>
@@ -561,7 +562,7 @@ export default function StatsAdmin() {
             ]
           });
         }}
-        className="w-full px-4 py-2 text-sm border border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
+        className="w-full px-4 py-2 text-sm border border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 dark:bg-secondary-700 dark:border-secondary-600 dark:hover:bg-secondary-700/50"
       >
         + Ajouter un grade
       </button>
@@ -571,7 +572,7 @@ export default function StatsAdmin() {
       <legend className="text-sm font-medium px-2">Institutions Privées</legend>
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Total</label>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total</label>
           <input
             type="number"
             value={editingData?.privateInstitutions?.total || ''}
@@ -582,14 +583,14 @@ export default function StatsAdmin() {
                 total: parseInt(e.target.value)
               }
             })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Hommes</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Hommes</label>
             <input
               type="number"
               value={editingData?.privateInstitutions?.genderDistribution?.male || ''}
@@ -603,12 +604,12 @@ export default function StatsAdmin() {
                   }
                 }
               })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Femmes</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Femmes</label>
             <input
               type="number"
               value={editingData?.privateInstitutions?.genderDistribution?.female || ''}
@@ -622,7 +623,7 @@ export default function StatsAdmin() {
                   }
                 }
               })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
@@ -635,7 +636,7 @@ export default function StatsAdmin() {
 {activeType === 'institutions' && (
   <div className="space-y-4">
     <div>
-      <label className="block text-sm font-medium mb-1">Année</label>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Année</label>
       <input
         type="number"
         value={editingData?.year || ''}
@@ -643,13 +644,13 @@ export default function StatsAdmin() {
           ...editingData,
           year: parseInt(e.target.value)
         })}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         required
       />
     </div>
 
     <div>
-      <label className="block text-sm font-medium mb-1">Total Public</label>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total Public</label>
       <input
         type="number"
         value={editingData?.totalPublic || ''}
@@ -657,13 +658,13 @@ export default function StatsAdmin() {
           ...editingData,
           totalPublic: parseInt(e.target.value)
         })}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         required
       />
     </div>
 
     <div>
-      <label className="block text-sm font-medium mb-1">Total Privé</label>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total Privé</label>
       <input
         type="number"
         value={editingData?.totalPrivate || ''}
@@ -671,7 +672,7 @@ export default function StatsAdmin() {
           ...editingData,
           totalPrivate: parseInt(e.target.value)
         })}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         required
       />
     </div>
@@ -699,7 +700,7 @@ export default function StatsAdmin() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Type</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Type</label>
             <input
               type="text"
               value={institution.type || ''}
@@ -714,13 +715,13 @@ export default function StatsAdmin() {
                   institutions: newInstitutions
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Secteur</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Secteur</label>
             <select
               value={institution.sector || ''}
               onChange={(e) => {
@@ -734,7 +735,7 @@ export default function StatsAdmin() {
                   institutions: newInstitutions
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             >
               <option value="">Sélectionner un secteur</option>
@@ -744,7 +745,7 @@ export default function StatsAdmin() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
+            <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Nombre</label>
             <input
               type="number"
               value={institution.count || ''}
@@ -759,7 +760,7 @@ export default function StatsAdmin() {
                   institutions: newInstitutions
                 });
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
               required
             />
           </div>
@@ -777,24 +778,170 @@ export default function StatsAdmin() {
             ]
           });
         }}
-        className="w-full px-4 py-2 text-sm border border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50"
+        className="w-full px-4 py-2 text-sm border border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 dark:bg-secondary-700 dark:border-secondary-600 dark:hover:bg-secondary-700/50"
       >
         + Ajouter un établissement
       </button>
     </div>
   </div>
 )}
+
+{activeType === 'publications' && (
+  <div className="space-y-4">
+    <div>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Année</label>
+      <input
+        type="number"
+        value={editingData?.year || ''}
+        onChange={(e) => setEditingData({
+          ...editingData,
+          year: parseInt(e.target.value)
+        })}
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+        required
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total Publications</label>
+      <input
+        type="number"
+        value={editingData?.totalPublications || ''}
+        onChange={(e) => setEditingData({
+          ...editingData,
+          totalPublications: parseInt(e.target.value)
+        })}
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+        required
+      />
+    </div>
+
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Publications Internationales</label>
+        <input
+          type="number"
+          value={editingData?.publicationsByScope?.international || ''}
+          onChange={(e) => setEditingData({
+            ...editingData,
+            publicationsByScope: {
+              ...editingData?.publicationsByScope,
+              international: parseInt(e.target.value)
+            }
+          })}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Publications Nationales</label>
+        <input
+          type="number"
+          value={editingData?.publicationsByScope?.national || ''}
+          onChange={(e) => setEditingData({
+            ...editingData,
+            publicationsByScope: {
+              ...editingData?.publicationsByScope,
+              national: parseInt(e.target.value)
+            }
+          })}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+        />
+      </div>
+    </div>
+
+    <div className="space-y-4">
+      <h3 className="font-medium">Métriques de Qualité</h3>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Publications Indexées</label>
+          <input
+            type="number"
+            value={editingData?.qualityMetrics?.indexedPublications || ''}
+            onChange={(e) => setEditingData({
+              ...editingData,
+              qualityMetrics: {
+                ...editingData?.qualityMetrics,
+                indexedPublications: parseInt(e.target.value)
+              }
+            })}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Publications avec Comité de Lecture</label>
+          <input
+            type="number"
+            value={editingData?.qualityMetrics?.peerReviewedPublications || ''}
+            onChange={(e) => setEditingData({
+              ...editingData,
+              qualityMetrics: {
+                ...editingData?.qualityMetrics,
+                peerReviewedPublications: parseInt(e.target.value)
+              }
+            })}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Total Citations</label>
+          <input
+            type="number"
+            value={editingData?.qualityMetrics?.citationsTotal || ''}
+            onChange={(e) => setEditingData({
+              ...editingData,
+              qualityMetrics: {
+                ...editingData?.qualityMetrics,
+                citationsTotal: parseInt(e.target.value)
+              }
+            })}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Moyenne Publications/Chercheur</label>
+          <input
+            type="number"
+            step="0.1"
+            value={editingData?.averagePublicationsPerResearcher || ''}
+            onChange={(e) => setEditingData({
+              ...editingData,
+              averagePublicationsPerResearcher: parseFloat(e.target.value)
+            })}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium mb-1 text-niger-green dark:text-niger-green-light">Notes</label>
+      <textarea
+        value={editingData?.notes || ''}
+        onChange={(e) => setEditingData({
+          ...editingData,
+          notes: e.target.value
+        })}
+        rows={3}
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+        placeholder="Notes ou commentaires sur les données..."
+      />
+    </div>
+  </div>
+)}
+
   <div className="flex justify-end space-x-2 pt-4 border-t">
     <button
       type="button"
       onClick={() => setIsEditing(false)}
-      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors dark:bg-secondary-700 dark:border-secondary-600 dark:hover:bg-secondary-700/50"
     >
       Annuler
     </button>
     <button
       type="submit"
-      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
     >
       {editingData?._id ? 'Mettre à jour' : 'Créer'}
     </button>

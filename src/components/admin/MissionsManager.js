@@ -6,7 +6,7 @@ export default function MissionsManager() {
   // ... même état initial ...
 
   return (
-    <div className="p-6 bg-gray-50">
+    <div className="p-6 bg-gray-50 dark:bg-secondary-700">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
           Gestion des Missions
@@ -49,7 +49,7 @@ export default function MissionsManager() {
       <div className="space-y-8">
         {missions.map((mission, missionIndex) => (
           <div key={missionIndex} 
-               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-8 border border-gray-100">
+               className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-8 border border-gray-100 dark:bg-secondary-800">
             <input
               type="text"
               value={mission.title}
@@ -61,7 +61,7 @@ export default function MissionsManager() {
               disabled={!editMode}
               className="text-2xl font-bold mb-4 w-full p-3 rounded-lg bg-transparent 
                        focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
-                       disabled:bg-transparent disabled:border-transparent"
+                       disabled:bg-transparent disabled:border-transparent text-niger-green dark:text-niger-green-light"
               placeholder="Titre de la mission"
             />
             
@@ -75,7 +75,7 @@ export default function MissionsManager() {
               disabled={!editMode}
               className="w-full p-3 rounded-lg bg-gray-50 border-0 
                        focus:ring-2 focus:ring-blue-500 mb-6 
-                       disabled:bg-transparent resize-none"
+                       disabled:bg-transparent resize-none dark:bg-secondary-700"
               rows="3"
               placeholder="Description de la mission"
             />
@@ -87,7 +87,7 @@ export default function MissionsManager() {
                   <button
                     onClick={() => handleAddObjectif(missionIndex)}
                     className="text-blue-600 hover:bg-blue-100 p-2 rounded-full 
-                             transition-colors duration-300"
+                             transition-colors duration-300 text-niger-orange dark:text-niger-orange"
                   >
                     <Plus className="w-5 h-5 stroke-[2]" />
                   </button>

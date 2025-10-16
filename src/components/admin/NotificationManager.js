@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, AlertTriangle, Info, CheckCircle, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermission } from '@/hooks/usePermissionRBAC';
 
 const NotificationForm = ({ notification, onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
@@ -23,7 +25,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
        <input
          value={formData.title}
          onChange={e => setFormData({...formData, title: e.target.value})}
-         className="w-full p-2 border rounded"
+         className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          required
        />
      </div>
@@ -33,7 +35,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
        <textarea
          value={formData.message}
          onChange={e => setFormData({...formData, message: e.target.value})}
-         className="w-full p-2 border rounded min-h-[100px]"
+         className="w-full p-2 border rounded min-h-[100px] border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          required
        />
      </div>
@@ -44,7 +46,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
          <select
            value={formData.type}
            onChange={e => setFormData({...formData, type: e.target.value})}
-           className="w-full p-2 border rounded"
+           className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          >
            <option value="info">Information</option>
            <option value="success">Succès</option>
@@ -58,7 +60,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
          <select
            value={formData.recipients}
            onChange={e => setFormData({...formData, recipients: e.target.value})}
-           className="w-full p-2 border rounded"
+           className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
          >
            <option value="all">Tous</option>
            <option value="roles">Par rôle</option>
@@ -73,7 +75,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
          <input
            value={formData.recipientEmails}
            onChange={e => setFormData({...formData, recipientEmails: e.target.value})}
-           className="w-full p-2 border rounded"
+           className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
            placeholder="email1@exemple.com, email2@exemple.com"
          />
        </div>
@@ -85,7 +87,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
          type="datetime-local"
          value={formData.scheduledFor}
          onChange={e => setFormData({...formData, scheduledFor: e.target.value})}
-         className="w-full p-2 border rounded"
+         className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
        />
      </div>
      <div>
@@ -93,7 +95,7 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
         <select
           value={formData.status}
           onChange={e => setFormData({...formData, status: e.target.value})}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
         >
           <option value="draft">Brouillon</option>
           <option value="scheduled">Planifié</option>
@@ -105,13 +107,13 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
        <button
          type="button"
          onClick={onClose}
-         className="px-4 py-2 border rounded hover:bg-gray-50"
+         className="px-4 py-2 border rounded hover:bg-gray-50 dark:bg-secondary-700 dark:hover:bg-secondary-700/50 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
        >
          Annuler
        </button>
        <button
          type="submit"
-         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
        >
          Envoyer
        </button>
@@ -123,11 +125,32 @@ const NotificationForm = ({ notification, onSubmit, onClose }) => {
 
 
 export default function NotificationManager() {
+  const { user } = useAuth();
+  const permissions = usePermission();
   const [notifications, setNotifications] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedNotification, setSelectedNotification] = useState(null);
+
+  // Permissions RBAC pour les notifications
+  const canCreateNotification = permissions.canManageNotifications;
+  const canEditAllNotifications = permissions.isContentAdmin || permissions.isAdmin;
+  const canEditOwnNotification = permissions.canManageNotifications;
+  const canDeleteNotification = permissions.isContentAdmin || permissions.isAdmin;
+
+  // Vérifie si l'utilisateur peut éditer une notification spécifique
+  const canEditNotification = (notif) => {
+    if (canEditAllNotifications) return true;
+    if (canEditOwnNotification && notif.createdBy === user?._id) return true;
+    return false;
+  };
+
+  // Vérifie si l'utilisateur peut supprimer une notification spécifique
+  const canDeleteNotificationItem = (notif) => {
+    if (canDeleteNotification) return true;
+    return false;
+  };
 
   useEffect(() => {
     fetchNotifications();
@@ -190,17 +213,19 @@ export default function NotificationManager() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Notifications</h2>
-        <button 
-          onClick={() => {
-            setSelectedNotification(null);
-            setShowForm(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          <Bell className="w-4 h-4" />
-          Nouvelle Notification
-        </button>
+        <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Notifications</h2>
+        {canCreateNotification && (
+          <button 
+            onClick={() => {
+              setSelectedNotification(null);
+              setShowForm(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
+          >
+            <Bell className="w-4 h-4" />
+            Nouvelle Notification
+          </button>
+        )}
       </div>
 
       <div className="flex gap-4">
@@ -209,12 +234,12 @@ export default function NotificationManager() {
           placeholder="Rechercher..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="flex-1 p-2 border rounded"
+          className="flex-1 p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         />
         <select
           value={typeFilter}
           onChange={e => setTypeFilter(e.target.value)}
-          className="p-2 border rounded"
+          className="p-2 border rounded border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
         >
           <option value="all">Tous les types</option>
           <option value="info">Information</option>
@@ -234,7 +259,7 @@ export default function NotificationManager() {
             return matchesSearch && matchesType;
           })
           .map(notif => (
-            <div key={notif._id} className="bg-white p-4 rounded-lg shadow border">
+            <div key={notif._id} className="bg-white p-4 rounded-lg shadow border dark:bg-secondary-800">
               <div className="flex items-start gap-4">
                 <div className={`p-2 rounded-full ${
                   {
@@ -252,9 +277,9 @@ export default function NotificationManager() {
                 
                 <div className="flex-1">
                   <h3 className="font-bold mb-2">{notif.title}</h3>
-                  <p className="text-gray-600 mb-3">{notif.message}</p>
+                  <p className="text-gray-600 mb-3 dark:text-muted-foreground">{notif.message}</p>
                   
-                  <div className="flex gap-4 text-sm text-gray-500">
+                  <div className="flex gap-4 text-sm text-gray-500 dark:text-muted-foreground">
                     <span>Destinataires: {notif.recipients}</span>
                     <span>•</span>
                     <span>{new Date(notif.createdAt).toLocaleString()}</span>
@@ -267,21 +292,25 @@ export default function NotificationManager() {
                       {notif.status}
                     </span>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedNotification(notif);
-                          setShowForm(true);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(notif._id)}
-                        className="p-2 hover:bg-red-100 text-red-600 rounded"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {canEditNotification(notif) && (
+                        <button
+                          onClick={() => {
+                            setSelectedNotification(notif);
+                            setShowForm(true);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded dark:bg-secondary-700 dark:hover:bg-secondary-700/50"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      {canDeleteNotificationItem(notif) && (
+                        <button
+                          onClick={() => handleDelete(notif._id)}
+                          className="p-2 hover:bg-red-100 text-red-600 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -292,8 +321,8 @@ export default function NotificationManager() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <h3 className="text-xl font-bold mb-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full dark:bg-secondary-800">
+            <h3 className="text-xl font-bold mb-4 text-niger-green dark:text-niger-green-light">
               {selectedNotification ? 'Modifier la notification' : 'Nouvelle notification'}
             </h3>
             <NotificationForm

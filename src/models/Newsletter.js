@@ -1,4 +1,3 @@
-// models/Newsletter.js
 import mongoose from 'mongoose';
 
 // Modèle Newsletter
@@ -15,9 +14,13 @@ const NewsletterSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'unsubscribed'],
-    default: 'active'
-  }
+    enum: ['pending', 'active', 'unsubscribed'],
+    default: 'pending'
+  },
+  confirmationToken: String,
+  confirmationTokenExpires: Date,
+  unsubscribeToken: String, // Ajout d’un token pour la désinscription
+  unsubscribeTokenExpires: Date, // Date d’expiration du token de désinscription
 });
 
 export default mongoose.models.Newsletter || mongoose.model('Newsletter', NewsletterSchema);

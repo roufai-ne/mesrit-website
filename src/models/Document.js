@@ -39,9 +39,30 @@ const documentSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'published'],
     default: 'published'
-  }
+  },
+  tags: [String] // Ajout du champ tags pour une meilleure recherche
 }, {
   timestamps: true
 });
+
+// Index pour la recherche textuelle optimisée
+documentSchema.index({ 
+  title: 'text', 
+  description: 'text',
+  tags: 'text'
+}, {
+  weights: {
+    title: 10,
+    description: 5,
+    tags: 8
+  },
+  name: 'document_search_index'
+});
+
+// Index composé pour les requêtes de recherche avec filtres
+documentSchema.index({ status: 1, createdAt: -1 });
+documentSchema.index({ category: 1, status: 1, createdAt: -1 });
+documentSchema.index({ type: 1, status: 1 });
+documentSchema.index({ tags: 1, status: 1 });
 
 export default mongoose.models.Document || mongoose.model('Document', documentSchema);

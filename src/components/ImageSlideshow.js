@@ -123,6 +123,7 @@ export default function ImageSlideshow({ images, onClose }) {
               src={images[currentIndex].url}
               alt={images[currentIndex].description}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
               className="object-contain"
             />
           

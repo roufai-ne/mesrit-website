@@ -11,9 +11,13 @@ export default function AlertBanner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [fetchAttempted, setFetchAttempted] = useState(false);
+
   useEffect(() => {
-    fetchAlerts();
-  }, []);
+    if (!fetchAttempted) {
+      fetchAlerts();
+    }
+  }, [fetchAttempted]);
 
   // Auto-rotation des alertes
   useEffect(() => {
@@ -31,14 +35,24 @@ export default function AlertBanner() {
   }, [alerts.length]);
 
   const fetchAlerts = async () => {
+    setLoading(true);
+    setError(null);
+    setFetchAttempted(true);
     try {
       const response = await fetch('/api/alerts');
-      if (!response.ok) throw new Error('Erreur de chargement des alertes');
+      if (!response.ok) {
+        let message = `Erreur de chargement des alertes (${response.status})`;
+        if (response.status === 429) message = 'Trop de requêtes, veuillez patienter.';
+        if (response.status === 401) message = 'Accès non autorisé.';
+        if (response.status === 403) message = 'Accès interdit.';
+        throw new Error(message);
+      }
       const data = await response.json();
       setAlerts(data);
     } catch (error) {
       console.error('Erreur:', error);
       setError(error.message);
+      setAlerts([]);
     } finally {
       setLoading(false);
     }
@@ -56,7 +70,27 @@ export default function AlertBanner() {
     );
   }
 
-  if (error || alerts.length === 0 || isDismissed) return null;
+  if (error) {
+    return (
+      <div className="bg-gradient-to-r from-red-600 to-red-700">
+        <div className="container mx-auto px-6 py-3">
+          <div className="flex flex-col items-center justify-center py-4">
+            <AlertTriangle className="w-8 h-8 text-white mb-2" />
+            <div className="text-white font-semibold mb-2">Impossible de charger les alertes</div>
+            <div className="text-white/80 text-sm mb-4">{error}</div>
+            <button
+              className="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30"
+              onClick={() => { setFetchAttempted(false); setError(null); }}
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (alerts.length === 0 || isDismissed) return null;
 
   const getPriorityStyles = (priority) => {
     switch (priority) {
@@ -114,6 +148,7 @@ export default function AlertBanner() {
                       ? 'w-6 h-1.5 bg-white'
                       : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/75'
                   } rounded-full`}
+                  aria-label={`Afficher l'alerte ${idx + 1}`}
                 />
               ))}
             </div>

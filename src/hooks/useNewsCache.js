@@ -39,15 +39,16 @@ export const useNewsCache = () => {
     }
   }, []); // Only runs on mount
 
-  const getCacheKey = useCallback((filter, page, search) => 
-    `${filter}-${page}-${search}`, []);
+  const getCacheKey = useCallback((filter, page, search, status = 'published') => 
+    `${filter}-${page}-${search}-${status}`, []);
 
-  const fetchNews = useCallback(async (filter = 'all', page = 1, search = '') => {
-    const cacheKey = getCacheKey(filter, page, search);
+  const fetchNews = useCallback(async (filter = 'all', page = 1, search = '', status = 'published') => {
+    const cacheKey = getCacheKey(filter, page, search, status);
 
-    // Vérifier le cache avant de faire la requête
-    if (cache[cacheKey]?.timestamp > Date.now() - CACHE_DURATION) {
-      return cache[cacheKey].data;
+    // Vérifier le cache avant de faire la requête (avec protection contre race condition)
+    const cachedEntry = cache[cacheKey];
+    if (cachedEntry?.timestamp > Date.now() - CACHE_DURATION && !loading) {
+      return cachedEntry.data;
     }
 
     setLoading(true);
@@ -56,7 +57,8 @@ export const useNewsCache = () => {
         page,
         limit: 6,
         category: filter !== 'all' ? filter : '',
-        search
+        search,
+        status
       });
 
       // Utiliser secureApi à la place de fetch
@@ -92,8 +94,8 @@ export const useNewsCache = () => {
     localStorage.removeItem(CACHE_KEY);
   }, []);
 
-  const getCachedData = useCallback((filter, page, search) => {
-    const cacheKey = getCacheKey(filter, page, search);
+  const getCachedData = useCallback((filter, page, search, status = 'published') => {
+    const cacheKey = getCacheKey(filter, page, search, status);
     return cache[cacheKey]?.data;
   }, [cache, getCacheKey]);
 

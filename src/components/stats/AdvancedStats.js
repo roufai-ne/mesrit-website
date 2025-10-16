@@ -1,6 +1,17 @@
 // src/components/stats/AdvancedStats.js
 import React from 'react';
-import { LineChart, Line, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import dynamic from 'next/dynamic';
+
+// Lazy loading des composants Recharts pour améliorer les performances
+const LineChart = dynamic(() => import('recharts').then(mod => ({ default: mod.LineChart })), { ssr: false });
+const Line = dynamic(() => import('recharts').then(mod => ({ default: mod.Line })), { ssr: false });
+const PieChart = dynamic(() => import('recharts').then(mod => ({ default: mod.PieChart })), { ssr: false });
+const Pie = dynamic(() => import('recharts').then(mod => ({ default: mod.Pie })), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(mod => ({ default: mod.XAxis })), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(mod => ({ default: mod.YAxis })), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(mod => ({ default: mod.CartesianGrid })), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then(mod => ({ default: mod.Tooltip })), { ssr: false });
+const Legend = dynamic(() => import('recharts').then(mod => ({ default: mod.Legend })), { ssr: false });
 
 export default function AdvancedStats() {
   const studentData = [
