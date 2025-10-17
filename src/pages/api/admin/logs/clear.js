@@ -26,9 +26,6 @@ async function clearLogsHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'DELETE') {
     try {
       await connectDB();
@@ -110,3 +107,4 @@ async function clearLogsHandler(req, res) {
 }
 
 export default withSecurityHeaders(withAuthRateLimit(withErrorHandler(clearLogsHandler)));
+

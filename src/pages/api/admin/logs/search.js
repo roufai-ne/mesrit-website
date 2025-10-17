@@ -21,9 +21,6 @@ async function logSearchHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const {
@@ -75,3 +72,4 @@ async function logSearchHandler(req, res) {
 }
 
 export default withErrorHandler(logSearchHandler);
+

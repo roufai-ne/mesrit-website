@@ -157,7 +157,7 @@ export default function ContactForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
               Email
             </label>
             <input
@@ -166,11 +166,11 @@ export default function ContactForm() {
               value={formData.email}
               onChange={handleChange}
               className={`
-                w-full px-4 py-3 bg-white rounded-xl border-2 
-                focus:ring-2 focus:ring-blue-100 transition-all duration-200
-                ${errors.email 
-                  ? 'border-red-200 bg-red-50/50' 
-                  : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+                w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+                focus:ring-2 focus:ring-niger-orange/20
+                ${errors.email
+                  ? 'border-red-200 bg-red-50/50 dark:bg-red-900/20 dark:border-red-800'
+                  : 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'}
               `}
               placeholder="mail@exemple.com"
             />
@@ -184,7 +184,7 @@ export default function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
             Sujet
           </label>
           <input
@@ -193,11 +193,11 @@ export default function ContactForm() {
             value={formData.subject}
             onChange={handleChange}
             className={`
-              w-full px-4 py-3 bg-white rounded-xl border-2 
-              focus:ring-2 focus:ring-blue-100 transition-all duration-200
-              ${errors.subject 
-                ? 'border-red-200 bg-red-50/50' 
-                : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+              w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+              focus:ring-2 focus:ring-niger-orange/20
+              ${errors.subject
+                ? 'border-red-200 bg-red-50/50 dark:bg-red-900/20 dark:border-red-800'
+                : 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'}
             `}
             placeholder="Le sujet de votre message"
           />
@@ -210,7 +210,7 @@ export default function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
             Message
           </label>
           <textarea
@@ -219,11 +219,11 @@ export default function ContactForm() {
             onChange={handleChange}
             rows="6"
             className={`
-              w-full px-4 py-3 bg-white rounded-xl border-2 
-              focus:ring-2 focus:ring-blue-100 transition-all duration-200
-              ${errors.message 
-                ? 'border-red-200 bg-red-50/50' 
-                : 'border-gray-100 hover:border-gray-200 focus:border-blue-200'}
+              w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+              focus:ring-2 focus:ring-niger-orange/20 resize-vertical
+              ${errors.message
+                ? 'border-red-200 bg-red-50/50 dark:bg-red-900/20 dark:border-red-800'
+                : 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'}
             `}
             placeholder="Écrivez votre message ici..."
           ></textarea>
@@ -239,13 +239,13 @@ export default function ContactForm() {
           type="submit"
           disabled={loading}
           className="
-            w-full px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700
+            w-full px-6 py-3.5 bg-gradient-to-r from-niger-orange to-niger-green
             text-white text-lg font-medium rounded-xl
-            hover:from-blue-700 hover:to-blue-800
-            focus:ring-4 focus:ring-blue-100
+            hover:from-niger-orange-dark hover:to-niger-green-dark
+            focus:ring-4 focus:ring-niger-orange/20
             transform transition-all duration-200
             disabled:opacity-70 disabled:cursor-not-allowed
-            flex items-center justify-center
+            flex items-center justify-center shadow-lg hover:shadow-xl
           "
         >
           {loading ? (

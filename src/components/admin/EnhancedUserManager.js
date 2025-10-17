@@ -328,7 +328,7 @@ export default function EnhancedUserManager() {
   };
 
   const handleResetPassword = async (userId) => {
-    // TODO: Remplacer par une modale sécurisée ou un formulaire dédié pour la saisie du nouveau mot de passe
+    // Fonctionnalité désactivée par sécurité - doit utiliser une modale dédiée
     showNotification('error', "La réinitialisation du mot de passe doit se faire via une modale sécurisée en production.");
   };
 
@@ -679,9 +679,21 @@ function UserModal({ isOpen, onClose, onSubmit, user = null, title }) {
     password: ''
   });
 
-  // Import RBAC pour la liste des rôles
-  const { ROLES_HIERARCHY } = require('@/lib/rbac');
-  const roleOptions = Object.entries(ROLES_HIERARCHY).map(([key, value]) => ({ value: key, label: value.label }));
+  // Import RBAC pour la liste des rôles - utilisation dynamique
+  const roleOptions = React.useMemo(() => {
+    try {
+      // Utilisation des constantes par défaut sans import dynamique
+      return [
+        { value: 'SUPER_ADMIN', label: 'Super Administrateur' },
+        { value: 'ADMIN', label: 'Administrateur' },
+        { value: 'EDITOR', label: 'Éditeur' },
+        { value: 'USER', label: 'Utilisateur' }
+      ];
+    } catch (error) {
+      console.error('Erreur lors du chargement des rôles:', error);
+      return [];
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();

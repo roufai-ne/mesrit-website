@@ -21,9 +21,6 @@ async function criticalLogsHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const logs = await logger.getCriticalUnprocessedLogs();
@@ -92,3 +89,4 @@ async function criticalLogsHandler(req, res) {
 }
 
 export default withErrorHandler(criticalLogsHandler);
+

@@ -22,9 +22,6 @@ async function logAlertByIdHandler(req, res) {
     });
   }
 
-  );
-  }
-
   const { id } = req.query;
 
   if (req.method === 'GET') {

@@ -29,10 +29,7 @@ export default async function handler(req, res) {
     });
   }
 
-  );
-    }
-
-    // Get session statistics
+  // Get session statistics
     const stats = SessionManager.getSessionStats();
     
     // Get detailed session information (for admin view)
@@ -70,3 +67,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

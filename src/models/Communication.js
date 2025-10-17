@@ -6,7 +6,9 @@ import Event from './Event.js';
 // Ce module n'est pas un vrai modèle Mongoose, mais permet d'unifier l'accès
 // pour le middleware RBAC qui importe '@/models/Communication'
 
-export default {
+const CommunicationModels = {
   Alert,
   Event
 };
+
+export default CommunicationModels;

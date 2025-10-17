@@ -32,9 +32,6 @@ async function autoCleanupHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       return res.status(200).json({
@@ -143,3 +140,4 @@ async function autoCleanupHandler(req, res) {
 }
 
 export default withErrorHandler(autoCleanupHandler);
+

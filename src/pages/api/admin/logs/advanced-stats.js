@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth';
 import { withSecurityHeaders } from '@/lib/securityHeaders';
 import { RBAC, RESOURCES, ACTIONS } from '@/lib/rbac';
 import { withRateLimit } from '@/lib/rateLimiter';
-import connectDB from '@/lib/mongodb';
+import { connectDB } from '@/lib/mongodb';
 
 async function advancedLogsStatsHandler(req, res) {
   // Vérifier l'authentification
@@ -22,9 +22,6 @@ async function advancedLogsStatsHandler(req, res) {
       success: false,
       message: 'Vous n\'avez pas les permissions nécessaires pour cette action.'
     });
-  }
-
-  );
   }
 
   if (req.method === 'GET') {
@@ -177,3 +174,4 @@ async function advancedLogsStatsHandler(req, res) {
 }
 
 export default withSecurityHeaders(withRateLimit(withErrorHandler(advancedLogsStatsHandler)));
+

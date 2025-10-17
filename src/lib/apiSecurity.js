@@ -56,12 +56,34 @@ class ApiSecurity {
         return cachedResult;
       }
 
-      const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
-      if (allowedOrigins.length === 0) {
-        console.warn('ALLOWED_ORIGINS non défini, aucune origine autorisée');
+      // ✅ CORRECTION: Autoriser le réseau local en développement
+      if (process.env.NODE_ENV === 'development') {
+        const isLocalNetwork = origin.match(/^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+):\d+$/);
+        if (isLocalNetwork) {
+          console.log(`Origine ${origin} autorisée (réseau local en développement)`);
+          this.cache.set(cacheKey, true);
+          return true;
+        }
       }
 
-      const isValid = allowedOrigins.some((allowed) => {
+      const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()).filter(Boolean) || [];
+      
+      // ✅ CORRECTION: Ajouter des origines par défaut si aucune n'est définie
+      const defaultOrigins = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        process.env.NEXT_PUBLIC_BASE_URL,
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
+      ].filter(Boolean);
+
+      const allAllowedOrigins = [...new Set([...allowedOrigins, ...defaultOrigins])];
+
+      if (allAllowedOrigins.length === 0) {
+        console.warn('⚠️ ALLOWED_ORIGINS non défini, aucune origine autorisée');
+        return false;
+      }
+
+      const isValid = allAllowedOrigins.some((allowed) => {
         if (allowed.startsWith('*.')) {
           const domain = allowed.slice(2);
           return origin.endsWith(domain);
@@ -70,10 +92,16 @@ class ApiSecurity {
       });
 
       this.cache.set(cacheKey, isValid);
-      console.log(`Origine ${origin} validée: ${isValid}`);
+      
+      if (!isValid) {
+        console.warn(`❌ Origine ${origin} refusée. Origines autorisées:`, allAllowedOrigins);
+      } else {
+        console.log(`✅ Origine ${origin} validée`);
+      }
+      
       return isValid;
     } catch (error) {
-      console.error('Erreur lors de la validation de l’origine:', error);
+      console.error('Erreur lors de la validation de l\'origine:', error);
       return false;
     }
   }

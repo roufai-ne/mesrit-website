@@ -1,6 +1,6 @@
 // src/pages/api/news/analytics.js
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
-import NewsAnalyticsService from '@/lib/newsAnalytics';
+import { NewsAnalyticsServiceV2 } from '@/lib/newsAnalyticsV2';
 import logger, { LOG_TYPES } from '@/lib/logger';
 import { connectDB } from '@/lib/mongodb';
 import mongoose from 'mongoose';
@@ -15,9 +15,16 @@ const getGlobalAnalytics = async (req, res) => {
     const { period = 30 } = req.query;
     
     // Valider la période
-    const validPeriod = Math.min(Math.max(parseInt(period), 1), 365);
+    const validPeriod = Math.min(Math.max(parseInt(period) || 30, 1), 365);
     
-    const stats = await NewsAnalyticsService.getGlobalStats(validPeriod);
+    console.log(`[Analytics] Récupération des stats pour ${validPeriod} jours`);
+    
+    const stats = await NewsAnalyticsServiceV2.getGlobalStats(validPeriod);
+    
+    console.log('[Analytics] Stats récupérées:', {
+      totalViews: stats.overview?.totalViews,
+      activeArticles: stats.overview?.activeArticles
+    });
     
     await logger.info(
       LOG_TYPES.ADMIN_ACTION,
@@ -37,35 +44,34 @@ const getGlobalAnalytics = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Erreur récupération analytics globales:', error);
+    console.error('[Analytics] Erreur récupération analytics globales:', error);
+    console.error('[Analytics] Stack:', error.stack);
     
-    // Gestion robuste de l'erreur
-    const errorMessage = error?.message || error?.toString() || 'Erreur inconnue';
-    const errorStack = error?.stack || 'Pas de stack trace disponible';
-    
-    console.error('Stack trace:', errorStack);
-    
+    // Log l'erreur
     try {
       await logger.error(
         LOG_TYPES.SYSTEM_ERROR,
         'Erreur récupération analytics globales',
         {
-          error: errorMessage,
-          stack: errorStack,
+          error: error.message,
+          stack: error.stack,
           adminId: req.user?.id,
-          errorType: typeof error,
-          errorDetails: JSON.stringify(error, null, 2)
+          query: req.query
         },
         req
       );
     } catch (logError) {
-      console.error('Erreur lors du logging:', logError);
+      console.error('[Analytics] Erreur lors du logging:', logError);
     }
     
     res.status(500).json({
       success: false,
       error: 'Erreur lors de la récupération des statistiques',
-      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? {
+        stack: error.stack,
+        name: error.name
+      } : undefined
     });
   }
 };
@@ -74,10 +80,14 @@ const getGlobalAnalytics = async (req, res) => {
 const trackEvent = async (req, res) => {
   try {
     await connectDB();
-    const { newsId, eventType, platform, readingTime, scrollDepth } = req.body;
+    
+    const { newsId, eventType, platform, readingTime, scrollDepth, sessionId } = req.body;
+    
+    console.log('[Analytics] Tracking event:', { newsId, eventType, platform, sessionId });
     
     // Validation des données
     if (!newsId || !eventType) {
+      console.log('[Analytics] Données manquantes:', { newsId, eventType });
       return res.status(400).json({
         success: false,
         error: 'newsId et eventType sont requis'
@@ -85,6 +95,7 @@ const trackEvent = async (req, res) => {
     }
     
     if (!['view', 'share'].includes(eventType)) {
+      console.log('[Analytics] Type d\'événement invalide:', eventType);
       return res.status(400).json({
         success: false,
         error: 'eventType doit être "view" ou "share"'
@@ -93,43 +104,72 @@ const trackEvent = async (req, res) => {
     
     // Normaliser/valider l'identifiant article (ObjectId ou slug)
     let resolvedNewsId = null;
+    
     if (mongoose.Types.ObjectId.isValid(newsId)) {
       resolvedNewsId = newsId;
+      console.log('[Analytics] newsId est un ObjectId valide');
     } else if (typeof newsId === 'string') {
+      console.log('[Analytics] Recherche par slug:', newsId);
       const bySlug = await News.findOne({ slug: newsId.toLowerCase() }).select('_id');
-      if (bySlug) resolvedNewsId = bySlug._id;
+      if (bySlug) {
+        resolvedNewsId = bySlug._id;
+        console.log('[Analytics] Article trouvé par slug:', resolvedNewsId);
+      }
     }
 
     if (!resolvedNewsId) {
-      return res.status(400).json({ success: false, error: 'newsId invalide (ObjectId ou slug requis)' });
+      console.log('[Analytics] Article non trouvé pour newsId:', newsId);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'newsId invalide (ObjectId ou slug requis)' 
+      });
     }
 
     // Données de tracking (IP robuste derrière proxy)
     const xff = req.headers['x-forwarded-for'];
     const ip = Array.isArray(xff)
       ? xff[0]
-      : (typeof xff === 'string' ? xff.split(',')[0].trim() : null) || req.socket?.remoteAddress || req.connection?.remoteAddress || 'Unknown';
+      : (typeof xff === 'string' ? xff.split(',')[0].trim() : null) 
+        || req.socket?.remoteAddress 
+        || req.connection?.remoteAddress 
+        || 'Unknown';
 
+    // Construire trackingData avec TOUS les champs nécessaires
     const trackingData = {
       ip,
       userAgent: req.headers['user-agent'] || 'Unknown',
       referrer: req.headers.referer || req.headers.referrer || '',
-      sessionId: req.headers['x-session-id'] || null,
-      userId: req.user?.id || null
+      sessionId: sessionId || req.headers['x-session-id'] || null,  // ← CORRECTION ICI
+      userId: req.user?.id || null,
+      readingTime: readingTime || 0,
+      scrollDepth: scrollDepth || 0,
+      country: req.body.country || null,
+      city: req.body.city || null,
+      videoWatched: req.body.videoWatched || false,
+      videoCurrentTime: req.body.videoCurrentTime || 0,
+      videoDuration: req.body.videoDuration || 0
     };
+    
+    console.log('[Analytics] Tracking data préparé:', { 
+      ip: trackingData.ip?.substring(0, 10) + '...', 
+      userAgent: trackingData.userAgent?.substring(0, 20) + '...',
+      sessionId: trackingData.sessionId,
+      readingTime: trackingData.readingTime,
+      scrollDepth: trackingData.scrollDepth
+    });
     
     let result;
     
     if (eventType === 'view') {
       // Enregistrer une vue
-      result = await NewsAnalyticsService.trackView(resolvedNewsId, {
-        ...trackingData,
-        readingTime: readingTime || 0,
-        scrollDepth: scrollDepth || 0
-      });
+      console.log('[Analytics] Tracking vue pour:', resolvedNewsId);
+      result = await NewsAnalyticsServiceV2.trackView(resolvedNewsId, trackingData);
+      console.log('[Analytics] Vue enregistrée:', result ? 'Succès' : 'Échec');
+      
     } else if (eventType === 'share') {
       // Enregistrer un partage
       if (!platform) {
+        console.log('[Analytics] Platform manquante pour le partage');
         return res.status(400).json({
           success: false,
           error: 'platform est requis pour les partages'
@@ -138,13 +178,23 @@ const trackEvent = async (req, res) => {
       
       const validPlatforms = ['twitter', 'facebook', 'linkedin', 'whatsapp', 'email', 'copy'];
       if (!validPlatforms.includes(platform)) {
+        console.log('[Analytics] Platform invalide:', platform);
         return res.status(400).json({
           success: false,
           error: `platform doit être l'un de: ${validPlatforms.join(', ')}`
         });
       }
       
-      result = await NewsAnalyticsService.trackShare(resolvedNewsId, platform, trackingData);
+      console.log('[Analytics] Tracking partage pour:', resolvedNewsId, 'sur', platform);
+      
+      // Pour le partage, ajouter la plateforme dans trackingData
+      const shareData = {
+        ...trackingData,
+        platform
+      };
+      
+      result = await NewsAnalyticsServiceV2.trackShare(resolvedNewsId, platform, shareData);
+      console.log('[Analytics] Partage enregistré:', result ? 'Succès' : 'Échec');
     }
     
     res.status(200).json({
@@ -158,22 +208,33 @@ const trackEvent = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Erreur tracking événement:', error);
+    console.error('[Analytics] Erreur tracking événement:', error);
+    console.error('[Analytics] Stack:', error.stack);
     
-    await logger.error(
-      LOG_TYPES.SYSTEM_ERROR,
-      'Erreur tracking événement analytics',
-      {
-        error: error.message,
-        newsId: req.body?.newsId,
-        eventType: req.body?.eventType
-      },
-      req
-    );
+    try {
+      await logger.error(
+        LOG_TYPES.SYSTEM_ERROR,
+        'Erreur tracking événement analytics',
+        {
+          error: error.message,
+          stack: error.stack,
+          newsId: req.body?.newsId,
+          eventType: req.body?.eventType
+        },
+        req
+      );
+    } catch (logError) {
+      console.error('[Analytics] Erreur lors du logging:', logError);
+    }
     
     res.status(500).json({
       success: false,
-      error: 'Erreur lors de l\'enregistrement de l\'événement'
+      error: 'Erreur lors de l\'enregistrement de l\'événement',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
+      details: process.env.NODE_ENV === 'development' ? {
+        stack: error.stack,
+        name: error.name
+      } : undefined
     });
   }
 };

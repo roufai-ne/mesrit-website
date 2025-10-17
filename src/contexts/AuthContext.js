@@ -42,7 +42,11 @@ export function AuthProvider({ children }) {
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      console.log('[AuthContext] Checking auth status...');
+      // Only log during initial check or if not logged before
+      if (!global.authCheckLogged) {
+        console.log('[AuthContext] Checking auth status...');
+        global.authCheckLogged = true;
+      }
       
       // Use direct fetch instead of apiCall to avoid error notifications
       const response = await fetch('/api/auth/me', {
@@ -52,7 +56,11 @@ export function AuthProvider({ children }) {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('[AuthContext] Auth check successful, user:', data.user.username);
+        // Reduce logging frequency
+        if (!global.authSuccessLogged) {
+          console.log('[AuthContext] Auth check successful, user:', data.user.username);
+          global.authSuccessLogged = true;
+        }
         setUser(data.user);
         
         // Gérer les informations de session si disponibles
@@ -64,20 +72,29 @@ export function AuthProvider({ children }) {
         }
       } else {
         // Authentication failed - this is normal for non-authenticated users
-        console.log('[AuthContext] User not authenticated (status:', response.status, ')');
+        if (!global.authFailLogged) {
+          console.log('[AuthContext] User not authenticated (status:', response.status, ')');
+          global.authFailLogged = true;
+        }
         setUser(null);
         setSessionId(null);
         setSessionInfo(null);
       }
     } catch (error) {
-      console.log('[AuthContext] Auth check network error:', error.message);
+      if (!global.authErrorLogged) {
+        console.log('[AuthContext] Auth check network error:', error.message);
+        global.authErrorLogged = true;
+      }
       // Only log network errors, don't treat auth failures as errors
       setUser(null);
       setSessionId(null);
       setSessionInfo(null);
     } finally {
       setLoading(false);
-      console.log('[AuthContext] Auth check finished. Loading:', false);
+      if (!global.authFinishLogged) {
+        console.log('[AuthContext] Auth check finished. Loading:', false);
+        global.authFinishLogged = true;
+      }
     }
   }, [sessionId, fetchSessionInfo]);
 
@@ -165,13 +182,18 @@ export function AuthProvider({ children }) {
       }
 
       // Call logout endpoint to clear cookies and invalidate session
-      await fetch('/api/auth/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         headers: {
           'X-Session-ID': sessionId || ''
         },
         credentials: 'include'
       });
+      
+      // Ensure response is consumed to prevent parsing errors elsewhere
+      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+        await response.json();
+      }
 
       // Clear all session state
       setUser(null);
@@ -229,10 +251,12 @@ export function AuthProvider({ children }) {
       }
       return;
     }
-    // ...existing code pour refresh interval...
+    
+    // Clear existing interval
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current);
     }
+    
     refreshIntervalRef.current = setInterval(async () => {
       try {
         const now = Date.now();
@@ -262,17 +286,18 @@ export function AuthProvider({ children }) {
         console.error('Token refresh failed:', error);
       }
     }, 14 * 60 * 1000);
+    
     return () => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
       }
     };
-  }, [user, sessionId]);
+  }, [user?.id, sessionId]); // Changed: use user.id instead of full user object
 
   // Session monitoring for security (detect concurrent sessions, etc.)
   useEffect(() => {
-  // Suppression du contrôle isPublicPage, monitoring toujours actif si user admin et sessionId
+    // Only monitor if user is admin and has sessionId
     if (!user || user.role !== 'admin' || !sessionId) {
       if (monitorIntervalRef.current) {
         clearInterval(monitorIntervalRef.current);
@@ -280,10 +305,12 @@ export function AuthProvider({ children }) {
       }
       return;
     }
-    // ...existing code pour monitoring interval...
+    
+    // Clear existing monitoring interval
     if (monitorIntervalRef.current) {
       clearInterval(monitorIntervalRef.current);
     }
+    
     monitorIntervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(`/api/admin/sessions/${sessionId}`, {
@@ -297,13 +324,14 @@ export function AuthProvider({ children }) {
         console.error('Session monitoring error:', error);
       }
     }, 60 * 1000);
+    
     return () => {
       if (monitorIntervalRef.current) {
         clearInterval(monitorIntervalRef.current);
         monitorIntervalRef.current = null;
       }
     };
-  }, [user?.role, sessionId]);
+  }, [user?.role, sessionId]); // Keep as is - only role matters for monitoring
 
   const terminateSession = async (targetSessionId) => {
     try {

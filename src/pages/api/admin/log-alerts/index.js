@@ -23,9 +23,6 @@ async function logAlertsHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const {

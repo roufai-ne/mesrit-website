@@ -1,33 +1,51 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove exposed environment variables for security
-  // Environment variables should be accessed directly in API routes
-  
-  // Image optimization configuration
+  reactStrictMode: process.env.NODE_ENV === 'development',
+
+  // ✅ Configuration correcte des devIndicators
+  devIndicators: {
+    position: 'bottom-right',
+  },
+
+  // Image optimization
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', '192.168.10.115'],
     formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
   
-  // Enable compression
   compress: true,
-  
-  // PoweredBy header removal
   poweredByHeader: false,
   
-  // Webpack configuration
   webpack: (config, { dev, isServer }) => {
-    // Fallback configuration
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      child_process: false,
-      fs: false,
-      net: false,
-      tls: false,
-    };
+    if (dev && !isServer) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+        ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],
+      };
+    }
     
-    // Production optimizations
+    // Only apply fallbacks for client-side builds
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        child_process: false,
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        timers: false,
+        'timers/promises': false,
+        crypto: false,
+        stream: false,
+        util: false,
+        url: false,
+        buffer: false,
+        events: false,
+      };
+    }
+    
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
@@ -44,42 +62,16 @@ const nextConfig = {
     return config;
   },
   
-  // Security headers
   async headers() {
     const { nextConfigHeaders } = require('./src/lib/securityHeaders');
     const securityHeaders = await nextConfigHeaders();
     
-    return [
-      ...securityHeaders,
-      {
-        source: '/images/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, max-age=0',
-          },
-        ],
-      },
-    ];
+    return [...securityHeaders, /* vos autres headers */];
   },
   
-  // Redirects for security
   async redirects() {
     return [
-      {
-        source: '/admin',
-        destination: '/admin/Dashboard',
-        permanent: false,
-      },
+      { source: '/admin', destination: '/admin/Dashboard', permanent: false },
     ];
   },
 };

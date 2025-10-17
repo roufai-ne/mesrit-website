@@ -23,9 +23,6 @@ async function userActivityHandler(req, res) {
     });
   }
 
-  );
-  }
-
   const { id: userId } = req.query;
 
   if (req.method === 'GET') {

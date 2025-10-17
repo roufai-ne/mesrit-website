@@ -21,9 +21,6 @@ async function cleanupStatusHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const status = cleanupService.getStatus();
@@ -85,3 +82,4 @@ async function cleanupStatusHandler(req, res) {
 }
 
 export default withErrorHandler(cleanupStatusHandler);
+

@@ -757,7 +757,7 @@ export default function DirectorManager() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
+                    className="px-4 py-2 text-white rounded bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
                   >
                     {editingDirector ? 'Mettre à jour' : 'Créer'}
                   </button>

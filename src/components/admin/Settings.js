@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Settings as SettingsIcon, Save, Globe, Mail, Phone, MapPin, Facebook, Trash2, Plus, Upload, Image as ImageIcon, BarChart3, Edit, Eye, EyeOff, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Globe, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Trash2, Plus, Upload, Image as ImageIcon, BarChart3, Edit, Eye, EyeOff, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext';
 import { secureApi } from '@/lib/secureApi';
 import toast from 'react-hot-toast';
@@ -820,6 +820,77 @@ export default function Settings() {
                     onChange={(e) => setSettings({ ...settings, external: { ...settings.external, bts: e.target.value } })}
                     className="input"
                   />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-niger-green dark:text-niger-green-light">
+                <Facebook className="w-5 h-5 mr-2 text-niger-orange" />
+                Réseaux sociaux
+              </h3>
+              <div className="bg-blue-50 dark:bg-secondary-700/50 border border-blue-200 dark:border-secondary-600 rounded-lg p-4 mb-4">
+                <p className="text-blue-800 dark:text-blue-300 text-sm">
+                  <strong>URLs des réseaux sociaux :</strong> Configurez les liens vers les comptes officiels du ministère qui apparaîtront dans le footer du site.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-niger-green dark:text-niger-green-light">Facebook</label>
+                  <div className="relative">
+                    <Facebook className="absolute left-3 top-1/2 transform -translate-y-1/2 text-readable-muted dark:text-muted-foreground" />
+                    <input
+                      type="url"
+                      value={settings.social?.facebook || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        social: {
+                          ...settings.social,
+                          facebook: e.target.value
+                        }
+                      })}
+                      placeholder="https://facebook.com/ministere..."
+                      className="w-full pl-10 pr-3 py-2 border border-niger-orange/20 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300 dark:bg-secondary-800"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-niger-green dark:text-niger-green-light">Twitter</label>
+                  <div className="relative">
+                    <Twitter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-readable-muted dark:text-muted-foreground" />
+                    <input
+                      type="url"
+                      value={settings.social?.twitter || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        social: {
+                          ...settings.social,
+                          twitter: e.target.value
+                        }
+                      })}
+                      placeholder="https://twitter.com/ministere..."
+                      className="w-full pl-10 pr-3 py-2 border border-niger-orange/20 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300 dark:bg-secondary-800"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-niger-green dark:text-niger-green-light">LinkedIn</label>
+                  <div className="relative">
+                    <Linkedin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-readable-muted dark:text-muted-foreground" />
+                    <input
+                      type="url"
+                      value={settings.social?.linkedin || ''}
+                      onChange={(e) => setSettings({
+                        ...settings,
+                        social: {
+                          ...settings.social,
+                          linkedin: e.target.value
+                        }
+                      })}
+                      placeholder="https://linkedin.com/company/ministere..."
+                      className="w-full pl-10 pr-3 py-2 border border-niger-orange/20 dark:border-secondary-600 rounded-lg bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300 dark:bg-secondary-800"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -31,10 +31,7 @@ export default async function handler(req, res) {
     });
   }
 
-  );
-    }
-
-    switch (req.method) {
+  switch (req.method) {
       case 'GET':
         // Get specific session details
         const session = SessionManager.activeSessions?.get(sessionId);

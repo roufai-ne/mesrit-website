@@ -281,8 +281,16 @@ export function withErrorHandler(handler) {
     try {
       return await handler(req, res);
     } catch (error) {
-      console.error('API Error:', error);
-      
+      // Ne pas loguer les erreurs d'authentification normales pour l'endpoint /me
+      const isAuthMeEndpoint = req.url === '/api/auth/me';
+      const isAuthError = error instanceof AppError && error.type === ERROR_TYPES.AUTHENTICATION;
+
+      if (!(isAuthMeEndpoint && isAuthError)) {
+        console.error('API Error:', error);
+      } else if (process.env.NODE_ENV === 'development') {
+        console.log('Auth check result: not authenticated (normal)');
+      }
+
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           success: false,
@@ -340,11 +348,19 @@ export const validators = {
   },
   
   role: (role) => {
-    const { ROLES_HIERARCHY } = require('./rbac');
-    const validRoles = Object.keys(ROLES_HIERARCHY);
-    if (!validRoles.includes(role)) {
+    try {
+      // Validation de base des rôles sans import dynamique
+      const validRoles = ['SUPER_ADMIN', 'ADMIN', 'EDITOR', 'USER'];
+      if (!validRoles.includes(role)) {
+        throw new AppError(
+          `Rôle invalide. Rôles autorisés: ${validRoles.join(', ')}`,
+          ERROR_TYPES.VALIDATION,
+          400
+        );
+      }
+    } catch (error) {
       throw new AppError(
-        `Rôle invalide. Rôles autorisés: ${validRoles.join(', ')}`,
+        'Erreur lors de la validation du rôle',
         ERROR_TYPES.VALIDATION,
         400
       );

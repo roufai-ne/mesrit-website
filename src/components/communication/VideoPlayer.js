@@ -10,7 +10,7 @@ import {
   SkipBack,
   SkipForward
 } from 'lucide-react';
-import { useNewsAnalytics } from '@/hooks/useNewsAnalytics';
+import { useNewsAnalyticsV2 } from '@/hooks/useNewsV2';
 
 export default function VideoPlayer({ 
   src, 
@@ -25,7 +25,7 @@ export default function VideoPlayer({
 }) {
   const videoRef = useRef(null);
   const progressRef = useRef(null);
-  const { trackView } = useNewsAnalytics();
+  const { trackView } = useNewsAnalyticsV2();
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);

@@ -184,4 +184,35 @@ export const useNewsArchive = () => {
   };
 };
 
+/**
+ * Hook pour gérer les versions d'articles
+ */
+export const useNewsVersions = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const getVersions = useCallback(async (newsId) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Pour l'instant, retourner un tableau vide
+      // En attendant l'implémentation complète du versioning
+      return [];
+    } catch (error) {
+      const errorMessage = error.message || 'Erreur lors de la récupération des versions';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    loading,
+    error,
+    getVersions
+  };
+};
+
 export default useNewsArchive;

@@ -321,13 +321,13 @@ export default function EstablishmentManager() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Gestion des établissements</h2>
         {canCreateEstablishments && (
-          <button 
+          <button
             onClick={() => {
               setFormData(initialFormState);
               setEditingEstablishment(null);
               setShowForm(true);
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
+            className="bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nouvel établissement
@@ -358,7 +358,7 @@ export default function EstablishmentManager() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
+              className="w-full p-2 border rounded-lg  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
             >
               <option value="all">Tous les statuts</option>
               <option value="public">Public</option>
@@ -370,7 +370,7 @@ export default function EstablishmentManager() {
             <select
               value={filterRegion}
               onChange={(e) => setFilterRegion(e.target.value)}
-              className="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
+              className="w-full p-2 border rounded-lg  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-niger-orange/20 focus:border-niger-orange duration-300"
             >
               <option value="all">Toutes les régions</option>
               {REGIONS_NIGER.map(region => (
@@ -604,7 +604,7 @@ export default function EstablishmentManager() {
                       type="text"
                       value={formData.nom}
                       onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       required
                     />
                   </div>
@@ -614,7 +614,7 @@ export default function EstablishmentManager() {
                     <select
                       value={formData.type}
                       onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       required
                     >
                       <option value="">Sélectionner un type</option>
@@ -629,7 +629,7 @@ export default function EstablishmentManager() {
                     <select
                       value={formData.statut}
                       onChange={(e) => setFormData({ ...formData, statut: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       required
                     >
                       <option value="">Sélectionner un statut</option>
@@ -643,7 +643,7 @@ export default function EstablishmentManager() {
                     <select
                       value={formData.region}
                       onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       required
                     >
                       <option value="">Sélectionner une région</option>
@@ -659,7 +659,7 @@ export default function EstablishmentManager() {
                       type="text"
                       value={formData.ville}
                       onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       required
                     />
                   </div>
@@ -670,7 +670,7 @@ export default function EstablishmentManager() {
                       type="date"
                       value={formData.dateOuverture}
                       onChange={(e) => setFormData({ ...formData, dateOuverture: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       required
                     />
                   </div>
@@ -681,7 +681,7 @@ export default function EstablishmentManager() {
                       type="url"
                       value={formData.website}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       placeholder="https://..."
                     />
                   </div>
@@ -697,7 +697,7 @@ export default function EstablishmentManager() {
                         ...formData,
                         coordinates: { ...formData.coordinates, lat: parseFloat(e.target.value) || 0 }
                       })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       placeholder="ex: 13.5137"
                       required
                     />
@@ -712,7 +712,7 @@ export default function EstablishmentManager() {
                         ...formData,
                         coordinates: { ...formData.coordinates, lng: parseFloat(e.target.value) || 0 }
                       })}
-                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                      className="w-full p-2 border rounded-lg focus:ring-2  border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                       placeholder="ex: 2.1098"
                       required
                     />
@@ -784,7 +784,7 @@ export default function EstablishmentManager() {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
+                    className="w-full p-2 border rounded-lg focus:ring-2  h-32 border-niger-orange/20 dark:border-secondary-600 bg-white dark:bg-secondary-700 text-niger-green dark:text-niger-green-light focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange transition-colors duration-300"
                     placeholder="Description de l'établissement..."
                   />
                 </div>
@@ -799,7 +799,7 @@ export default function EstablishmentManager() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
+                    className="px-4 py-2 text-white rounded-lg bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
                   >
                     {editingEstablishment ? 'Mettre à jour' : 'Créer'}
                   </button>

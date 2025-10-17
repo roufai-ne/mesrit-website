@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { usePermission } from '@/hooks/usePermission';
 import { useAuth } from '@/contexts/AuthContext';
 import { secureApi } from '@/lib/secureApi';
-import { 
-  Users, 
-  FileText, 
-  Newspaper, 
-  Building2, 
-  TrendingUp, 
+import {
+  Users,
+  FileText,
+  Newspaper,
+  Building2,
+  TrendingUp,
   Activity,
   Shield,
   Eye,
@@ -21,6 +21,7 @@ import {
   Calendar
 } from 'lucide-react';
 import Link from 'next/link';
+import NewsAnalyticsDashboardV2 from './NewsAnalyticsDashboardV2';
 
 // Dashboard pour les administrateurs
 function AdminDashboard() {
@@ -169,6 +170,11 @@ function AdminDashboard() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* Dashboard Analytics V2 */}
+      <div className="mt-8">
+        <NewsAnalyticsDashboardV2 />
       </div>
 
       {/* Actions rapides Admin */}

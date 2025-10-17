@@ -3,7 +3,7 @@ import News from '@/models/News';
 import mongoose from 'mongoose';
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
 import logger, { LOG_TYPES } from '@/lib/logger';
-import NewsAnalyticsService from '@/lib/newsAnalytics';
+import { NewsAnalyticsServiceV2 } from '@/lib/newsAnalyticsV2';
 
 // GET - Détail d'une actualité (public)
 const getNewsById = async (req, res) => {
@@ -51,7 +51,7 @@ const getNewsById = async (req, res) => {
         };
         
         // Enregistrer la vue de manière asynchrone (ne pas bloquer la réponse)
-        NewsAnalyticsService.trackView(id, trackingData).catch(error => {
+        NewsAnalyticsServiceV2.trackView(id, trackingData).catch(error => {
           console.error('Erreur tracking vue automatique:', error);
         });
       } catch (error) {

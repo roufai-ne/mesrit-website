@@ -24,9 +24,6 @@ async function resetUserSessionsHandler(req, res) {
     });
   }
 
-  );
-  }
-
   const { id: userId } = req.query;
 
   if (req.method === 'POST') {

@@ -9,6 +9,10 @@ const crypto = require('crypto');
 const isDevelopment = process.env.NODE_ENV === "development";
 const isProduction = process.env.NODE_ENV === "production";
 
+// NOUVEAU : Détecte si on est en local sans HTTPS (serveur de test)
+// Utilisez DISABLE_SECURITY_HEADERS=true dans .env.local pour désactiver les headers stricts
+const isLocalWithoutSSL = process.env.DISABLE_SECURITY_HEADERS === 'true';
+
 /**
  * Générer un nonce unique pour chaque requête
  */
@@ -85,8 +89,8 @@ function buildCSPDirectives(nonce = null) {
       ...(isDevelopment ? ["ws://localhost:*", "wss://localhost:*"] : []), // WebSocket en dev
       // Ajouter d'autres APIs selon les besoins
     ],
-    "upgrade-insecure-requests": isProduction ? [] : null, // Force HTTPS en production
-    "block-all-mixed-content": isProduction ? [] : null, // Bloque le contenu mixte en production
+    "upgrade-insecure-requests": isProduction && !isLocalWithoutSSL ? [] : null, // Force HTTPS seulement en vraie production
+    "block-all-mixed-content": isProduction && !isLocalWithoutSSL ? [] : null, // Bloque le contenu mixte seulement en vraie production
   };
 
   return baseDirectives;
@@ -137,9 +141,9 @@ function getSecurityHeaders(nonce = null) {
     // Strict Transport Security (HSTS)
     {
       key: "Strict-Transport-Security",
-      value: isProduction
+      value: isProduction && !isLocalWithoutSSL
         ? "max-age=31536000; includeSubDomains; preload"
-        : "max-age=0", // Désactivé en développement
+        : "max-age=0", // Désactivé en développement et en local sans SSL
     },
 
     // Protection contre le clickjacking
@@ -183,14 +187,14 @@ function getSecurityHeaders(nonce = null) {
       ].join(", "),
     },
 
-    // Cross-Origin Policies
+    // Cross-Origin Policies - MODIFIÉ pour local sans SSL
     {
       key: "Cross-Origin-Embedder-Policy",
-      value: "unsafe-none", // Peut être durci selon les besoins
+      value: "unsafe-none", // Permissif pour compatibilité
     },
     {
       key: "Cross-Origin-Opener-Policy",
-      value: "same-origin",
+      value: isLocalWithoutSSL ? "unsafe-none" : "same-origin", // Permissif en local
     },
     {
       key: "Cross-Origin-Resource-Policy",
@@ -300,14 +304,53 @@ function withSecurityHeaders(handler, options = {}) {
 }
 
 /**
- * Configuration pour next.config.js
+ * Configuration pour next.config.js - MODIFIÉ
  */
 const nextConfigHeaders = async () => {
-  // En développement, complètement désactiver le CSP
-  if (isDevelopment) {
-    return [];
+  // En développement OU en local sans SSL, utiliser des headers allégés
+  if (isDevelopment || isLocalWithoutSSL) {
+    console.log('⚠️  Headers de sécurité allégés activés (développement ou local sans SSL)');
+    
+    return [
+      {
+        // Headers minimaux pour toutes les routes
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN", // Plus permissif que DENY
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          // PAS de HSTS, COOP strict, ou CSP strict
+        ],
+      },
+      {
+        // Cache pour les images
+        source: "/images/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
   }
 
+  // PRODUCTION avec HTTPS : Headers de sécurité complets
+  console.log('🔒 Headers de sécurité stricts activés (production avec HTTPS)');
+  
   const baseHeaders = getSecurityHeaders();
 
   return [
@@ -414,7 +457,7 @@ class CSPValidator {
     });
 
     // En production, envoyer à un service de monitoring
-    if (isProduction) {
+    if (isProduction && !isLocalWithoutSSL) {
       // Intégration avec service de monitoring (Sentry, LogRocket, etc.)
       try {
         // Exemple d'envoi vers un endpoint de monitoring

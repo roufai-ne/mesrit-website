@@ -4,6 +4,28 @@ import { connectDB } from '@/lib/mongodb';
 import logger, { LOG_TYPES } from '@/lib/logger';
 
 export class NewsAnalyticsService {
+  // Petite aide: retry l'update des stats quotidiennes en cas de conflit de version
+  static async safeUpdateDailyStats(analyticsId, maxRetries = 3) {
+    let lastErr;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const fresh = await NewsAnalytics.findById(analyticsId);
+        if (!fresh) {
+          return; // Le document n'existe plus, rien à faire
+        }
+        await fresh.updateDailyStats();
+        return; // succès
+      } catch (err) {
+        lastErr = err;
+        const isVersionErr = err?.name === 'VersionError' || /No matching document found/.test(err?.message || '');
+        if (!isVersionErr) throw err; // autre erreur, on remonte
+        if (attempt === maxRetries) throw err; // plus de retry
+        // Backoff léger avant retry
+        await new Promise(res => setTimeout(res, 50 * attempt));
+      }
+    }
+    if (lastErr) throw lastErr;
+  }
   
   /**
    * Enregistrer une vue d'article
@@ -28,23 +50,29 @@ export class NewsAnalyticsService {
       let analytics = await NewsAnalytics.findOne({ newsId });
       
       if (!analytics) {
-        analytics = new NewsAnalytics({
-          newsId,
-          totalViews: 0,
-          uniqueViews: 0,
-          totalShares: 0,
-          views: [],
-          shares: [],
-          dailyStats: [],
-          geography: []
-        });
+        // Créer via upsert pour éviter la course à la création
+        await NewsAnalytics.updateOne(
+          { newsId },
+          {
+            $setOnInsert: {
+              newsId,
+              views: [],
+              shares: [],
+              dailyStats: [],
+              geography: [],
+              lastUpdated: new Date()
+            }
+          },
+          { upsert: true }
+        );
+        analytics = await NewsAnalytics.findOne({ newsId });
       }
       
-      // Ajouter la vue
-      await analytics.addView(defaultViewData);
-      
-      // Mettre à jour les stats quotidiennes
-      await analytics.updateDailyStats();
+  // Ajouter la vue
+  await analytics.addView(defaultViewData);
+
+  // Recharger et mettre à jour les stats quotidiennes de façon résiliente
+  await NewsAnalyticsService.safeUpdateDailyStats(analytics._id);
       
       // Logger l'événement
       await logger.info(
@@ -89,23 +117,28 @@ export class NewsAnalyticsService {
       let analytics = await NewsAnalytics.findOne({ newsId });
       
       if (!analytics) {
-        analytics = new NewsAnalytics({
-          newsId,
-          totalViews: 0,
-          uniqueViews: 0,
-          totalShares: 0,
-          views: [],
-          shares: [],
-          dailyStats: [],
-          geography: []
-        });
+        await NewsAnalytics.updateOne(
+          { newsId },
+          {
+            $setOnInsert: {
+              newsId,
+              views: [],
+              shares: [],
+              dailyStats: [],
+              geography: [],
+              lastUpdated: new Date()
+            }
+          },
+          { upsert: true }
+        );
+        analytics = await NewsAnalytics.findOne({ newsId });
       }
       
-      // Ajouter le partage
-      await analytics.addShare(defaultShareData);
-      
-      // Mettre à jour les stats quotidiennes
-      await analytics.updateDailyStats();
+  // Ajouter le partage
+  await analytics.addShare(defaultShareData);
+
+  // Recharger et mettre à jour les stats quotidiennes de façon résiliente
+  await NewsAnalyticsService.safeUpdateDailyStats(analytics._id);
       
       // Logger l'événement
       await logger.info(

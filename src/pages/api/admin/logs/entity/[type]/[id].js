@@ -21,9 +21,6 @@ async function entityLogsHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const { type, id } = req.query;

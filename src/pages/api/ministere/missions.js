@@ -10,8 +10,7 @@ export default async function handler(req, res) {
   try {
     await connectDB();
     
-    // Pour l'instant, utiliser les données par défaut
-    // TODO: Créer un modèle Mongoose pour les missions
+    // Missions statiques pour l'instant - sera migré vers MongoDB plus tard
     const missionsData = null;
 
     // Missions par défaut avec données réalistes
@@ -154,7 +153,7 @@ export default async function handler(req, res) {
     const missions = missionsData || defaultMissions;
 
     // Log de l'accès
-    logger.info('Minister missions accessed', {
+    logger.info('minister_content_accessed', 'Minister missions accessed', {
       hasCustomData: !!missionsData,
       missionsCount: missions.missions?.length || 0,
       userAgent: req.headers['user-agent']

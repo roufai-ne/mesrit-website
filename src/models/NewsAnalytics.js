@@ -144,33 +144,78 @@ newsAnalyticsSchema.index({ 'shares.timestamp': -1 });
 newsAnalyticsSchema.index({ lastUpdated: -1 });
 
 // Méthodes du modèle
-newsAnalyticsSchema.methods.addView = function(viewData) {
-  // Vérifier si c'est une vue unique (basée sur IP + UserAgent) avant l'insertion
+newsAnalyticsSchema.methods.addView = async function(viewData) {
+  // Vérifier en base si c'est une vue unique dans les dernières 24h (IP + UserAgent)
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const existingView = this.views.find(v => {
-    const ts = v.timestamp instanceof Date ? v.timestamp : new Date(v.timestamp);
-    return v.ip === viewData.ip && v.userAgent === viewData.userAgent && ts > cutoff;
+  const uniqueAlreadyExists = await this.constructor.exists({
+    _id: this._id,
+    views: {
+      $elemMatch: {
+        ip: viewData.ip,
+        userAgent: viewData.userAgent,
+        timestamp: { $gt: cutoff }
+      }
+    }
   });
 
-  // Insérer la vue et incrémenter les compteurs
-  this.views.push(viewData);
-  this.totalViews += 1;
-  if (!existingView) {
-    this.uniqueViews += 1;
+  const inc = { totalViews: 1 };
+  if (!uniqueAlreadyExists) {
+    inc.uniqueViews = 1;
   }
 
-  this.lastUpdated = new Date();
-  return this.save();
+  // Mise à jour atomique avec upsert pour éviter les conflits de version
+  try {
+    await this.constructor.updateOne(
+      { _id: this._id },
+      [
+        {
+          $set: {
+            newsId: { $ifNull: ["$newsId", this.newsId] },
+            views: { $concatArrays: [{ $ifNull: ["$views", []] }, [viewData]] },
+            shares: { $ifNull: ["$shares", []] },
+            dailyStats: { $ifNull: ["$dailyStats", []] },
+            geography: { $ifNull: ["$geography", []] },
+            totalViews: { $add: [{ $ifNull: ["$totalViews", 0] }, inc.totalViews || 0] },
+            uniqueViews: { $add: [{ $ifNull: ["$uniqueViews", 0] }, inc.uniqueViews || 0] },
+            lastUpdated: new Date()
+          }
+        }
+      ],
+      { upsert: true }
+    );
+  } catch (error) {
+    console.error('Error in addView:', error);
+    throw error;
+  }
 };
 
-newsAnalyticsSchema.methods.addShare = function(shareData) {
-  this.shares.push(shareData);
-  this.totalShares += 1;
-  this.lastUpdated = new Date();
-  return this.save();
+newsAnalyticsSchema.methods.addShare = async function(shareData) {
+  // Mise à jour atomique avec upsert
+  try {
+    await this.constructor.updateOne(
+      { _id: this._id },
+      [
+        {
+          $set: {
+            newsId: { $ifNull: ["$newsId", this.newsId] },
+            views: { $ifNull: ["$views", []] },
+            shares: { $concatArrays: [{ $ifNull: ["$shares", []] }, [shareData]] },
+            dailyStats: { $ifNull: ["$dailyStats", []] },
+            geography: { $ifNull: ["$geography", []] },
+            totalShares: { $add: [{ $ifNull: ["$totalShares", 0] }, 1] },
+            lastUpdated: new Date()
+          }
+        }
+      ],
+      { upsert: true }
+    );
+  } catch (error) {
+    console.error('Error in addShare:', error);
+    throw error;
+  }
 };
 
-newsAnalyticsSchema.methods.updateDailyStats = function(date = new Date()) {
+newsAnalyticsSchema.methods.updateDailyStats = async function(date = new Date()) {
   const dateStr = date.toISOString().split('T')[0];
   const targetDate = new Date(dateStr);
   
@@ -212,8 +257,35 @@ newsAnalyticsSchema.methods.updateDailyStats = function(date = new Date()) {
     ? readingTimes.reduce((a, b) => a + b, 0) / readingTimes.length 
     : 0;
   
-  this.lastUpdated = new Date();
-  return this.save();
+  // Vérification d'existence du document avant save
+  const current = await this.constructor.findById(this._id);
+  if (!current) {
+    throw new Error(`Le document NewsAnalytics avec l'id ${this._id} n'existe plus (suppression concurrente ou conflit de version).`);
+  }
+  // Appliquer la mise à jour atomique de la dailyStat
+  const updateExisting = await this.constructor.updateOne(
+    { _id: this._id, 'dailyStats.date': targetDate },
+    {
+      $set: {
+        'dailyStats.$.views': dailyStat.views,
+        'dailyStats.$.uniqueViews': dailyStat.uniqueViews,
+        'dailyStats.$.shares': dailyStat.shares,
+        'dailyStats.$.avgReadingTime': dailyStat.avgReadingTime,
+        lastUpdated: new Date()
+      }
+    }
+  );
+
+  if (updateExisting.matchedCount === 0) {
+    // Si aucune entrée pour ce jour, on pousse une nouvelle
+    await this.constructor.updateOne(
+      { _id: this._id },
+      {
+        $push: { dailyStats: dailyStat },
+        $set: { lastUpdated: new Date() }
+      }
+    );
+  }
 };
 
 // Méthodes statiques

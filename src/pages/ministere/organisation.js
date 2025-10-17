@@ -78,7 +78,7 @@ export default function OrganisationPage() {
   const [selectedSection, setSelectedSection] = useState(null);
 
   const handleExport = () => {
-    // TODO: Implémenter l'export PDF
+    // Export PDF sera implémenté avec react-pdf ou puppeteer
     alert('Export PDF en cours de développement');
   };
 

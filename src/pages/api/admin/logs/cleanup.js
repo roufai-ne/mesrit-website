@@ -21,9 +21,6 @@ async function cleanupHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'POST') {
     try {
       const { daysToKeep = 90, dryRun = false } = req.body;
@@ -110,3 +107,4 @@ async function cleanupHandler(req, res) {
 }
 
 export default withErrorHandler(cleanupHandler);
+

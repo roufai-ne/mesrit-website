@@ -15,7 +15,7 @@ export default function MainLayout({ children }) {
       <div 
         className="fixed inset-0 pointer-events-none z-0 transition-transform duration-700 ease-in-out hover:scale-105"
         style={{
-          backgroundImage: 'url("/images/hero/slide4.png")',
+          backgroundImage: 'url("/images/hero/Slide4.png")',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
           backgroundSize: 'contain',

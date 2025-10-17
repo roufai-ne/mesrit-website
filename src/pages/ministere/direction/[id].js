@@ -49,7 +49,7 @@ const DirectorProfile = ({ director }) => {
 
   const exportProfile = () => {
     toast.success('Export du profil en cours...');
-    // TODO: Implémenter l'export PDF
+    // Export PDF sera implémenté avec react-pdf ou puppeteer
   };
 
   return (

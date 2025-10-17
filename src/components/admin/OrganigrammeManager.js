@@ -55,7 +55,7 @@ export default function OrganigrammeManager() {
   const exportOrganigramme = async () => {
     try {
       toast.success('Export de l\'organigramme en cours...');
-      // TODO: Implémenter l'export PDF de l'organigramme
+      // Export PDF sera implémenté avec react-pdf ou jspdf
     } catch (error) {
       toast.error('Erreur lors de l\'export');
     }

@@ -28,10 +28,14 @@ const systemLogSchema = new mongoose.Schema({
       // Gestion des utilisateurs
       'user_created', 'user_updated', 'user_deleted', 'password_changed', 'role_changed',
       // Gestion du contenu
-  'content_created', 'content_updated', 'content_deleted', 'content_published', 'content_viewed',
+      'content_created', 'content_updated', 'content_deleted', 'content_published', 'content_viewed',
+      'minister_content_accessed',
+      // Actions
+      'user_action', 'admin_action',
       // Système
       'system_startup', 'system_shutdown', 'system_error', 'backup_created', 'backup_restored',
       'database_error', 'api_error',
+      'system_maintenance',
       // Sécurité
       'security_breach', 'suspicious_activity', 'rate_limit_exceeded', 'unauthorized_access',
       // Performance
@@ -190,12 +194,17 @@ systemLogSchema.pre('save', function(next) {
       'content_updated': 'content',
       'content_deleted': 'content',
       'content_published': 'content',
+  'content_viewed': 'content',
+  'minister_content_accessed': 'content',
+  'user_action': 'user',
+  'admin_action': 'user',
       'system_startup': 'system',
       'system_shutdown': 'system',
       'backup_created': 'system',
       'backup_restored': 'system',
       'database_error': 'system',
       'api_error': 'api',
+  'system_maintenance': 'system',
       'security_breach': 'security',
       'suspicious_activity': 'security',
       'rate_limit_exceeded': 'security',

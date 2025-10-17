@@ -25,9 +25,6 @@ async function adminUsersHandler(req, res) {
     });
   }
 
-  );
-  }
-
   await connectDB();
 
   if (req.method === 'GET') {
@@ -173,3 +170,4 @@ async function adminUsersHandler(req, res) {
 }
 
 export default withSecurityHeaders(withErrorHandler(adminUsersHandler));
+

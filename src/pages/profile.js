@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 
 const ChangePasswordModal = dynamic(() => import('@/components/admin/ChangePasswordModal'), { ssr: false });
@@ -7,7 +8,7 @@ const TwoFactorSetup = dynamic(() => import('@/components/admin/TwoFactorSetup')
 
 export default function ProfilePage() {
   const { user, sessionInfo } = useAuth();
-  const router = require('next/router').useRouter();
+  const router = useRouter();
   const [showPasswordModal, setShowPasswordModal] = React.useState(false);
   const [show2FAForm, setShow2FAForm] = React.useState(false);
 

@@ -21,9 +21,6 @@ async function logExportHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const {
@@ -125,3 +122,4 @@ async function logExportHandler(req, res) {
 }
 
 export default withErrorHandler(logExportHandler);
+

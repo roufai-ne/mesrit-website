@@ -27,15 +27,21 @@ export const LOG_TYPES = {
   CONTENT_DELETED: 'content_deleted',
   CONTENT_PUBLISHED: 'content_published',
   CONTENT_VIEWED: 'content_viewed',
+  MINISTER_CONTENT_ACCESSED: 'minister_content_accessed',
+  // Actions
+  USER_ACTION: 'user_action',
+  ADMIN_ACTION: 'admin_action',
   
   // Système
   SYSTEM_STARTUP: 'system_startup',
   SYSTEM_SHUTDOWN: 'system_shutdown',
   SYSTEM_ERROR: 'system_error',
+  SYSTEM_EVENT: 'system_event',
   BACKUP_CREATED: 'backup_created',
   BACKUP_RESTORED: 'backup_restored',
   DATABASE_ERROR: 'database_error',
   API_ERROR: 'api_error',
+  SYSTEM_MAINTENANCE: 'system_maintenance',
   
   // Sécurité
   SECURITY_BREACH: 'security_breach',
@@ -126,6 +132,16 @@ class Logger {
     relatedEntity = null
   }) {
     try {
+      // Validation des paramètres requis
+      if (!type || typeof type !== 'string') {
+        console.error('Logger: paramètre "type" requis et doit être une chaîne. Reçu:', { type, typeOf: typeof type });
+        return null;
+      }
+
+      if (!message || typeof message !== 'string') {
+        console.error('Logger: paramètre "message" requis et doit être une chaîne. Reçu:', { message, typeOf: typeof message });
+        return null;
+      }
       // Extraire les informations de la requête si fournie
       if (req) {
         ip = ip || this.getClientIP(req);

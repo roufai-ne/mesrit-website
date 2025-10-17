@@ -9,8 +9,10 @@ export const checkApiKeyConfiguration = () => {
     isValid: apiKey && apiKey.length > 10
   };
 
-  if (process.env.NODE_ENV === 'development') {
+  // Only log in development mode and avoid frequent logging
+  if (process.env.NODE_ENV === 'development' && !global.apiKeyLogged) {
     console.log('🔑 Configuration clé API:', result);
+    global.apiKeyLogged = true; // Prevent repeated logging
   }
 
   return result;

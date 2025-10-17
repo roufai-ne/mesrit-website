@@ -10,8 +10,7 @@ export default async function handler(req, res) {
   try {
     await connectDB();
     
-    // Pour l'instant, utiliser les données par défaut
-    // TODO: Créer un modèle Mongoose pour le contenu ministère
+    // Contenu statique pour l'instant - sera migré vers MongoDB plus tard
     const ministerContent = null;
 
     // Contenu par défaut si rien en base
@@ -86,7 +85,7 @@ export default async function handler(req, res) {
     const content = ministerContent || defaultContent;
 
     // Log de l'accès
-    logger.info('Minister content accessed', {
+    logger.info('minister_content_accessed', 'Minister content accessed', {
       hasCustomContent: !!ministerContent,
       sectionsCount: content.sections?.length || 0,
       userAgent: req.headers['user-agent']

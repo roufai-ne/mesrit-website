@@ -151,8 +151,15 @@ export default function EditService() {
     setFormData(prev => ({ ...prev, tags: tagsArray }));
   };
 
-  if (!user || user.role !== 'admin') {
-    router.push('/admin');
+  // Handle authentication redirect in useEffect to avoid SSR issues
+  useEffect(() => {
+    if (user && !['super-admin', 'system-admin', 'content-admin'].includes(user.role)) {
+      router.push('/admin');
+    }
+  }, [user, router]);
+
+  // Don't render if user is not authenticated or doesn't have the right role
+  if (!user || !['super-admin', 'system-admin', 'content-admin'].includes(user.role)) {
     return null;
   }
 

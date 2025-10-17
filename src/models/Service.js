@@ -39,11 +39,17 @@ const serviceSchema = new mongoose.Schema({
   features: [{
     title: {
       type: String,
-      required: true
+      required: function() {
+        // Only require title if this feature exists (has any field set)
+        return this.title || this.description;
+      }
     },
     description: {
       type: String,
-      required: true
+      required: function() {
+        // Only require description if this feature exists (has any field set)
+        return this.title || this.description;
+      }
     }
   }],
   image: { 

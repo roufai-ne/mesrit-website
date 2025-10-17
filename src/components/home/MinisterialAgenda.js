@@ -38,7 +38,6 @@ export default function MinisterialAgenda({ compact = false }) {
       if (!response.ok) {
         // Gestion spécifique des erreurs
         if (response.status === 404) {
-          console.log('Aucune alerte trouvée');
           setAnnouncements([]);
           return;
         }
@@ -90,7 +89,6 @@ export default function MinisterialAgenda({ compact = false }) {
       if (!response.ok) {
         // Gestion spécifique des erreurs
         if (response.status === 404) {
-          console.log('Aucun événement trouvé');
           setEvents([]);
           return;
         }

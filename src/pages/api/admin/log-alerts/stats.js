@@ -22,9 +22,6 @@ async function logAlertsStatsHandler(req, res) {
     });
   }
 
-  );
-  }
-
   if (req.method === 'GET') {
     try {
       const { dateFrom, dateTo } = req.query;

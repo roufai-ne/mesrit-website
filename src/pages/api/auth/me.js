@@ -20,16 +20,20 @@ async function meHandler(req, res) {
   const user = await verifyToken(req);
   
   if (!user) {
-    console.log('No user found from token verification');
-    
-    // Logger la tentative d'accès non autorisée
-    await logger.warning(
-      LOG_TYPES.UNAUTHORIZED_ACCESS,
-      'Tentative d\'accès avec token invalide',
-      { endpoint: '/api/auth/me' },
-      req
-    );
-    
+    // Pour l'endpoint /me, ne pas logger comme avertissement car c'est normal
+    // Cet endpoint est utilisé pour vérifier l'état de connexion
+    if (process.env.NODE_ENV === 'development') {
+      console.log('No user found from token verification - normal for auth check');
+    }
+
+    // Ne pas logger comme tentative d'intrusion, c'est juste une vérification d'état
+    // await logger.info(
+    //   LOG_TYPES.USER_ACTION,
+    //   'Vérification d\'authentification',
+    //   { endpoint: '/api/auth/me', authenticated: false },
+    //   req
+    // );
+
     throw new AppError(
       'Non authentifié',
       ERROR_TYPES.AUTHENTICATION,

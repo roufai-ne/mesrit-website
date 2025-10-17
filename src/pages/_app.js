@@ -1,4 +1,9 @@
+// ============================================
+// pages/_app.js - OPTIMISÉ
+// ============================================
+import React from 'react';
 import '@/styles/globals.css';
+import 'leaflet/dist/leaflet.css';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SettingsProvider } from '@/contexts/SettingsContext';
@@ -13,14 +18,13 @@ const inter = Inter({
 });
 
 export default function App({ Component, pageProps }) {
-  return (
+  const content = (
     <ThemeProvider defaultTheme="system">
       <ToastProvider>
         <AuthProvider>
           <SettingsProvider>
             <main className={`${inter.variable} font-sans`}>
               <Component {...pageProps} />
-              {/* Keep existing react-hot-toast for backward compatibility */}
               <Toaster 
                 position="top-right" 
                 toastOptions={{
@@ -40,4 +44,17 @@ export default function App({ Component, pageProps }) {
       </ToastProvider>
     </ThemeProvider>
   );
+
+  // ✅ Désactiver StrictMode sur le réseau local pour éviter le double tracking
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    // StrictMode seulement sur localhost, pas sur l'IP réseau
+    if (isLocalhost && process.env.NODE_ENV === 'development') {
+      return <React.StrictMode>{content}</React.StrictMode>;
+    }
+  }
+
+  return content;
 }

@@ -28,9 +28,6 @@ export default function SystemLogs() {
   const { execute, loading } = useApiAction();
   const { toast } = useToast();
   
-  // Debug: vérifier les permissions
-  console.log('SystemLogs permissions:', permissions);
-  console.log('Can view logs:', permissions.canViewLogs);
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState({
     levelStats: {},

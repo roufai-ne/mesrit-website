@@ -1,6 +1,6 @@
 // src/pages/api/news/[id]/analytics.js
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
-import NewsAnalyticsService from '@/lib/newsAnalytics';
+import { NewsAnalyticsServiceV2 } from '@/lib/newsAnalyticsV2';
 import mongoose from 'mongoose';
 import logger, { LOG_TYPES } from '@/lib/logger';
 
@@ -17,7 +17,7 @@ const getNewsAnalytics = async (req, res) => {
       });
     }
     
-    const stats = await NewsAnalyticsService.getNewsStats(id);
+    const stats = await NewsAnalyticsServiceV2.getNewsStats(id);
     
     await logger.info(
       LOG_TYPES.ADMIN_ACTION,

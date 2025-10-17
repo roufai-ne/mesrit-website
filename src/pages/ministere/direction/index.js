@@ -110,7 +110,7 @@ export default function DirectionPage() {
   // Fonction d'export
   const exportOrganigramme = () => {
     toast.success('Export de l\'organigramme en cours...');
-    // TODO: Implémenter l'export PDF
+    // Export PDF sera implémenté avec react-pdf ou puppeteer
   };
 
   // Fonction de partage

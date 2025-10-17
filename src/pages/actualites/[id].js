@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Head from 'next/head';
 import { secureApi } from '@/lib/secureApi';
-import { useViewTracking, useNewsAnalytics } from '@/hooks/useNewsAnalytics';
+import { useViewTracking, useNewsAnalyticsV2 } from '@/hooks/useNewsV2';
 import { toast } from 'react-hot-toast';
 
 import ImageSlideshow from '@/components/ImageSlideshow';
@@ -26,9 +26,9 @@ export default function ActualiteDetail() {
   const [showSlideshow, setShowSlideshow] = useState(false);
   
   // Analytics tracking
-  const { trackShare } = useNewsAnalytics();
+  const { trackShare } = useNewsAnalyticsV2();
   // Utiliser l'ObjectId réel pour le tracking des vues (évite les erreurs quand l'URL utilise un slug)
-  const { scrollDepth } = useViewTracking(actualite?._id);
+  const { scrollDepth } = useViewTracking(actualite?._id || null);
   
 
   useEffect(() => {

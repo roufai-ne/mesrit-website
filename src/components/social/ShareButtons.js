@@ -10,7 +10,7 @@ import {
   MessageCircle,
   ExternalLink
 } from 'lucide-react';
-import { useNewsAnalytics } from '@/hooks/useNewsAnalytics';
+import { useNewsAnalytics } from '@/hooks/useNewsV2';
 import { toast } from 'react-hot-toast';
 
 export default function ShareButtons({ 

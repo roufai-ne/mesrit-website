@@ -1,17 +1,15 @@
 // tailwind.config.js
 module.exports = {
   content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+   './src/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   darkMode: ['class', '[data-theme="dark"]'], // Enable dark mode with class and data attribute strategy
   theme: {
     extend: {
-      // Design System Typography
+      // Design System Typography with fallbacks
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
-        display: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'Arial', 'Helvetica', 'sans-serif'],
+        display: ['var(--font-inter)', 'Inter', 'Arial', 'Helvetica', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],

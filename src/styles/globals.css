@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fallback fonts for remote deployment */
+@font-face {
+  font-family: 'Inter-fallback';
+  src: local('Arial'), local('Helvetica'), local('sans-serif');
+  font-display: swap;
+}
+
 :root {
   /* Niger-inspired color palette - Simplified and clean */
   --niger-orange: #ff8c00;

@@ -202,7 +202,7 @@ export default function NewsletterManager() {
             <button
               onClick={sendNewsletter}
               disabled={sending}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg disabled:opacity-50 bg-gradient-to-r from-niger-orange to-niger-green hover:shadow-lg transition-all duration-300"
             >
               {sending ? (
                 <span className="animate-spin">⏳</span>
