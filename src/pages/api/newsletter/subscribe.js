@@ -14,10 +14,49 @@ export default async function handler(req, res) {
 
       case 'POST':
         console.log('Body reçu:', req.body); // Debug
-        const { email } = req.body;
+        const { email, token } = req.body;
 
-        if (!email) {
+        // Validation plus stricte de l'email
+        if (!email || typeof email !== 'string') {
           return res.status(400).json({ error: 'Email requis' });
+        }
+
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({ error: 'Format d\'email invalide' });
+        }
+
+        // Validation de la longueur de l'email
+        if (email.length > 254) { // RFC 5321
+          return res.status(400).json({ error: 'Email trop long' });
+        }
+
+        if (!token) {
+          return res.status(400).json({ error: 'Captcha requis' });
+        }
+
+        // Vérification du token Turnstile
+        const formData = new URLSearchParams();
+        formData.append('secret', process.env.CLOUDFLARE_SECRET_KEY || process.env.DISABLED_CLOUDFLARE_SECRET_KEY);
+        formData.append('response', token);
+
+        const verificationResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const verificationData = await verificationResponse.json();
+
+        if (!verificationData.success) {
+          const errorMessage = verificationData['error-codes']?.length 
+            ? `Erreur de validation: ${verificationData['error-codes'].join(', ')}` 
+            : 'Validation du captcha échouée';
+          return res.status(400).json({ error: errorMessage });
+        }
+        
+        // Vérifier si le token a déjà été utilisé
+        if (verificationData.cdata === 'token-already-used') {
+          return res.status(400).json({ error: 'Ce captcha a déjà été utilisé. Veuillez réessayer.' });
         }
 
         const existingEmail = await Newsletter.findOne({ email });

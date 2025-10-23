@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { clsx } from 'clsx';
 import {
@@ -9,9 +9,9 @@ import {
   Twitter,
   Linkedin,
   ChevronRight,
-  Send,
   ExternalLink
 } from 'lucide-react';
+import { Turnstile } from 'turnstile-js/react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import toast from 'react-hot-toast';
@@ -21,6 +21,8 @@ export default function Footer() {
   const { isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle');
+  const [token, setToken] = useState(null);
+  const turnstileRef = useRef(null);
 
   const menuLinks = {
     ministere: [
@@ -42,43 +44,80 @@ export default function Footer() {
     ]
   };
 
+  const onVerify = useCallback((token) => {
+    setToken(token);
+  }, []);
+
+  // État pour le message de succès
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const handleSubscribe = async (e) => {
     e.preventDefault();
     setStatus('loading');
-
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setStatus('error');
-      toast.error('Veuillez entrer un email valide', { duration: 4000 });
-      setTimeout(() => setStatus('idle'), 2000);
-      return;
-    }
+    setShowSuccess(false);
 
     try {
+      // Validation de l'email
+      if (!email || !/\S+@\S+\.\S+/.test(email)) {
+        throw new Error('Veuillez entrer un email valide');
+      }
+
+      // Validation du captcha
+      if (!token) {
+        throw new Error('Veuillez valider le captcha');
+      }
+
+      // Appel API
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          token 
+        }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setStatus('success');
-        setEmail('');
-        toast.success('Un email de confirmation a été envoyé. Veuillez vérifier votre boîte de réception.', {
-          duration: 4000,
-        });
-      } else {
-        throw new Error(data.error || 'Erreur lors de l\'inscription');
+      if (!response.ok) {
+        throw new Error(data.error || 'Une erreur est survenue lors de l\'inscription');
       }
+
+      // Succès
+      setStatus('success');
+      setEmail('');
+      setToken(null);
+      setShowSuccess(true);
+      
+      // Réinitialiser le captcha
+      if (turnstileRef.current) {
+        turnstileRef.current.reset();
+      }
+
+      // Message de succès
+      toast.success('Inscription réussie ! Vérifiez votre boîte mail.', {
+        duration: 5000,
+        icon: '✉️',
+      });
+
+      // Cacher le message de succès après 5 secondes
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
     } catch (error) {
       setStatus('error');
-      toast.error(error.message, { duration: 4000 });
+      toast.error(error.message || 'Une erreur est survenue', { duration: 4000 });
+      if (turnstileRef.current) {
+        turnstileRef.current.reset();
+      }
     } finally {
-      setTimeout(() => setStatus('idle'), 2000);
+      setTimeout(() => {
+        if (status === 'error') setStatus('idle');
+      }, 2000);
     }
+
   };
 
   if (!settings) {
@@ -108,89 +147,94 @@ export default function Footer() {
       </div>
 
       <div className="relative z-10">
-      {/* Newsletter Section */}
-      <div className={clsx(
-        'py-12 border-b-2',
-        isDark ? 'border-orange-500/30' : 'border-orange-300/50'
-      )}>
-        <div className="container mx-auto px-4 lg:px-6">
-          <div className={clsx(
-            'rounded-2xl p-6 shadow-2xl border-2 backdrop-blur-sm',
-            isDark
-              ? 'border-orange-400/40'
-              : 'border-orange-300/40'
-          )}
-          style={{
-            background: isDark
-              ? 'linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(34, 139, 34, 0.1))'
-              : 'linear-gradient(135deg, rgba(255, 140, 0, 0.05), rgba(34, 139, 34, 0.05))'
-          }}>
-            <div className="text-center max-w-3xl mx-auto">
-              <h3 className={clsx(
-                'text-2xl font-bold mb-3',
-                isDark ? 'text-white' : 'text-gray-900'
-              )}>
-                Restez Informé
-              </h3>
-              <p className={clsx(
-                'text-base mb-6 leading-relaxed',
-                isDark ? 'text-gray-200' : 'text-gray-700'
-              )}>
-                Recevez nos dernières actualités, événements et informations importantes directement dans votre boîte mail.
-              </p>
-
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                <input
-                  type="email"
-                  placeholder="Votre adresse email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className={clsx(
-                    'flex-1 px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-4 text-sm',
-                    isDark
-                      ? 'bg-gray-800 border-orange-500/50 text-white placeholder-gray-400 focus:border-orange-400 focus:ring-orange-500/30'
-                      : 'bg-white border-orange-400/60 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-orange-400/30'
-                  )}
-                />
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className={clsx(
-                    'px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm',
-                    isDark ? 'bg-orange-500 hover:bg-orange-600' : 'bg-orange-600 hover:bg-orange-700'
-                  )}
-                >
-                  {status === 'loading' ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Inscription...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-5 h-5" />
-                      S'inscrire
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {status === 'success' && (
-                <div className={clsx(
-                  'mt-6 p-4 rounded-lg text-sm border',
-                  'bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
+        {/* Newsletter Section */}
+        <div className={clsx(
+          'py-12 border-b-2',
+          isDark ? 'border-orange-500/30' : 'border-orange-300/50'
+        )}>
+          <div className="container mx-auto px-4 lg:px-6">
+            <div className={clsx(
+              'rounded-2xl p-6 shadow-2xl border-2 backdrop-blur-sm',
+              isDark
+                ? 'border-orange-400/40'
+                : 'border-orange-300/40'
+            )}
+            style={{
+              background: isDark
+                ? 'linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(34, 139, 34, 0.1))'
+                : 'linear-gradient(135deg, rgba(255, 140, 0, 0.05), rgba(34, 139, 34, 0.05))'
+            }}>
+              <div className="text-center max-w-3xl mx-auto">
+                <h3 className={clsx(
+                  'text-2xl font-bold mb-3',
+                  isDark ? 'text-white' : 'text-gray-900'
                 )}>
-                  Un email de confirmation a été envoyé. Veuillez vérifier votre boîte de réception.
-                </div>
-              )}
-              {status === 'error' && (
-                <div className={clsx(
-                  'mt-6 p-4 rounded-lg text-sm border',
-                  'bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800'
+                  Restez Informé
+                </h3>
+                <p className={clsx(
+                  'text-base mb-6 leading-relaxed',
+                  isDark ? 'text-gray-200' : 'text-gray-700'
                 )}>
-                  Erreur lors de l'inscription. Veuillez réessayer.
-                </div>
-              )}
+                  Recevez nos dernières actualités, événements et informations importantes directement dans votre boîte mail.
+                </p>
+
+                {showSuccess ? (
+                  <div className="flex items-center justify-center text-green-500 bg-green-100 dark:bg-green-900/30 p-4 rounded-lg animate-fade-in">
+                    <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Merci de votre inscription ! Veuillez vérifier votre boîte mail.</span>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubscribe} className="flex flex-col gap-3 max-w-lg mx-auto">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="email"
+                      placeholder="Votre adresse email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className={clsx(
+                        'flex-1 px-4 py-3 rounded-xl border-2 transition-all focus:outline-none focus:ring-4 text-sm',
+                        isDark
+                          ? 'bg-gray-800 border-orange-500/50 text-white placeholder-gray-400 focus:border-orange-400 focus:ring-orange-500/30'
+                          : 'bg-white border-orange-400/60 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-orange-400/30'
+                      )}
+                    />
+                  </div>
+                  <div className="mx-auto">
+                    <Turnstile
+                      ref={turnstileRef}
+                      sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY || process.env.DISABLED_CLOUDFLARE_SITE_KEY}
+                      onVerify={onVerify}
+                      theme={isDark ? "dark" : "light"}
+                      className="mx-auto"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className={clsx(
+                      'px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm',
+                      isDark ? 'bg-orange-500 hover:bg-orange-600' : 'bg-orange-600 hover:bg-orange-700'
+                    )}
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <span className={`transition-opacity duration-200 ${status === 'loading' ? 'opacity-0' : 'opacity-100'}`}>
+                        <Mail className="w-5 h-5 mr-2" />
+                        S'inscrire
+                      </span>
+                      {status === 'loading' && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span className="ml-2">Inscription...</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </form>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -575,7 +619,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </div>
     </footer>
   );
 }

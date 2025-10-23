@@ -34,6 +34,7 @@
     "@shadcn/ui": "^0.0.4",
     "@tinymce/tinymce-react": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "chart.js": "^4.5.1",
     "clsx": "^2.1.1",
     "dompurify": "^3.0.7",
     "dotenv": "^16.4.7",
@@ -57,6 +58,7 @@
     "otplib": "^12.0.1",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
     "react-leaflet": "^4.2.1",
@@ -64,6 +66,7 @@
     "sass": "^1.49.8",
     "swr": "^1.0.0",
     "tailwind-merge": "^2.6.0",
+    "turnstile-js": "^0.0.1",
     "zustand": "^3.7.0"
   },
   "devDependencies": {
