@@ -225,8 +225,8 @@ export default function HeroNewsCarousel() {
               </p>
             </div>
             
-            {/* Grille fixe - 5 vignettes occupant toute la largeur */}
-            <div className="grid grid-cols-5 gap-3 lg:gap-4">
+            {/* Liste responsive - Horizontal sur mobile, grille sur tablette+ */}
+            <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-3 xl:grid-cols-5">
               {news.slice(0, 5).map((article, index) => (
                 <div
                   key={article._id}
@@ -243,13 +243,14 @@ export default function HeroNewsCarousel() {
                   aria-pressed={index === activeIndex}
                   className={clsx(
                     'news-thumbnail group cursor-pointer rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-md hover:shadow-xl relative touch-manipulation focus:outline-none focus:ring-2 focus:ring-niger-orange focus:ring-offset-2',
-                    index === activeIndex 
-                      ? 'active ring-3 ring-niger-orange shadow-2xl shadow-niger-orange/20' 
+                    'flex md:flex-col gap-3 md:gap-0',
+                    index === activeIndex
+                      ? 'active ring-3 ring-niger-orange shadow-2xl shadow-niger-orange/20'
                       : ''
                   )}
                 >
-                  {/* Vignette Image/Vidéo - Plus grande et mieux proportionnée */}
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                  {/* Vignette Image/Vidéo - Largeur fixe sur mobile, aspect ratio sur tablette+ */}
+                  <div className="relative w-28 h-28 md:w-full md:aspect-[4/3] flex-shrink-0 overflow-hidden">
                     {article.mainVideo ? (
                       <div className="relative w-full h-full">
                         <Image
@@ -307,32 +308,34 @@ export default function HeroNewsCarousel() {
                     )}
                   </div>
                   
-                  {/* Contenu de la vignette - Optimisé pour 5 colonnes */}
-                  <div className="p-4">
-                    <h4 className={clsx(
-                      'text-sm font-semibold line-clamp-3 transition-colors duration-300 mb-3 leading-tight',
-                      index === activeIndex 
-                        ? 'text-niger-orange' 
-                        : 'text-gray-800 dark:text-gray-200 group-hover:text-niger-orange'
-                    )}>
-                      {article.title}
-                    </h4>
-                    
-                    {/* Date */}
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      {formatDate(article.createdAt)}
+                  {/* Contenu de la vignette - Compact sur mobile, détaillé sur tablette+ */}
+                  <div className="flex-1 p-3 md:p-4 flex flex-col justify-between">
+                    <div>
+                      <h4 className={clsx(
+                        'text-sm md:text-sm font-semibold line-clamp-2 md:line-clamp-3 transition-colors duration-300 mb-2 md:mb-3 leading-tight',
+                        index === activeIndex
+                          ? 'text-niger-orange'
+                          : 'text-gray-800 dark:text-gray-200 group-hover:text-niger-orange'
+                      )}>
+                        {article.title}
+                      </h4>
+
+                      {/* Date - Plus compact sur mobile */}
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                        {formatDate(article.createdAt)}
+                      </div>
+
+                      {/* Extrait - Caché sur mobile, visible sur tablette+ */}
+                      <p className="hidden md:block text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed mb-3">
+                        {article.excerpt || article.summary || 'Cliquez pour lire l\'article complet...'}
+                      </p>
                     </div>
-                    
-                    {/* Extrait - Toujours visible pour 5 colonnes */}
-                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed mb-3">
-                      {article.excerpt || article.summary || 'Cliquez pour lire l\'article complet...'}
-                    </p>
-                    
+
                     {/* Indicateur de lecture */}
                     <div className={clsx(
-                      'text-xs sm:text-sm font-medium transition-colors duration-300',
-                      index === activeIndex 
-                        ? 'text-niger-orange' 
+                      'text-xs font-medium transition-colors duration-300 mt-1 md:mt-0',
+                      index === activeIndex
+                        ? 'text-niger-orange'
                         : 'text-gray-400 group-hover:text-niger-orange'
                     )}>
                       {index === activeIndex ? '● En cours' : 'Voir'}

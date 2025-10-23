@@ -11,19 +11,19 @@ import logger, { LOG_TYPES } from '@/lib/logger';
 export async function autoArchiveLogs(daysToArchive = 30) {
   try {
     await connectDB();
-    
+
     const result = await SystemLog.archiveOldLogs(daysToArchive);
-    
+
     if (result.modifiedCount > 0) {
       await logger.info(
         LOG_TYPES.SYSTEM_STARTUP,
         `Archivage automatique des logs: ${result.modifiedCount} logs archivés`,
         { daysToArchive, archivedCount: result.modifiedCount }
       );
-      
+
       console.log(`Archivage automatique: ${result.modifiedCount} logs archivés`);
     }
-    
+
     return result;
   } catch (error) {
     console.error('Erreur lors de l\'archivage automatique des logs:', error);
@@ -43,19 +43,19 @@ export async function autoArchiveLogs(daysToArchive = 30) {
 export async function autoDeleteOldLogs(daysToKeep = 90) {
   try {
     await connectDB();
-    
+
     const result = await SystemLog.cleanOldLogs(daysToKeep);
-    
+
     if (result.deletedCount > 0) {
       await logger.info(
         LOG_TYPES.SYSTEM_STARTUP,
         `Nettoyage automatique des logs: ${result.deletedCount} logs supprimés`,
         { daysToKeep, deletedCount: result.deletedCount }
       );
-      
+
       console.log(`Nettoyage automatique: ${result.deletedCount} logs supprimés`);
     }
-    
+
     return result;
   } catch (error) {
     console.error('Erreur lors du nettoyage automatique des logs:', error);
@@ -77,13 +77,13 @@ export async function autoDeleteOldLogs(daysToKeep = 90) {
 export async function runAutoCleanup({ daysToArchive = 30, daysToKeep = 90 } = {}) {
   try {
     console.log('Démarrage du nettoyage automatique des logs...');
-    
+
     // Archiver les anciens logs
     const archiveResult = await autoArchiveLogs(daysToArchive);
-    
+
     // Supprimer les très anciens logs
     const deleteResult = await autoDeleteOldLogs(daysToKeep);
-    
+
     await logger.info(
       LOG_TYPES.SYSTEM_STARTUP,
       'Nettoyage automatique des logs terminé',
@@ -94,9 +94,9 @@ export async function runAutoCleanup({ daysToArchive = 30, daysToKeep = 90 } = {
         deleted: deleteResult.deletedCount
       }
     );
-    
+
     console.log(`Nettoyage automatique terminé: ${archiveResult.modifiedCount} logs archivés, ${deleteResult.deletedCount} logs supprimés`);
-    
+
     return {
       archived: archiveResult.modifiedCount,
       deleted: deleteResult.deletedCount
@@ -116,17 +116,17 @@ export async function runAutoCleanup({ daysToArchive = 30, daysToKeep = 90 } = {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const options = {};
-  
+
   // Parser les arguments
   for (let i = 0; i < args.length; i += 2) {
     const key = args[i].replace('--', '');
     const value = parseInt(args[i + 1]);
-    
+
     if (key === 'daysToArchive' || key === 'daysToKeep') {
       options[key] = value;
     }
   }
-  
+
   runAutoCleanup(options)
     .then(() => {
       console.log('Nettoyage automatique terminé avec succès');

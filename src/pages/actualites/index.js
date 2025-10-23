@@ -299,13 +299,15 @@ export default function Actualites() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:grid-cols-3">
             {paginatedActualites.map((actu) => (
               <article
                 key={actu._id}
-                className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-niger-orange/10 hover:border-niger-orange/30 transform hover:-translate-y-1 group overflow-hidden"
+                className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-niger-orange/10 hover:border-niger-orange/30 group overflow-hidden
+                  flex md:flex-col gap-4 md:gap-0"
               >
-                <div className="relative h-48 group">
+                {/* Image - À gauche sur mobile, en haut sur tablette+ */}
+                <div className="relative w-32 h-32 md:w-full md:h-48 flex-shrink-0 group">
                   {actu.mainVideo ? (
                     <div className="relative w-full h-full">
                       <VideoPlayer
@@ -313,7 +315,7 @@ export default function Actualites() {
                         poster={actu.videos?.find(v => v.isMain)?.thumbnail || actu.image}
                         title={actu.title}
                         newsId={actu._id}
-                        className="w-full h-full rounded-t-2xl"
+                        className="w-full h-full rounded-l-2xl md:rounded-l-none md:rounded-t-2xl"
                         controls={true}
                         autoPlay={false}
                       />
@@ -328,48 +330,53 @@ export default function Actualites() {
                         src={actu.image || '/images/placeholder.jpg'}
                         alt={actu.title}
                         fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 768px) 128px, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-l-2xl md:rounded-l-none md:rounded-t-2xl"
                       />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-l-2xl md:rounded-l-none md:rounded-t-2xl"/>
                     </>
                   )}
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center text-sm text-readable-muted dark:text-muted-foreground mb-3">
-                    <Calendar className="w-4 h-4 mr-2 text-niger-orange" />
-                    <time dateTime={actu.date}>
-                      {new Date(actu.date).toLocaleDateString('fr-FR')}
-                    </time>
-                    <span className="mx-2">•</span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      actu.category === 'Communiqués' ? 'bg-niger-orange/20 text-niger-orange-dark border border-niger-orange/30' :
-                      actu.category === 'Événements' ? 'bg-niger-green/20 text-niger-green-dark border border-niger-green/30' :
-                      'bg-niger-cream dark:bg-secondary-700 text-niger-green dark:text-niger-green-light border border-niger-orange/20'
-                    }`}>
-                      {actu.category}
-                    </span>
+
+                {/* Contenu - À droite sur mobile, en bas sur tablette+ */}
+                <div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center text-xs md:text-sm text-readable-muted dark:text-muted-foreground mb-2 md:mb-3 gap-2">
+                      <div className="flex items-center">
+                        <Calendar className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 text-niger-orange" />
+                        <time dateTime={actu.date}>
+                          {new Date(actu.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </time>
+                      </div>
+                      <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
+                        actu.category === 'Communiqués' ? 'bg-niger-orange/20 text-niger-orange-dark border border-niger-orange/30' :
+                        actu.category === 'Événements' ? 'bg-niger-green/20 text-niger-green-dark border border-niger-green/30' :
+                        'bg-niger-cream dark:bg-secondary-700 text-niger-green dark:text-niger-green-light border border-niger-orange/20'
+                      }`}>
+                        {actu.category}
+                      </span>
+                    </div>
+                    <h2 className="text-base md:text-xl font-bold mb-2 md:mb-3 line-clamp-2 group-hover:text-niger-orange dark:group-hover:text-niger-orange-light transition-colors text-niger-green dark:text-niger-green-light">
+                      {actu.title}
+                    </h2>
+                    <p className="text-sm md:text-base text-readable-muted dark:text-muted-foreground mb-3 md:mb-4 line-clamp-2 md:line-clamp-3">
+                      {actu.summary || actu.content.substring(0, 150)}...
+                    </p>
                   </div>
-                  <h2 className="text-xl font-bold mb-3 line-clamp-2 group-hover:text-niger-orange dark:group-hover:text-niger-orange-light transition-colors text-niger-green dark:text-niger-green-light">
-                    {actu.title}
-                  </h2>
-                  <p className="text-readable-muted dark:text-muted-foreground mb-4 line-clamp-3">
-                    {actu.summary || actu.content.substring(0, 150)}...
-                  </p>
-                  <div className="flex justify-between items-center mt-4">
+                  <div className="flex justify-between items-center">
                     <Link
                       href={`/actualites/${actu._id}`}
-                      className="text-niger-orange hover:text-niger-orange-dark inline-flex items-center group font-medium"
+                      className="text-niger-orange hover:text-niger-orange-dark inline-flex items-center group font-medium text-sm md:text-base"
                     >
-                      Lire la suite
-                      <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                      Lire
+                      <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2 transition-transform group-hover:translate-x-1" />
                     </Link>
                     <button
                       onClick={() => handleShare(actu)}
                       className="text-readable-muted dark:text-muted-foreground hover:text-niger-orange transition-colors p-2 rounded-lg hover:bg-niger-orange/10"
                       title="Partager"
                     >
-                      <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                      <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                       </svg>
                     </button>

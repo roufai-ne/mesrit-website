@@ -718,35 +718,56 @@ export default function Navigation() {
                   <div key={index}>
                     {item.hasDropdown ? (
                       <>
-                        <button
-                          onClick={() => toggleDropdown(index)}
-                          className={clsx(
-                            'w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-300 font-semibold border-2',
-                            'hover:scale-[1.02] transform',
-                            isActive 
-                              ? 'text-white border-transparent shadow-lg'
-                              : isDark 
-                                ? 'text-gray-300 border-gray-700 hover:text-white hover:border-gray-600 hover:bg-gray-800' 
-                                : 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
-                          )}
-                          style={{
-                            background: isActive ? `linear-gradient(135deg, ${item.color}, ${item.color}cc)` : 'transparent'
-                          }}
-                          aria-expanded={activeDropdown === index}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <Icon className="w-5 h-5" 
+                        {/* Conteneur flex pour le lien principal et le bouton dropdown */}
+                        <div className="flex items-center gap-2">
+                          {/* Lien principal vers la page (ex: /ministere) */}
+                          <Link
+                            href={item.path}
+                            className={clsx(
+                              'flex-1 flex items-center space-x-3 px-4 py-3 rounded-xl font-semibold transition-all duration-300 border-2',
+                              'hover:scale-[1.02] transform',
+                              isActive
+                                ? 'text-white border-transparent shadow-lg'
+                                : isDark
+                                  ? 'text-gray-300 border-gray-700 hover:text-white hover:border-gray-600 hover:bg-gray-800'
+                                  : 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
+                            )}
+                            style={{
+                              background: isActive ? `linear-gradient(135deg, ${item.color}, ${item.color}cc)` : 'transparent'
+                            }}
+                          >
+                            <Icon className="w-5 h-5"
                                   style={{ color: isActive ? 'white' : item.color }} />
                             <span>{item.label}</span>
-                          </div>
-                          <ChevronDownIcon 
+                          </Link>
+
+                          {/* Bouton pour ouvrir/fermer le dropdown */}
+                          <button
+                            onClick={() => toggleDropdown(index)}
                             className={clsx(
-                              'w-4 h-4 transition-transform duration-300',
-                              activeDropdown === index && 'rotate-180'
-                            )} 
-                          />
-                        </button>
-                        
+                              'px-3 py-3 rounded-xl transition-all duration-300 border-2',
+                              isActive
+                                ? 'text-white border-transparent shadow-lg'
+                                : isDark
+                                  ? 'text-gray-300 border-gray-700 hover:text-white hover:border-gray-600 hover:bg-gray-800'
+                                  : 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
+                            )}
+                            style={{
+                              background: isActive ? `linear-gradient(135deg, ${item.color}, ${item.color}cc)` : 'transparent'
+                            }}
+                            aria-expanded={activeDropdown === index}
+                            aria-label={`${activeDropdown === index ? 'Fermer' : 'Ouvrir'} le menu ${item.label}`}
+                          >
+                            <ChevronDownIcon
+                              className={clsx(
+                                'w-5 h-5 transition-transform duration-300',
+                                activeDropdown === index && 'rotate-180'
+                              )}
+                            />
+                          </button>
+                        </div>
+
+                        {/* Liste des sous-pages */}
                         {activeDropdown === index && (
                           <div className="mt-3 ml-6 space-y-2">
                             {item.dropdownItems?.map((subItem, subIndex) => (
@@ -755,8 +776,8 @@ export default function Navigation() {
                                 href={subItem.path}
                                 className={clsx(
                                   'block px-4 py-2 text-sm rounded-lg transition-all duration-200 font-medium border',
-                                  isDark 
-                                    ? 'text-gray-400 hover:text-white hover:bg-gray-800 border-gray-700' 
+                                  isDark
+                                    ? 'text-gray-400 hover:text-white hover:bg-gray-800 border-gray-700'
                                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-200'
                                 )}
                               >

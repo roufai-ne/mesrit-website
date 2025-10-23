@@ -119,146 +119,180 @@ export default function Services() {
   }
 
   return (
-    <section className="py-20">
+    <section className="py-16">
       <div className="container mx-auto px-4 lg:px-6">
         {/* En-tête de la section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 className={clsx(
             'text-4xl font-bold mb-4',
             isDark ? 'text-white' : 'text-gray-900'
-          )}>Nos Services</h2>
+          )}>
+            Nos Services
+          </h2>
           <p className={clsx(
-            'text-lg max-w-3xl mx-auto mb-6',
+            'text-lg max-w-3xl mx-auto',
             isDark ? 'text-white/90' : 'text-gray-600'
           )}>
             Découvrez tous les services mis à votre disposition par le ministère
           </p>
-          
-
         </div>
 
-        {/* Filtres et recherche */}
+        {/* Filtres et recherche - Redesign moderne */}
         <div className={clsx(
-          'mb-8 p-6 rounded-2xl border-2 backdrop-blur-md',
-          isDark 
-            ? 'bg-niger-white-glass/20 border-niger-orange/20' 
-            : 'bg-gray-50 border-gray-200'
+          'mb-8 rounded-3xl border backdrop-blur-md overflow-hidden shadow-xl',
+          isDark
+            ? 'bg-gradient-to-br from-niger-white-glass/10 to-niger-white-glass/5 border-niger-orange/20'
+            : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200'
         )}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-6">
-            {/* Barre de recherche */}
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <Search className={clsx(
-                  'absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5',
-                  isDark ? 'text-gray-400' : 'text-gray-500'
-                )} />
-                <input
-                  type="text"
-                  placeholder="Rechercher un service..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+          {/* Barre de recherche principale */}
+          <div className="p-5 border-b border-gray-200/50 dark:border-gray-700/50">
+            <div className="relative max-w-2xl mx-auto">
+              <Search className={clsx(
+                'absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5',
+                isDark ? 'text-niger-orange-light' : 'text-niger-orange'
+              )} />
+              <input
+                type="text"
+                placeholder="Rechercher un service par nom, description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={clsx(
+                  'w-full pl-12 pr-4 py-4 rounded-2xl border-2 transition-all duration-300 text-base',
+                  'focus:outline-none focus:ring-4 focus:ring-niger-orange/20',
+                  isDark
+                    ? 'bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 focus:border-niger-orange focus:bg-gray-800/70'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-niger-orange focus:bg-white shadow-sm'
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Section des filtres */}
+          <div className="p-5 space-y-3">
+            {/* Titre de section */}
+            <div className="flex items-center justify-between mb-2">
+              <h4 className={clsx(
+                'text-sm font-semibold uppercase tracking-wide',
+                isDark ? 'text-gray-400' : 'text-gray-600'
+              )}>
+                <Filter className="w-4 h-4 inline mr-2" />
+                Filtrer par catégorie
+              </h4>
+              {(searchTerm || selectedCategory || showPopularOnly) && (
+                <button
+                  onClick={resetFilters}
                   className={clsx(
-                    'w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all duration-300',
-                    'focus:outline-none focus:ring-4',
-                    isDark 
-                      ? 'bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 focus:border-niger-orange focus:ring-niger-orange/20' 
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-niger-orange focus:ring-niger-orange/20'
+                    'text-xs font-medium px-3 py-1 rounded-full transition-all duration-300',
+                    isDark
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                   )}
-                />
-              </div>
+                >
+                  Réinitialiser
+                </button>
+              )}
             </div>
 
-            {/* Filtres de catégorie */}
-            <div className="flex flex-wrap gap-2">
+            {/* Filtres de catégorie - Layout mobile-first */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               {categories.map((category) => (
                 <button
                   key={category.value}
                   onClick={() => setSelectedCategory(category.value)}
                   className={clsx(
-                    'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border-2',
+                    'group relative px-3 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300',
+                    'border-2 flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap',
                     selectedCategory === category.value
-                      ? 'bg-niger-orange text-white border-niger-orange shadow-lg'
+                      ? 'bg-gradient-to-r from-niger-orange to-niger-orange-dark text-white border-niger-orange shadow-lg scale-105'
                       : isDark
-                        ? 'bg-gray-800/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500'
-                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                        ? 'bg-gray-800/40 border-gray-700 text-gray-300 hover:bg-gray-700/60 hover:border-niger-orange/50 hover:scale-105'
+                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-niger-orange/40 hover:shadow-md hover:scale-105'
                   )}
                 >
-                  {category.label}
+                  <span className={clsx(
+                    'w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all flex-shrink-0',
+                    selectedCategory === category.value
+                      ? 'bg-white'
+                      : category.color
+                  )} />
+                  <span className="truncate">{category.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Boutons d'action */}
-            <div className="flex items-center space-x-3">
-              <Button
+            {/* Bouton Populaires */}
+            <div className="pt-3 border-t border-gray-200/50 dark:border-gray-700/50 mt-1">
+              <button
                 onClick={() => setShowPopularOnly(!showPopularOnly)}
-                variant={showPopularOnly ? "default" : "outline"}
-                size="sm"
                 className={clsx(
-                  'flex items-center space-x-2',
-                  showPopularOnly && 'bg-niger-orange hover:bg-niger-orange/90'
+                  'group px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300',
+                  'border-2 flex items-center justify-center gap-2 w-full sm:w-auto',
+                  showPopularOnly
+                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-yellow-500 shadow-lg'
+                    : isDark
+                      ? 'bg-gray-800/40 border-gray-700 text-gray-300 hover:bg-gray-700/60 hover:border-yellow-500/50'
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-yellow-50 hover:border-yellow-400 hover:shadow-md'
                 )}
               >
-                <Star className="w-4 h-4" />
-                <span>Populaires</span>
-              </Button>
+                <Star className={clsx(
+                  'w-4 h-4 transition-transform group-hover:rotate-12 flex-shrink-0',
+                  showPopularOnly && 'fill-current'
+                )} />
+                <span>Services populaires</span>
+                {showPopularOnly && filteredServices.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+                    {filteredServices.length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
-
-          {/* Bouton de réinitialisation */}
-          {(searchTerm || selectedCategory || showPopularOnly) && (
-            <div className="mt-4 text-center">
-              <Button
-                onClick={resetFilters}
-                variant="ghost"
-                size="sm"
-                className={clsx(
-                  'text-sm',
-                  isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'
-                )}
-              >
-                Réinitialiser les filtres
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Grille des services */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[...Array(6)].map((_, index) => (
               <div key={index} className="animate-pulse">
                 <div className={clsx(
-                  'rounded-2xl h-80 backdrop-blur-md border-2',
-                  isDark 
-                    ? 'bg-niger-white-glass/30 border-niger-orange/20' 
-                    : 'bg-gray-100 border-gray-200'
+                  'rounded-3xl h-96 backdrop-blur-md border shadow-xl',
+                  isDark
+                    ? 'bg-gradient-to-br from-niger-white-glass/20 to-niger-white-glass/10 border-niger-orange/20'
+                    : 'bg-gradient-to-br from-gray-100 to-gray-50 border-gray-200'
                 )} />
               </div>
             ))}
           </div>
         ) : filteredServices.length === 0 ? (
-          <div className="text-center py-16">
+          <div className={clsx(
+            'text-center py-20 rounded-3xl border backdrop-blur-md',
+            isDark
+              ? 'bg-niger-white-glass/10 border-niger-orange/20'
+              : 'bg-gray-50 border-gray-200'
+          )}>
             <div className={clsx(
-              'text-6xl mb-4',
+              'text-6xl mb-6',
               isDark ? 'text-gray-600' : 'text-gray-300'
             )}>🔍</div>
             <h3 className={clsx(
-              'text-xl font-semibold mb-2',
+              'text-2xl font-bold mb-3',
               isDark ? 'text-white' : 'text-gray-900'
             )}>Aucun service trouvé</h3>
             <p className={clsx(
-              'mb-4',
-              isDark ? 'text-white/70' : 'text-gray-500'
+              'mb-6 text-lg max-w-md mx-auto',
+              isDark ? 'text-gray-300' : 'text-gray-600'
             )}>
               Essayez de modifier vos critères de recherche ou de réinitialiser les filtres
             </p>
-            <Button onClick={resetFilters} variant="outline">
+            <Button
+              onClick={resetFilters}
+              className="bg-gradient-to-r from-niger-orange to-niger-green text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               Réinitialiser les filtres
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredServices.map((service) => (
               <ServiceCard
                 key={service._id}
