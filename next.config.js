@@ -17,7 +17,9 @@ const nextConfig = {
   },
 
   // Output standalone pour déploiement optimisé
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+  // IMPORTANT: 'standalone' nécessite de servir .next/static et public/ séparément
+  // Utilisez 'export' pour un site statique ou commentez cette ligne pour un déploiement Node.js standard
+  // output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
 
   // Image optimization
   images: {

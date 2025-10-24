@@ -28,9 +28,10 @@ function buildCSPDirectives(nonce = null) {
     "default-src": ["'self'"],
     "script-src": [
       "'self'",
-      ...(isDevelopment ? ["'unsafe-eval'", "'unsafe-inline'"] : []), // Développement permissif
+      ...(isDevelopment ? ["'unsafe-eval'", "'unsafe-inline'"] : ["'unsafe-inline'", "'unsafe-eval'"]), // Nécessaire pour Next.js
       "https://cdn.jsdelivr.net", // CDN autorisés
       "https://unpkg.com", // Pour certaines librairies
+      "https://static.cloudflareinsights.com", // Cloudflare Analytics
       // En production, utiliser nonces et hashes
       ...(isProduction && nonce ? [`'nonce-${nonce}'`] : []),
       ...(isProduction
