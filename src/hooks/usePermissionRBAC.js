@@ -8,9 +8,9 @@ export function usePermission() {
 
   return useMemo(() => {
     if (!user) {
-    return {
-  hasAnyPermission: (perms) => perms.some(p => !!userPermissions[p] || !!userPermissions.hasPermission?.(p)),
-  hasAllPermissions: (perms) => perms.every(p => !!userPermissions[p] || !!userPermissions.hasPermission?.(p)),
+      return {
+        hasAnyPermission: () => false,
+        hasAllPermissions: () => false,
         // Toutes les permissions false par défaut
         canAccessDashboard: false,
         canCreateContent: false,
@@ -37,9 +37,8 @@ export function usePermission() {
       };
     }
 
-  return {
-  hasAnyPermission: (perms) => perms.some(p => !!userPermissions[p] || !!userPermissions.hasPermission?.(p)),
-  hasAllPermissions: (perms) => perms.every(p => !!userPermissions[p] || !!userPermissions.hasPermission?.(p)),
+    // Objet de permissions pour l'utilisateur connecté
+    const permissions = {
       // Dashboard
       canAccessDashboard: RBAC.hasPermission(user, RESOURCES.DASHBOARD, ACTIONS.READ),
       
@@ -117,12 +116,38 @@ export function usePermission() {
           'content-admin': 2,
           'editor': 1
         };
-        
+
         const userLevel = roleHierarchy[user.role] || 0;
         const targetLevel = roleHierarchy[targetRole] || 0;
-        
+
         // Peut gérer les rôles de niveau inférieur uniquement
         return userLevel > targetLevel;
+      }
+    };
+
+    // Ajouter les fonctions utilitaires qui utilisent l'objet permissions
+    return {
+      ...permissions,
+      // Fonctions de vérification basées sur les permissions calculées
+      hasAnyPermission: (perms) => {
+        return perms.some(p => {
+          // Vérifier si la permission existe dans l'objet
+          if (permissions[p] !== undefined) {
+            return permissions[p];
+          }
+          // Sinon utiliser hasPermission générique
+          return permissions.hasPermission(p, ACTIONS.READ);
+        });
+      },
+      hasAllPermissions: (perms) => {
+        return perms.every(p => {
+          // Vérifier si la permission existe dans l'objet
+          if (permissions[p] !== undefined) {
+            return permissions[p];
+          }
+          // Sinon utiliser hasPermission générique
+          return permissions.hasPermission(p, ACTIONS.READ);
+        });
       }
     };
   }, [user]);

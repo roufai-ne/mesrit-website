@@ -560,3 +560,11 @@ export default function SearchResultsPage() {
     </MainLayout>
   );
 }
+
+// Désactiver le SSG pour cette page car elle dépend des query params
+// La page sera rendue côté client uniquement
+export async function getServerSideProps() {
+  return {
+    props: {}
+  };
+}

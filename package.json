@@ -62,11 +62,11 @@
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
     "react-leaflet": "^4.2.1",
+    "react-turnstile": "^1.1.4",
     "recharts": "^2.14.1",
     "sass": "^1.49.8",
     "swr": "^1.0.0",
     "tailwind-merge": "^2.6.0",
-    "turnstile-js": "^0.0.1",
     "zustand": "^3.7.0"
   },
   "devDependencies": {

@@ -1,4 +1,3 @@
-'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import EstablishmentMap from '@/components/maps/EstablishmentMap';
@@ -42,9 +41,9 @@ const Toast = ({ message }) => (
   </div>
 );
 
- const Etablissements= () => {
+ const Etablissements = ({ initialEstablishments = [] }) => {
   // États
-  const [establishments, setEstablishments] = useState([]);
+  const [establishments, setEstablishments] = useState(initialEstablishments);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedRegion, setSelectedRegion] = useState('all');
@@ -520,6 +519,16 @@ const Toast = ({ message }) => (
       {showToast && <Toast message={toastMessage} />}
     </MainLayout>
   );
+}
+
+// SSR - Les données seront chargées côté client via useEffect
+// Ceci évite les erreurs ECONNREFUSED durant le build
+export async function getServerSideProps() {
+  return {
+    props: {
+      initialEstablishments: []
+    }
+  };
 }
 
 export default Etablissements;

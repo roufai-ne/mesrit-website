@@ -157,3 +157,10 @@ export default function RapportsPage() {
     </MainLayout>
   );
 }
+
+// Forcer SSR pour éviter les erreurs durant le SSG
+export async function getServerSideProps() {
+  return {
+    props: {}
+  };
+}

@@ -2,8 +2,9 @@ import { connectDB } from '@/lib/mongodb';
 import Newsletter from '@/models/Newsletter';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { rateLimiters } from '@/lib/rateLimit';
 
-export default async function handler(req, res) {
+async function newsletterHandler(req, res) {
   await connectDB();
   try {
     switch (req.method) {
@@ -117,4 +118,11 @@ export default async function handler(req, res) {
     console.error(error);
     return res.status(500).json({ error: 'Erreur serveur' });
   }
+}
+
+// Appliquer rate limiting: 3 inscriptions max par 24h
+export default function handler(req, res) {
+  return rateLimiters.newsletter(req, res, () => {
+    return newsletterHandler(req, res);
+  });
 }

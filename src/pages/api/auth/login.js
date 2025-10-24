@@ -9,6 +9,7 @@ import { SecureCookies } from '@/lib/secureCookies';
 import logger, { LOG_TYPES } from '@/lib/logger';
 import AnomalyDetection from '@/lib/anomalyDetection';
 import TwoFactorAuth from '@/lib/twoFactorAuth';
+import { rateLimiters } from '@/lib/rateLimit';
 
 // Valider les secrets au démarrage
 const JWT_SECRET = SecretsValidator.validateJWTSecret();
@@ -236,4 +237,9 @@ async function loginHandler(req, res) {
   });
 }
 
-export default withErrorHandler(loginHandler);
+// Appliquer rate limiting: 5 tentatives max par 15 minutes
+export default function handler(req, res) {
+  return rateLimiters.authLogin(req, res, () => {
+    return withErrorHandler(loginHandler)(req, res);
+  });
+}

@@ -13,7 +13,16 @@ export function AuthProvider({ children }) {
   const [sessionInfo, setSessionInfo] = useState(null);
   const router = useRouter();
   const { toast } = useToast();
-  
+
+  // Refs pour éviter la mutation de global object
+  const logFlagsRef = useRef({
+    authCheckLogged: false,
+    authSuccessLogged: false,
+    authFailLogged: false,
+    authErrorLogged: false,
+    authFinishLogged: false
+  });
+
   // Enregistrement des utilitaires pour secureApi (logout, toast)
   useEffect(() => {
     registerAuthUtils({ logout, toast });
@@ -43,26 +52,26 @@ export function AuthProvider({ children }) {
   const checkAuthStatus = useCallback(async () => {
     try {
       // Only log during initial check or if not logged before
-      if (!global.authCheckLogged) {
+      if (!logFlagsRef.current.authCheckLogged) {
         console.log('[AuthContext] Checking auth status...');
-        global.authCheckLogged = true;
+        logFlagsRef.current.authCheckLogged = true;
       }
-      
+
       // Use direct fetch instead of apiCall to avoid error notifications
       const response = await fetch('/api/auth/me', {
         method: 'GET',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         // Reduce logging frequency
-        if (!global.authSuccessLogged) {
+        if (!logFlagsRef.current.authSuccessLogged) {
           console.log('[AuthContext] Auth check successful, user:', data.user.username);
-          global.authSuccessLogged = true;
+          logFlagsRef.current.authSuccessLogged = true;
         }
         setUser(data.user);
-        
+
         // Gérer les informations de session si disponibles
         if (data.sessionId && data.sessionId !== sessionId) {
           setSessionId(data.sessionId);
@@ -72,18 +81,18 @@ export function AuthProvider({ children }) {
         }
       } else {
         // Authentication failed - this is normal for non-authenticated users
-        if (!global.authFailLogged) {
+        if (!logFlagsRef.current.authFailLogged) {
           console.log('[AuthContext] User not authenticated (status:', response.status, ')');
-          global.authFailLogged = true;
+          logFlagsRef.current.authFailLogged = true;
         }
         setUser(null);
         setSessionId(null);
         setSessionInfo(null);
       }
     } catch (error) {
-      if (!global.authErrorLogged) {
+      if (!logFlagsRef.current.authErrorLogged) {
         console.log('[AuthContext] Auth check network error:', error.message);
-        global.authErrorLogged = true;
+        logFlagsRef.current.authErrorLogged = true;
       }
       // Only log network errors, don't treat auth failures as errors
       setUser(null);
@@ -91,9 +100,9 @@ export function AuthProvider({ children }) {
       setSessionInfo(null);
     } finally {
       setLoading(false);
-      if (!global.authFinishLogged) {
+      if (!logFlagsRef.current.authFinishLogged) {
         console.log('[AuthContext] Auth check finished. Loading:', false);
-        global.authFinishLogged = true;
+        logFlagsRef.current.authFinishLogged = true;
       }
     }
   }, [sessionId, fetchSessionInfo]);

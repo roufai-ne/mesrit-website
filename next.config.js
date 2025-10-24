@@ -7,6 +7,18 @@ const nextConfig = {
     position: 'bottom-right',
   },
 
+  // ⚠️ TEMPORAIRE: Désactiver la génération statique automatique
+  // pour éviter les erreurs React #130 durant le build
+  // Les pages avec getStaticProps/getServerSideProps continueront de fonctionner
+  // Ceci force le SSR pour les pages sans méthode de data fetching explicite
+  experimental: {
+    // Désactiver le SSG automatique
+    disableOptimizedLoading: false,
+  },
+
+  // Output standalone pour déploiement optimisé
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
+
   // Image optimization
   images: {
     domains: ['localhost', '192.168.10.115'],

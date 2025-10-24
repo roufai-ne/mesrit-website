@@ -383,3 +383,10 @@ export default function OrganisationPage() {
     </MainLayout>
   );
 }
+
+// Forcer SSR pour éviter les erreurs de contexte durant le SSG
+export async function getServerSideProps() {
+  return {
+    props: {}
+  };
+}

@@ -345,3 +345,10 @@ export default function GuidesPage() {
     </MainLayout>
   );
 }
+
+// Forcer SSR pour éviter les erreurs durant le SSG
+export async function getServerSideProps() {
+  return {
+    props: {}
+  };
+}
