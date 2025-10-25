@@ -1,31 +1,16 @@
-// src/middleware/cspMiddleware.js
+// src/middleware/cspMiddleware.js - VERSION SIMPLIFIÉE
 import { NextResponse } from 'next/server';
-import { generateNonce, buildCSPString } from '@/lib/securityHeaders';
 
 /**
- * Middleware pour injecter les nonces CSP dans les pages
+ * Middleware CSP DÉSACTIVÉ pour compatibilité maximale
+ * La CSP est maintenant gérée de manière permissive dans next.config.js
  */
 export function cspMiddleware(request) {
   const response = NextResponse.next();
-  
-  // Générer un nonce unique pour cette requête
-  const nonce = generateNonce();
-  
-  // Construire la CSP avec le nonce
-  const cspWithNonce = buildCSPString(nonce);
-  
-  // Ajouter les headers CSP avec nonce
-  response.headers.set('Content-Security-Policy', cspWithNonce);
-  response.headers.set('X-Nonce', nonce);
-  
-  // Stocker le nonce pour l'utiliser dans les composants
-  response.cookies.set('csp-nonce', nonce, {
-    httpOnly: false, // Accessible côté client
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 300 // 5 minutes
-  });
-  
+
+  // CSP très permissive (n'utilise plus de nonce)
+  response.headers.set('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:");
+
   return response;
 }
 

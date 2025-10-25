@@ -41,3 +41,11 @@ next-env.d.ts
 
 public/documents/*
 !public/documents/.keep
+
+.node_modules/
+*.md
+*.txt
+/.claude/
+/.vscode/
+/.kiro/ 
+/.swc/
