@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { secureApi, useApiAction } from '@/lib/secureApi';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermission } from '@/hooks/usePermissionRBAC';
+import { usePermission } from '@/hooks/usePermission';
 
 export default function DocumentManager() {
   const { user } = useAuth();

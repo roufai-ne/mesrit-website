@@ -94,11 +94,11 @@ export default function NewsAnalyticsDashboardV2() {
     if (!globalStats?.overview?.dailyBreakdown) return null;
 
     const labels = globalStats.overview.dailyBreakdown.map(day =>
-      new Date(day.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
+      new Date(day?.date).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
     );
 
-    const viewsData = globalStats.overview.dailyBreakdown.map(day => day.views);
-    const sharesData = globalStats.overview.dailyBreakdown.map(day => day.shares);
+    const viewsData = globalStats.overview.dailyBreakdown.map(day => day?.views || 0);
+    const sharesData = globalStats.overview.dailyBreakdown.map(day => day?.shares || 0);
 
     return {
       labels,
@@ -128,10 +128,10 @@ export default function NewsAnalyticsDashboardV2() {
     if (!globalStats?.topArticles) return null;
 
     const labels = globalStats.topArticles.slice(0, 10).map(article =>
-      article.title.length > 30 ? article.title.substring(0, 30) + '...' : article.title
+      article?.title?.length > 30 ? article.title.substring(0, 30) + '...' : article?.title || 'Sans titre'
     );
 
-    const viewsData = globalStats.topArticles.slice(0, 10).map(article => article.totalViews);
+    const viewsData = globalStats?.topArticles?.slice(0, 10).map(article => article?.totalViews || 0) || [];
 
     return {
       labels,
@@ -257,25 +257,25 @@ export default function NewsAnalyticsDashboardV2() {
       </div>
 
       {/* Métriques principales */}
-      {globalStats && (
+      {globalStats?.overview && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="Vues totales"
-            value={globalStats.overview.totalViews?.toLocaleString()}
-            trend={globalStats.trends.viewsGrowth}
+            value={globalStats.overview?.totalViews?.toLocaleString() || '0'}
+            trend={globalStats.trends?.viewsGrowth}
             icon="👁️"
             color="blue"
           />
           <MetricCard
             title="Vues uniques"
-            value={globalStats.overview.totalUniqueViews?.toLocaleString()}
+            value={globalStats.overview?.totalUniqueViews?.toLocaleString() || '0'}
             icon="👤"
             color="green"
           />
           <MetricCard
             title="Partages"
-            value={globalStats.overview.totalShares?.toLocaleString()}
-            trend={globalStats.trends.sharesGrowth}
+            value={globalStats.overview?.totalShares?.toLocaleString() || '0'}
+            trend={globalStats.trends?.sharesGrowth}
             icon="📤"
             color="orange"
           />
@@ -321,19 +321,19 @@ export default function NewsAnalyticsDashboardV2() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Temps de lecture moyen</span>
                 <span className="font-medium">
-                  {Math.round(globalStats.overview.avgReadingTime)} sec
+                  {Math.round(globalStats.overview?.avgReadingTime || 0)} sec
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Profondeur de scroll moyenne</span>
                 <span className="font-medium">
-                  {Math.round(globalStats.overview.avgScrollDepth)}%
+                  {Math.round(globalStats.overview?.avgScrollDepth || 0)}%
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Taux d'engagement</span>
                 <span className="font-medium">
-                  {globalStats.overview.totalShares > 0
+                  {globalStats.overview?.totalShares > 0 && globalStats.overview?.totalViews > 0
                     ? Math.round((globalStats.overview.totalShares / globalStats.overview.totalViews) * 100)
                     : 0}%
                 </span>
@@ -396,30 +396,30 @@ export default function NewsAnalyticsDashboardV2() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {globalStats.topArticles.slice(0, 5).map((article, index) => (
-                  <tr key={article._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                {globalStats?.topArticles?.slice(0, 5).map((article, index) => (
+                  <tr key={article?._id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {article.title}
+                          {article?.title || 'Sans titre'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          /{article.slug}
+                          /{article?.slug || 'no-slug'}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {article.totalViews.toLocaleString()}
+                      {article?.totalViews?.toLocaleString() || '0'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {article.totalShares.toLocaleString()}
+                      {article?.totalShares?.toLocaleString() || '0'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {Math.round(article.avgReadingTime)}s
+                      {Math.round(article?.avgReadingTime || 0)}s
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
-                        onClick={() => setSelectedNews(article._id)}
+                        onClick={() => setSelectedNews(article?._id)}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         Voir détails

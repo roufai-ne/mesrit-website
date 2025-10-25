@@ -4,7 +4,7 @@ import { Plus, Edit, Trash, X, MapPin, Globe, Building2, Loader, Search } from '
 import { toast } from 'react-hot-toast';
 import { secureApi, useApiAction } from '@/lib/secureApi';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermission } from '@/hooks/usePermissionRBAC';
+import { usePermission } from '@/hooks/usePermission';
 import dynamic from 'next/dynamic';
 import { isValidLatLng } from '@/utils/mapUtils';
 

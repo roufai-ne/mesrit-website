@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { secureApi } from '@/lib/secureApi';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermission } from '@/hooks/usePermissionRBAC';
+import { usePermission } from '@/hooks/usePermission';
 import { 
   Bell, 
   Calendar,

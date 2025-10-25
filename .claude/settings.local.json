@@ -4,7 +4,13 @@
       "Bash(npm outdated:*)",
       "Bash(find:*)",
       "Bash(npm audit:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(pkill:*)",
+      "Bash(killall node:*)",
+      "Bash(mkdir:*)",
+      "Bash(echo:*)",
+      "Bash(npm run build:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

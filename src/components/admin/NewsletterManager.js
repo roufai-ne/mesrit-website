@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermission } from '@/hooks/usePermissionRBAC';
+import { usePermission } from '@/hooks/usePermission';
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import {

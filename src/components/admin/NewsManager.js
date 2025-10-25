@@ -28,7 +28,7 @@ import { useNewsArchive } from "@/hooks/useNewsArchive";
 import { toast } from "react-hot-toast";
 import { secureApi, useApiAction } from "@/lib/secureApi";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePermission } from "@/hooks/usePermissionRBAC";
+import { usePermission } from "@/hooks/usePermission";
 
 // Déclaration des statuts pour le filtre
 const statusOptions = [

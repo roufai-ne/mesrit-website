@@ -1,5 +1,5 @@
 // hooks/useUserManagement.js - Hook spécialisé pour la gestion des utilisateurs
-import { usePermission } from './usePermissionRBAC';
+import { usePermission } from './usePermission';
 import { useAuth } from '@/contexts/AuthContext';
 import { RBAC } from '@/lib/rbac';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermission } from '@/hooks/usePermissionRBAC';
+import { usePermission } from '@/hooks/usePermission';
 
 const FAQForm = ({ faq, onSubmit, onClose }) => {
  const [formData, setFormData] = useState({
