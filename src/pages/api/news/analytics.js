@@ -9,68 +9,107 @@ import News from '@/models/News';
 // GET - Récupérer les statistiques globales (protégé - admin seulement)
 const getGlobalAnalytics = async (req, res) => {
   try {
+    console.log('[Analytics API] Début de la requête analytics');
+
     // Vérifier la connexion à la base de données
+    console.log('[Analytics API] Connexion à MongoDB...');
     await connectDB();
-    
+    console.log('[Analytics API] MongoDB connecté, état:', mongoose.connection.readyState);
+
     const { period = 30 } = req.query;
-    
+
     // Valider la période
     const validPeriod = Math.min(Math.max(parseInt(period) || 30, 1), 365);
-    
-    console.log(`[Analytics] Récupération des stats pour ${validPeriod} jours`);
-    
-    const stats = await NewsAnalyticsServiceV2.getGlobalStats(validPeriod);
-    
-    console.log('[Analytics] Stats récupérées:', {
-      totalViews: stats.overview?.totalViews,
-      activeArticles: stats.overview?.activeArticles
+
+    console.log(`[Analytics API] Récupération des stats pour ${validPeriod} jours`);
+    console.log('[Analytics API] User:', {
+      id: req.user?.id,
+      username: req.user?.username
     });
-    
-    await logger.info(
-      LOG_TYPES.ADMIN_ACTION,
-      'Consultation des analytics globales',
-      {
-        period: validPeriod,
-        adminId: req.user?.id || 'anonymous',
-        adminUsername: req.user?.username || 'anonymous'
-      },
-      req
-    );
-    
+
+    // Appel au service avec gestion d'erreur détaillée
+    let stats;
+    try {
+      stats = await NewsAnalyticsServiceV2.getGlobalStats(validPeriod);
+      console.log('[Analytics API] Stats récupérées avec succès');
+    } catch (serviceError) {
+      console.error('[Analytics API] Erreur dans NewsAnalyticsServiceV2.getGlobalStats:', {
+        message: serviceError.message,
+        name: serviceError.name,
+        stack: serviceError.stack
+      });
+      throw serviceError; // Re-throw pour le catch principal
+    }
+
+    console.log('[Analytics API] Stats récupérées:', {
+      hasOverview: !!stats?.overview,
+      totalViews: stats?.overview?.totalViews,
+      activeArticles: stats?.overview?.activeArticles,
+      topArticlesCount: stats?.topArticles?.length
+    });
+
+    // Log de l'action admin (non-bloquant)
+    try {
+      await logger.info(
+        LOG_TYPES.ADMIN_ACTION,
+        'Consultation des analytics globales',
+        {
+          period: validPeriod,
+          adminId: req.user?.id || 'anonymous',
+          adminUsername: req.user?.username || 'anonymous'
+        },
+        req
+      );
+    } catch (logError) {
+      console.warn('[Analytics API] Erreur logging (non-bloquant):', logError.message);
+    }
+
+    console.log('[Analytics API] Envoi de la réponse...');
     res.status(200).json({
       success: true,
       data: stats,
       period: validPeriod
     });
-    
+    console.log('[Analytics API] Réponse envoyée avec succès');
+
   } catch (error) {
-    console.error('[Analytics] Erreur récupération analytics globales:', error);
-    console.error('[Analytics] Stack:', error.stack);
-    
-    // Log l'erreur
+    console.error('[Analytics API] ═══ ERREUR GLOBALE ═══');
+    console.error('[Analytics API] Message:', error.message);
+    console.error('[Analytics API] Name:', error.name);
+    console.error('[Analytics API] Stack:', error.stack);
+
+    // Informations de debug supplémentaires
+    console.error('[Analytics API] MongoDB state:', mongoose.connection.readyState);
+    console.error('[Analytics API] Query params:', req.query);
+
+    // Log l'erreur (non-bloquant)
     try {
       await logger.error(
         LOG_TYPES.SYSTEM_ERROR,
         'Erreur récupération analytics globales',
         {
           error: error.message,
+          errorName: error.name,
           stack: error.stack,
+          mongoState: mongoose.connection.readyState,
           adminId: req.user?.id,
           query: req.query
         },
         req
       );
     } catch (logError) {
-      console.error('[Analytics] Erreur lors du logging:', logError);
+      console.error('[Analytics API] Erreur lors du logging:', logError.message);
     }
-    
+
+    // Retourner une erreur détaillée
     res.status(500).json({
       success: false,
       error: 'Erreur lors de la récupération des statistiques',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Erreur serveur',
+      errorType: error.name,
       details: process.env.NODE_ENV === 'development' ? {
         stack: error.stack,
-        name: error.name
+        mongoState: mongoose.connection.readyState
       } : undefined
     });
   }
