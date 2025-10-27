@@ -8,8 +8,8 @@ import { NextResponse } from 'next/server';
 export function cspMiddleware(request) {
   const response = NextResponse.next();
 
-  // CSP très permissive (n'utilise plus de nonce)
-  response.headers.set('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:");
+  // CSP très permissive (n'utilise plus de nonce) - Inclut blob: pour les extensions navigateur
+  response.headers.set('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https: http:");
 
   return response;
 }

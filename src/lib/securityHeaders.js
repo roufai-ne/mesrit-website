@@ -13,7 +13,7 @@ function buildCSPString() {
   // CSP très permissive pour site web public
   const directives = [
     "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http:",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https: http:",
     "style-src 'self' 'unsafe-inline' https: http:",
     "font-src 'self' data: https: http:",
     "img-src 'self' data: blob: https: http:",

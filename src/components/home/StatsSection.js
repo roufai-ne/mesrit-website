@@ -28,7 +28,8 @@ export default function StatsSection() {
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionnellement vide - fetchStats ne doit s'exécuter qu'au montage
 
   const fetchStats = useCallback(
     async (silent = false) => {
@@ -53,32 +54,27 @@ export default function StatsSection() {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.stats) {
-            const hasChanged =
-              JSON.stringify(stats) !== JSON.stringify(data.stats);
+            setStats((prevStats) => {
+              const hasChanged =
+                JSON.stringify(prevStats) !== JSON.stringify(data.stats);
 
-            setStats(data.stats);
-            setError(null);
-            setLastUpdated(new Date());
+              // Initialiser immédiatement les valeurs animées avec les vraies valeurs
+              const initialAnimatedStats = {};
+              Object.entries(data.stats).forEach(([key, stat]) => {
+                initialAnimatedStats[key] = stat.value;
+              });
+              setAnimatedStats(initialAnimatedStats);
 
-            // Initialiser immédiatement les valeurs animées avec les vraies valeurs
-            const initialAnimatedStats = {};
-            Object.entries(data.stats).forEach(([key, stat]) => {
-              initialAnimatedStats[key] = stat.value;
+              setError(null);
+              setLastUpdated(new Date());
+
+              // Redémarre l'animation seulement si les données ont changé ou premier chargement
+              if (hasChanged || !silent) {
+                setTimeout(() => animateCounters(data.stats), silent ? 200 : 500);
+              }
+
+              return data.stats;
             });
-            setAnimatedStats(initialAnimatedStats);
-
-            // Supprimer le toast automatique - pas de notification silencieuse
-            // if (silent && hasChanged) {
-            //   toast.success('Statistiques mises à jour automatiquement', {
-            //     duration: 2000,
-            //     icon: '🔄'
-            //   });
-            // }
-
-            // Redémarre l'animation seulement si les données ont changé ou premier chargement
-            if (hasChanged || !silent) {
-              setTimeout(() => animateCounters(), silent ? 200 : 500);
-            }
           } else {
             throw new Error("Format de données invalide");
           }
@@ -94,49 +90,54 @@ export default function StatsSection() {
         }
 
         // Utilise les stats par défaut seulement si on n'a pas encore de données
-        if (!stats) {
-          const defaultStats = {
-            students: { value: 25000, label: "Étudiants", color: "blue" },
-            institutions: {
-              value: 15,
-              label: "Établissements",
-              color: "green",
-            },
-            teachers: { value: 1500, label: "Enseignants", color: "purple" },
-            publications: {
-              value: 0,
-              label: "Publications Scientifiques",
-              color: "orange",
-            },
-            // Retirer les actualités et services
-          };
-          setStats(defaultStats);
+        setStats((prevStats) => {
+          if (!prevStats) {
+            const defaultStats = {
+              students: { value: 25000, label: "Étudiants", color: "blue" },
+              institutions: {
+                value: 15,
+                label: "Établissements",
+                color: "green",
+              },
+              teachers: { value: 1500, label: "Enseignants", color: "purple" },
+              publications: {
+                value: 0,
+                label: "Publications Scientifiques",
+                color: "orange",
+              },
+              // Retirer les actualités et services
+            };
 
-          // Initialiser immédiatement les valeurs animées avec les valeurs par défaut
-          const initialAnimatedStats = {};
-          Object.entries(defaultStats).forEach(([key, stat]) => {
-            initialAnimatedStats[key] = stat.value;
-          });
-          setAnimatedStats(initialAnimatedStats);
+            // Initialiser immédiatement les valeurs animées avec les valeurs par défaut
+            const initialAnimatedStats = {};
+            Object.entries(defaultStats).forEach(([key, stat]) => {
+              initialAnimatedStats[key] = stat.value;
+            });
+            setAnimatedStats(initialAnimatedStats);
 
-          // Déclencher l'animation même avec les données par défaut
-          setTimeout(() => animateCounters(), 500);
-        }
+            // Déclencher l'animation même avec les données par défaut
+            setTimeout(() => animateCounters(defaultStats), 500);
+
+            return defaultStats;
+          }
+          return prevStats;
+        });
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [stats]
+    // Enlever 'stats' des dépendances pour éviter les re-créations
+    []
   );
 
-  const animateCounters = useCallback(() => {
-    if (!stats) return;
+  const animateCounters = useCallback((statsToAnimate) => {
+    if (!statsToAnimate) return;
 
     // Reset des compteurs animés
     setAnimatedStats({});
 
-    Object.entries(stats).forEach(([key, stat]) => {
+    Object.entries(statsToAnimate).forEach(([key, stat]) => {
       let current = 0;
       const target = stat.value;
       const duration = 2000; // 2 secondes
@@ -155,7 +156,7 @@ export default function StatsSection() {
         }));
       }, stepTime);
     });
-  }, [stats]);
+  }, []);
 
   const handleRefresh = async () => {
     await fetchStats(false);

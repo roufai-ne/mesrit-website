@@ -1,25 +1,79 @@
 // components/layout/FooterNewsletter.js
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { Mail } from 'lucide-react';
+import { Mail, CheckCircle, XCircle } from 'lucide-react';
 import Turnstile from 'react-turnstile';
 import toast from 'react-hot-toast';
+import { validators } from '@/lib/validation';
 
 export default function FooterNewsletter({ isDark }) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle');
   const [token, setToken] = useState(null);
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const turnstileRef = useRef(null);
+
+  // Validation en temps réel de l'email (pas besoin de isMounted car composant client-only)
+  useEffect(() => {
+    if (!email) {
+      setIsEmailValid(false);
+      setEmailError('');
+      // Réinitialiser le token du captcha si l'email est vidé
+      if (token) {
+        setToken(null);
+        if (turnstileRef.current) {
+          turnstileRef.current.reset();
+        }
+      }
+      return;
+    }
+
+    try {
+      validators.email(email);
+      setIsEmailValid(true);
+      setEmailError('');
+    } catch (error) {
+      setIsEmailValid(false);
+      setEmailError(error.message);
+      // Réinitialiser le token si l'email devient invalide
+      if (token) {
+        setToken(null);
+        if (turnstileRef.current) {
+          turnstileRef.current.reset();
+        }
+      }
+    }
+  }, [email, token]);
 
   const onVerify = (verificationToken) => {
     setToken(verificationToken);
   };
 
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (!emailTouched) {
+      setEmailTouched(true);
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!email || !token) {
-      toast.error('Veuillez compléter tous les champs');
+    // Validation finale avant envoi
+    if (!isEmailValid) {
+      toast.error('Veuillez entrer une adresse email valide');
+      setEmailTouched(true);
+      return;
+    }
+
+    if (!token) {
+      toast.error('Veuillez compléter la vérification de sécurité');
       return;
     }
 
@@ -39,6 +93,8 @@ export default function FooterNewsletter({ isDark }) {
         setStatus('success');
         setEmail('');
         setToken(null);
+        setEmailTouched(false);
+        setIsEmailValid(false);
         if (turnstileRef.current) {
           turnstileRef.current.reset();
         }
@@ -54,9 +110,19 @@ export default function FooterNewsletter({ isDark }) {
     }
   };
 
+  // Désactiver le bouton si l'email n'est pas valide ou si le captcha n'est pas vérifié
+  const isSubmitDisabled = !isEmailValid || !token || status === 'loading';
+
   return (
     <div className="py-16 relative overflow-hidden bg-gradient-to-br from-niger-orange/95 via-niger-orange-dark to-niger-green/90">
-      <div className="absolute inset-0 bg-[url('/images/pattern.png')] opacity-10" />
+      {/* Pattern SVG directement en CSS au lieu d'une image */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '60px 60px'
+        }}
+      />
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
       <div className="container mx-auto px-4 lg:px-6 relative z-10">
@@ -82,39 +148,76 @@ export default function FooterNewsletter({ isDark }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex-1">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Votre adresse email"
-                  required
-                  disabled={status === 'loading'}
-                  className={clsx(
-                    'w-full px-6 py-4 rounded-xl border-2 focus:ring-4 focus:outline-none transition-all duration-300 text-base shadow-lg',
-                    isDark
-                      ? 'bg-gray-800 border-orange-500/50 text-white placeholder-gray-400 focus:border-orange-400 focus:ring-orange-500/30'
-                      : 'bg-white border-orange-400/60 text-gray-900 placeholder-gray-500 focus:border-orange-500 focus:ring-orange-400/30'
+              <div className="flex-1 relative">
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    onBlur={handleEmailBlur}
+                    placeholder="Votre adresse email"
+                    disabled={status === 'loading'}
+                    className={clsx(
+                      'w-full px-6 py-4 pr-12 rounded-xl border-2 focus:ring-4 focus:outline-none transition-all duration-300 text-base shadow-lg',
+                      // Couleurs de base
+                      isDark ? 'bg-gray-800 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500',
+                      // Bordures conditionnelles
+                      !emailTouched || !email
+                        ? (isDark ? 'border-orange-500/50 focus:border-orange-400 focus:ring-orange-500/30' : 'border-orange-400/60 focus:border-orange-500 focus:ring-orange-400/30')
+                        : isEmailValid
+                        ? 'border-green-500 focus:border-green-500 focus:ring-green-500/30'
+                        : 'border-red-500 focus:border-red-500 focus:ring-red-500/30'
+                    )}
+                  />
+                  {/* Icône de validation */}
+                  {emailTouched && email && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      {isEmailValid ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-500" />
+                      )}
+                    </div>
                   )}
-                />
+                </div>
+                {/* Message d'erreur */}
+                {emailTouched && !isEmailValid && email && (
+                  <p className="mt-2 text-sm text-red-300 flex items-center gap-1">
+                    <XCircle className="w-4 h-4" />
+                    {emailError || 'Adresse email invalide'}
+                  </p>
+                )}
+                {/* Message de succès */}
+                {emailTouched && isEmailValid && (
+                  <p className="mt-2 text-sm text-green-300 flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" />
+                    Email valide
+                  </p>
+                )}
               </div>
-              <div className="mx-auto">
-                <Turnstile
-                  sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY || process.env.DISABLED_CLOUDFLARE_SITE_KEY}
-                  onVerify={onVerify}
-                  theme={isDark ? "dark" : "light"}
-                  options={{
-                    size: "normal",
-                    tabIndex: 0,
-                    appearance: isDark ? "dark" : "light"
-                  }}
-                />
-              </div>
+
+              {/* Captcha - Affiché seulement si l'email est valide ET que l'utilisateur a interagi */}
+              {emailTouched && email && isEmailValid && (
+                <div className="mx-auto flex justify-center animate-fade-in">
+                  <Turnstile
+                    ref={turnstileRef}
+                    sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY || process.env.DISABLED_CLOUDFLARE_SITE_KEY}
+                    onVerify={onVerify}
+                    theme={isDark ? "dark" : "light"}
+                    options={{
+                      size: "normal",
+                      tabIndex: 0,
+                      appearance: isDark ? "dark" : "light"
+                    }}
+                  />
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={status === 'loading'}
+                disabled={isSubmitDisabled}
                 className={clsx(
-                  'px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm',
+                  'w-full px-6 py-4 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-white text-base',
                   isDark ? 'bg-orange-500 hover:bg-orange-600' : 'bg-orange-600 hover:bg-orange-700'
                 )}
               >

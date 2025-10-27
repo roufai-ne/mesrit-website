@@ -10,7 +10,8 @@
       "Bash(mkdir:*)",
       "Bash(echo:*)",
       "Bash(npm run build:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(killall:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,4 +1,5 @@
-import React, { useMemo, Suspense } from "react";
+import React, { useMemo } from "react";
+import dynamic from "next/dynamic";
 import MainLayout from "@/components/layout/MainLayout";
 import {
   Users,
@@ -18,14 +19,15 @@ import { useMinisterContent } from "@/hooks/useMinisterContent";
 import { useSettings } from "@/contexts/SettingsContext";
 import SectionStatsDisplay from "@/components/ministry/SectionStatsDisplay";
 
-// Lazy loading de la section stats qui est plus lourde
-const StatsSection = React.lazy(() => import("@/components/home/StatsSection"));
-
-const LoadingFallback = () => (
-  <div className="flex justify-center items-center p-8">
-    <Loader className="w-8 h-8 animate-spin text-niger-orange" />
-  </div>
-);
+// Lazy loading avec Next.js dynamic au lieu de React.lazy pour éviter erreur SSR
+const StatsSection = dynamic(() => import("@/components/home/StatsSection"), {
+  loading: () => (
+    <div className="flex justify-center items-center p-8">
+      <Loader className="w-8 h-8 animate-spin text-niger-orange" />
+    </div>
+  ),
+  ssr: true
+});
 
 export default function MinisterePage() {
   const { content, loading, error, lastUpdated, refresh, isStale } = useMinisterContent();
@@ -160,9 +162,7 @@ export default function MinisterePage() {
 
               {/* Stats avec lazy loading */}
               <div className="mt-8">
-                <Suspense fallback={<LoadingFallback />}>
-                  <StatsSection />
-                </Suspense>
+                <StatsSection />
               </div>
             </div>
             
