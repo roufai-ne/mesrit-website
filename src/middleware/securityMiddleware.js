@@ -32,9 +32,9 @@ const ROUTE_TYPES = {
 };
 
 // Headers de sécurité SIMPLIFIÉS pour APIs (compatible site web)
+// En production, Caddy gère la CSP - on ne l'applique qu'en développement
 const getEnhancedSecurityHeaders = (routeType = 'api') => {
-  return {
-    'Strict-Transport-Security': 'max-age=0', // Pas de HSTS forcé
+  const headers = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'SAMEORIGIN', // Permissif
     'X-XSS-Protection': '0', // Désactivé (obsolète)
@@ -43,11 +43,18 @@ const getEnhancedSecurityHeaders = (routeType = 'api') => {
     'Cross-Origin-Opener-Policy': 'unsafe-none', // Permissif
     'Cross-Origin-Resource-Policy': 'cross-origin', // Permissif
     'Cross-Origin-Embedder-Policy': 'unsafe-none', // Permissif
-    'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:", // Très permissif
     'Cache-Control': routeType === 'api'
       ? 'no-store, no-cache, must-revalidate, proxy-revalidate'
       : 'public, max-age=31536000, immutable'
   };
+
+  // CSP uniquement en développement (en production = géré par Caddy)
+  if (process.env.NODE_ENV !== 'production') {
+    headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:";
+    headers['Strict-Transport-Security'] = 'max-age=0'; // Pas de HSTS forcé en dev
+  }
+
+  return headers;
 };
 
 // Configuration des limites de requête

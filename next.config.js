@@ -1,65 +1,33 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: process.env.NODE_ENV === 'development',
-
-  // ✅ Configuration correcte des devIndicators
-  devIndicators: {
-    position: 'bottom-right',
-  },
-
-  // ⚠️ TEMPORAIRE: Désactiver la génération statique automatique
-  // pour éviter les erreurs React #130 durant le build
-  // Les pages avec getStaticProps/getServerSideProps continueront de fonctionner
-  // Ceci force le SSR pour les pages sans méthode de data fetching explicite
-  experimental: {
-    // Désactiver le SSG automatique
-    disableOptimizedLoading: false,
-  },
-
-  // Output standalone pour déploiement optimisé
-  // IMPORTANT: 'standalone' nécessite de servir .next/static et public/ séparément
-  // Utilisez 'export' pour un site statique ou commentez cette ligne pour un déploiement Node.js standard
-  // output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-
-  // Image optimization
+  // Remove exposed environment variables for security
+  // Environment variables should be accessed directly in API routes
+  
+  // Image optimization configuration
   images: {
-    domains: ['localhost', '192.168.10.115'],
+    domains: ['localhost', 'site.mesrit.com', 'www.site.mesrit.com'],
     formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60 * 60 * 24 * 30,
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
   
+  // Enable compression
   compress: true,
+  
+  // PoweredBy header removal
   poweredByHeader: false,
   
+  // Webpack configuration
   webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-        ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],
-      };
-    }
+    // Fallback configuration
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      child_process: false,
+      fs: false,
+      net: false,
+      tls: false,
+    };
     
-    // Only apply fallbacks for client-side builds
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        child_process: false,
-        fs: false,
-        net: false,
-        tls: false,
-        dns: false,
-        timers: false,
-        'timers/promises': false,
-        crypto: false,
-        stream: false,
-        util: false,
-        url: false,
-        buffer: false,
-        events: false,
-      };
-    }
-    
+    // Production optimizations
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
@@ -76,16 +44,69 @@ const nextConfig = {
     return config;
   },
   
+  // Security headers - DISABLED in production (handled by Caddy)
   async headers() {
+    // In production, Caddy handles ALL security headers including CSP
+    // Only apply Next.js headers in development to avoid conflicts
+    if (process.env.NODE_ENV === 'production') {
+      // Production: Only cache headers, NO security headers
+      return [
+        {
+          source: '/images/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        {
+          source: '/api/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'no-store, max-age=0',
+            },
+          ],
+        },
+      ];
+    }
+
+    // Development: Apply Next.js security headers
     const { nextConfigHeaders } = require('./src/lib/securityHeaders');
     const securityHeaders = await nextConfigHeaders();
-    
-    return [...securityHeaders, /* vos autres headers */];
+
+    return [
+      ...securityHeaders,
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, max-age=0',
+          },
+        ],
+      },
+    ];
   },
   
+  // Redirects for security
   async redirects() {
     return [
-      { source: '/admin', destination: '/admin/Dashboard', permanent: false },
+      {
+        source: '/admin',
+        destination: '/admin/Dashboard',
+        permanent: false,
+      },
     ];
   },
 };
