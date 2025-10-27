@@ -348,17 +348,17 @@ export default function NewsAnalyticsDashboardV2() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Croissance des vues</span>
                 <span className={`font-medium ${
-                  globalStats.trends.viewsGrowth > 0 ? 'text-green-600' : 'text-red-600'
+                  (globalStats.trends?.viewsGrowth || 0) > 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {globalStats.trends.viewsGrowth > 0 ? '+' : ''}{globalStats.trends.viewsGrowth}%
+                  {(globalStats.trends?.viewsGrowth || 0) > 0 ? '+' : ''}{globalStats.trends?.viewsGrowth || 0}%
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Croissance des partages</span>
                 <span className={`font-medium ${
-                  globalStats.trends.sharesGrowth > 0 ? 'text-green-600' : 'text-red-600'
+                  (globalStats.trends?.sharesGrowth || 0) > 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {globalStats.trends.sharesGrowth > 0 ? '+' : ''}{globalStats.trends.sharesGrowth}%
+                  {(globalStats.trends?.sharesGrowth || 0) > 0 ? '+' : ''}{globalStats.trends?.sharesGrowth || 0}%
                 </span>
               </div>
               <div className="flex justify-between">
