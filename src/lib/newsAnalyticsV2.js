@@ -279,12 +279,8 @@ export class NewsAnalyticsServiceV2 {
             avgReadingTime: { $round: ['$avgReadingTime', 2] },
             avgScrollDepth: { $round: ['$avgScrollDepth', 2] },
             activeArticles: { $size: '$articlesWithViews' },
-            dailyBreakdown: {
-              $sortArray: {
-                input: '$dailyBreakdown',
-                sortBy: { date: 1 }
-              }
-            }
+            // Pas de tri ici (compatibilité MongoDB < 5.2)
+            dailyBreakdown: '$dailyBreakdown'
           }
         }
       ]);
@@ -341,6 +337,11 @@ export class NewsAnalyticsServiceV2 {
         activeArticles: 0,
         dailyBreakdown: []
       };
+
+      // Trier dailyBreakdown côté application (compatible MongoDB < 5.2)
+      if (stats.dailyBreakdown && Array.isArray(stats.dailyBreakdown)) {
+        stats.dailyBreakdown.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
 
       return {
         period: { startDate, endDate, days: period },
