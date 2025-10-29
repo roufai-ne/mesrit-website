@@ -1,18 +1,22 @@
 
 'use client';
-'use client';
-import React from 'react';
+import dynamic from 'next/dynamic';
 import Header from './Header';
-import Navigation from './Navigation';
 import Footer from './Footer';
 
+// Charger le chatbot côté client uniquement
+const Chatbot = dynamic(() => import('@/components/Chatbot'), {
+  ssr: false,
+  loading: () => null
+});
+
 export default function MainLayout({ children }) {
-  
+
   return (
-    
+
     <div className="min-h-screen flex flex-col relative">
       {/* Image en filigrane */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none z-0 transition-transform duration-700 ease-in-out hover:scale-105"
         style={{
           backgroundImage: 'url("/images/hero/Slide4.png")',
@@ -28,15 +32,18 @@ export default function MainLayout({ children }) {
         }}
       />
     <div className="min-h-screen flex flex-col">
-      
+
       <Header />
       <main className="flex-grow">
         {children}
       </main>
       <Footer />
-     
+
     </div>
+
+    {/* Chatbot flottant */}
+    <Chatbot />
     </div>
-    
+
   );
 }

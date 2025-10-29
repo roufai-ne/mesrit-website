@@ -5,10 +5,41 @@ import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
 // Handler pour la méthode POST
 const handleContact = async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
+    const { name, email, subject, message, turnstileToken } = req.body;
 
     // Validation avec des messages d'erreur spécifiques
     const validationErrors = [];
+
+    // Vérification du token Turnstile
+    if (!turnstileToken) {
+      validationErrors.push('Vérification de sécurité requise');
+    } else {
+      // Vérifier le token auprès de Cloudflare
+      const turnstileSecret = process.env.CLOUDFLARE_SECRET_KEY;
+
+      if (turnstileSecret) {
+        try {
+          const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              secret: turnstileSecret,
+              response: turnstileToken
+            })
+          });
+
+          const turnstileData = await turnstileResponse.json();
+
+          if (!turnstileData.success) {
+            validationErrors.push('Échec de la vérification de sécurité');
+            console.error('Turnstile verification failed:', turnstileData);
+          }
+        } catch (turnstileError) {
+          console.error('Erreur vérification Turnstile:', turnstileError);
+          validationErrors.push('Erreur lors de la vérification de sécurité');
+        }
+      }
+    }
     
     if (!name || typeof name !== 'string' || name.trim().length < 2) {
       validationErrors.push('Le nom doit contenir au moins 2 caractères');
