@@ -15,6 +15,7 @@ import {
   History,
   Trash2,
   Target,
+  Flame,
 } from "lucide-react";
 import NewsImageUpload from "../communication/NewsImageUpload";
 import NewsVideoUpload from "../communication/NewsVideoUpload";
@@ -24,6 +25,7 @@ import NewsArchiveManager from "./NewsArchiveManager";
 import NewsVersionManager from "./NewsVersionManager";
 import SEOManager from "./SEOManager";
 import SEODashboard from "./SEODashboard";
+import EngagementDashboard from "./EngagementDashboard";
 import { useNewsArchive } from "@/hooks/useNewsArchive";
 import { toast } from "react-hot-toast";
 import { secureApi, useApiAction } from "@/lib/secureApi";
@@ -848,6 +850,18 @@ const NewsManager = ({
           </button>
 
           <button
+            onClick={() => setActiveTab("engagement")}
+            className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+              activeTab === "engagement"
+                ? "bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg"
+                : "text-readable-muted dark:text-muted-foreground hover:bg-niger-cream/50 dark:hover:bg-secondary-700"
+            }`}
+          >
+            <Flame className="w-5 h-5" />
+            <span>Engagement</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("seo")}
             className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
               activeTab === "seo"
@@ -866,6 +880,8 @@ const NewsManager = ({
         <NewsAnalyticsDashboard />
       ) : activeTab === "archives" ? (
         <NewsArchiveManager />
+      ) : activeTab === "engagement" ? (
+        <EngagementDashboard />
       ) : activeTab === "seo" ? (
         <SEODashboard />
       ) : (

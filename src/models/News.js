@@ -185,7 +185,52 @@ const newsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
-  deleteReason: String
+  deleteReason: String,
+  
+  // Engagement Analytics - Views
+  viewsCount: {
+    type: Number,
+    default: 0
+  },
+  views: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    ip: String,
+    userAgent: String,
+    referrer: String,
+    scrollDepth: {
+      type: Number,
+      default: 0 // Pourcentage 0-100
+    },
+    readingTime: {
+      type: Number,
+      default: 0 // en secondes
+    },
+    sessionId: String,
+    viewedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
+  // Engagement Analytics - Likes
+  likesCount: {
+    type: Number,
+    default: 0
+  },
+  likes: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    likedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });
@@ -217,6 +262,12 @@ newsSchema.index({ deletedAt: 1 });
 newsSchema.index({ slug: 1 }, { unique: true, sparse: true });
 newsSchema.index({ scheduledFor: 1 });
 newsSchema.index({ createdBy: 1, status: 1 });
+
+// Index pour l'engagement (views et likes)
+newsSchema.index({ viewsCount: -1 }); // Pour trier par popularité
+newsSchema.index({ likesCount: -1 }); // Pour trier par likes
+newsSchema.index({ 'likes.userId': 1, '_id': 1 }); // Pour vérifier si un utilisateur a liké
+newsSchema.index({ 'views.viewedAt': -1 }); // Pour filtrer les vues récentes
 
 // Méthodes du modèle pour l'archivage
 newsSchema.methods.archive = function(userId, reason = '') {
@@ -375,6 +426,71 @@ newsSchema.statics.cleanupDeletedArticles = function(daysInTrash = 30) {
     status: 'deleted',
     deletedAt: { $lt: cutoffDate }
   });
+};
+
+// Méthodes pour l'engagement (Likes)
+newsSchema.methods.toggleLike = function(userId) {
+  const existingLike = this.likes.findIndex(like => like.userId.toString() === userId.toString());
+  
+  if (existingLike > -1) {
+    // Unlike
+    this.likes.splice(existingLike, 1);
+    this.likesCount = Math.max(0, this.likesCount - 1);
+    return { action: 'unliked', liked: false };
+  } else {
+    // Like
+    this.likes.push({ userId, likedAt: new Date() });
+    this.likesCount += 1;
+    return { action: 'liked', liked: true };
+  }
+};
+
+newsSchema.methods.hasUserLiked = function(userId) {
+  return this.likes.some(like => like.userId.toString() === userId.toString());
+};
+
+// Méthodes pour l'engagement (Views)
+newsSchema.methods.recordView = function(viewData = {}) {
+  const { userId, ip, userAgent, referrer, scrollDepth = 0, readingTime = 0, sessionId } = viewData;
+  
+  this.views.push({
+    userId,
+    ip,
+    userAgent,
+    referrer,
+    scrollDepth,
+    readingTime,
+    sessionId,
+    viewedAt: new Date()
+  });
+  
+  this.viewsCount += 1;
+  return this;
+};
+
+newsSchema.statics.getEngagementStats = function(newsId) {
+  return this.aggregate([
+    { $match: { _id: mongoose.Types.ObjectId(newsId) } },
+    {
+      $project: {
+        title: 1,
+        viewsCount: 1,
+        likesCount: 1,
+        totalEngagement: { $add: ['$viewsCount', '$likesCount'] },
+        engagementRate: { $divide: [{ $add: ['$viewsCount', '$likesCount'] }, { $max: [{ $add: ['$viewsCount', 1] }, 1] }] }
+      }
+    }
+  ]);
+};
+
+newsSchema.statics.getTopArticles = function(limit = 10, timeRange = 30) {
+  const date = new Date();
+  date.setDate(date.getDate() - timeRange);
+  
+  return this.find({ publishedAt: { $gte: date }, status: 'published' })
+    .select('title viewsCount likesCount slug')
+    .sort({ likesCount: -1, viewsCount: -1 })
+    .limit(limit);
 };
 
 newsSchema.statics.getArchiveStats = function() {

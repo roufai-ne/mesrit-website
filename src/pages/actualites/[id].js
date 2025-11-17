@@ -12,6 +12,8 @@ import { toast } from 'react-hot-toast';
 
 import ImageSlideshow from '@/components/ImageSlideshow';
 import VideoPlayer from '@/components/communication/VideoPlayer';
+import LikeButton from '@/components/news/LikeButton';
+import EngagementStats from '@/components/news/EngagementStats';
 
 export default function ActualiteDetail() {
   const router = useRouter();
@@ -26,9 +28,33 @@ export default function ActualiteDetail() {
   const [showSlideshow, setShowSlideshow] = useState(false);
   
   // Analytics tracking
-  const { trackShare } = useNewsAnalyticsV2();
+  const { trackShare, trackViewEvent } = useNewsAnalyticsV2();
   // Utiliser l'ObjectId réel pour le tracking des vues (évite les erreurs quand l'URL utilise un slug)
   const { scrollDepth } = useViewTracking(actualite?._id || null);
+  
+  // Tracker les vues au chargement de l'article
+  useEffect(() => {
+    if (!actualite?._id) return;
+
+    const trackViewData = async () => {
+      try {
+        // Attendre un peu avant de tracker pour éviter les faux positifs
+        const timer = setTimeout(async () => {
+          await trackViewEvent(actualite._id, {
+            scrollDepth: scrollDepth || 0,
+            readingTime: 0, // Sera mis à jour par useViewTracking
+            sessionId: sessionStorage.getItem('sessionId') || `${Date.now()}-${Math.random()}`
+          });
+        }, 2000);
+
+        return () => clearTimeout(timer);
+      } catch (error) {
+        console.error('Erreur lors du tracking de la vue:', error);
+      }
+    };
+
+    trackViewData();
+  }, [actualite?._id, trackViewEvent, scrollDepth]);
   
 
   useEffect(() => {
@@ -483,6 +509,22 @@ export default function ActualiteDetail() {
               <div className="prose prose-lg max-w-none text-readable dark:text-foreground leading-relaxed space-y-6">
                 {actualite.content}
               </div>
+            </div>
+
+            {/* Statistiques d'engagement */}
+            <div className="mb-8">
+              <EngagementStats newsId={actualite._id} />
+            </div>
+
+            {/* Actions (Like) */}
+            <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg p-6 border border-niger-orange/10 mb-8 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-niger-green dark:text-niger-green-light">Avez-vous trouvé cet article utile?</h3>
+                <p className="text-sm text-readable-muted dark:text-muted-foreground mt-1">
+                  Votre avis nous aide à améliorer nos contenus
+                </p>
+              </div>
+              <LikeButton newsId={actualite._id} size="lg" />
             </div>
 
             {/* Tags */}

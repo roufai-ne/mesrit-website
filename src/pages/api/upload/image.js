@@ -1,8 +1,14 @@
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
+import { UPLOAD_PATHS, UPLOAD_LIMITS, ALLOWED_MIME_TYPES } from '@/lib/uploadConfig';
+import { 
+  ensureUploadDir, 
+  getSecureFilename, 
+  validateMimeType, 
+  cleanupUploadFile 
+} from '@/lib/uploadManager';
+import { handleUploadError } from '@/lib/uploadErrorHandler';
 import formidable from 'formidable';
 import path from 'path';
-import fs from 'fs/promises';
-import crypto from 'crypto';
 
 export const config = {
   api: {
@@ -21,38 +27,20 @@ const uploadImage = async (req, res) => {
       return res.status(401).json({ error: 'Non authentifié' });
     }
 
-    // Définir le chemin de destination
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    // Assurer que le dossier d'upload existe avec les bonnes permissions
+    await ensureUploadDir(UPLOAD_PATHS.IMAGES);
 
-    // Vérifier si le dossier existe, sinon le créer
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    // Créer un nom de fichier sécurisé
-    const generateSecureFilename = (originalFilename) => {
-      const timestamp = Date.now();
-      const randomString = crypto.randomBytes(16).toString('hex');
-      const extension = path.extname(originalFilename || '');
-      return `${timestamp}_${randomString}${extension}`;
-    };
-
+    // Initialiser formidable
     const form = formidable({
-      uploadDir,
+      uploadDir: UPLOAD_PATHS.IMAGES,
       keepExtensions: true,
-      maxFileSize: 10 * 1024 * 1024, // 10MB
+      maxFileSize: UPLOAD_LIMITS.IMAGE,
       filename: (name, ext, part) => {
-        // Vérifier le type MIME
-        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-        if (!allowedMimeTypes.includes(part.mimetype)) {
-          throw new Error('Type de fichier non autorisé. Utilisez JPG, PNG, WebP ou SVG.');
-        }
-        return generateSecureFilename(part.originalFilename);
+        return getSecureFilename(part.originalFilename, 'img');
       }
     });
 
+    // Parser le formulaire
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
@@ -60,39 +48,40 @@ const uploadImage = async (req, res) => {
       });
     });
 
+    // Extraire le fichier
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
     if (!file) {
       return res.status(400).json({ error: 'Aucun fichier uploadé' });
     }
 
-    // Double vérification du type MIME
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      // Supprimer le fichier s'il a été créé
-      try {
-        await fs.unlink(file.filepath);
-      } catch (e) {
-        console.error('Erreur lors de la suppression du fichier:', e);
-      }
+    // Valider le type MIME
+    if (!validateMimeType(file.mimetype, ALLOWED_MIME_TYPES.IMAGE)) {
+      await cleanupUploadFile(file.filepath);
       return res.status(400).json({ error: 'Type de fichier non autorisé' });
     }
 
-    console.log(`[UPLOAD SUCCESS] Image uploadée: /uploads/${path.basename(file.filepath)}`);
-
     // Retourner le chemin relatif
+    const filename = path.basename(file.filepath);
     return res.status(200).json({
       success: true,
       message: 'Image uploadée avec succès',
-      url: `/uploads/${path.basename(file.filepath)}`,
-      filename: path.basename(file.filepath),
+      url: `/uploads/images/${filename}`,
+      filename,
       size: file.size,
       type: file.mimetype
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ 
-      error: error.message || 'Erreur lors de l\'upload de l\'image' 
+    // Gérer l'erreur de manière centralisée
+    const errorResponse = await handleUploadError(error, {
+      endpointName: '/api/upload/image',
+      userId: req.user?._id,
+    });
+
+    return res.status(errorResponse.statusCode).json({
+      success: false,
+      error: errorResponse.error,
+      errorType: errorResponse.errorType,
     });
   }
 };

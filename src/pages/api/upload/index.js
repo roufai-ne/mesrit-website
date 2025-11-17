@@ -1,21 +1,21 @@
 // pages/api/upload/index.js
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
+import { UPLOAD_PATHS, UPLOAD_LIMITS, ALLOWED_MIME_TYPES } from '@/lib/uploadConfig';
+import { 
+  ensureUploadDir, 
+  getSecureFilename, 
+  validateMimeType, 
+  cleanupUploadFile 
+} from '@/lib/uploadManager';
+import { handleUploadError } from '@/lib/uploadErrorHandler';
 import formidable from 'formidable';
-import { join } from 'path';
-import { mkdir, unlink } from 'fs/promises';
-import crypto from 'crypto';
+import path from 'path';
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
-
-async function createUploadDir() {
-  const uploadDir = join(process.cwd(), 'public', 'documents');
-  await mkdir(uploadDir, { recursive: true });
-  return uploadDir;
-}
 
 async function uploadHandler(req, res) {
   if (req.method !== 'POST') {
@@ -30,18 +30,21 @@ async function uploadHandler(req, res) {
   let filePath; // Pour stocker le chemin du fichier temporaire à nettoyer en cas d'erreur
 
   try {
-    const uploadDir = await createUploadDir();
+    // Assurer que le dossier d'upload existe avec les bonnes permissions
+    // IMPORTANT: Appeler AVANT formidable.init()
+    await ensureUploadDir(UPLOAD_PATHS.DOCUMENTS);
 
+    // Initialiser formidable
     const form = formidable({
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-      uploadDir,
+      maxFileSize: UPLOAD_LIMITS.DOCUMENT,
+      uploadDir: UPLOAD_PATHS.DOCUMENTS,
       keepExtensions: true,
-      filename: (name, ext) => {
-        const randomString = crypto.randomBytes(16).toString('hex');
-        return `${Date.now()}-${randomString}${ext}`;
+      filename: (name, ext, part) => {
+        return getSecureFilename(part.originalFilename || 'document', 'doc');
       },
     });
 
+    // Parser le formulaire
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
@@ -49,6 +52,7 @@ async function uploadHandler(req, res) {
       });
     });
 
+    // Extraire le fichier
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
     if (!file) {
       return res.status(400).json({ error: 'Aucun fichier fourni' });
@@ -56,41 +60,37 @@ async function uploadHandler(req, res) {
 
     filePath = file.filepath; // Sauvegarde pour un éventuel nettoyage
 
-    const allowedTypes = new Set([
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ]);
-
-    if (!allowedTypes.has(file.mimetype)) {
-      await unlink(filePath).catch(() => {}); // Nettoyage si type invalide
+    // Valider le type MIME
+    if (!validateMimeType(file.mimetype, ALLOWED_MIME_TYPES.DOCUMENT)) {
+      await cleanupUploadFile(filePath);
       return res.status(400).json({ error: 'Format de fichier non supporté' });
     }
 
+    // Retourner la réponse
+    const filename = path.basename(file.filepath);
     const response = {
-      url: `/documents/${file.newFilename}`,
+      success: true,
+      url: `/uploads/documents/${filename}`,
+      filename,
       size: file.size,
       type: file.mimetype,
     };
 
     return res.status(200).json(response);
+
   } catch (error) {
-    console.error("Erreur lors de l'upload:", error);
+    // Gérer l'erreur de manière centralisée
+    const errorResponse = await handleUploadError(error, {
+      endpointName: '/api/upload',
+      userId: req.user?._id,
+      filePath
+    });
 
-    // Nettoyage du fichier en cas d'erreur
-    if (filePath) {
-      await unlink(filePath).catch((err) =>
-        console.error('Erreur lors du nettoyage:', err)
-      );
-    }
-
-    if (error.code === 'ENOENT') {
-      return res.status(500).json({ error: 'Erreur de configuration du serveur' });
-    }
-    if (error.httpCode === 413) {
-      return res.status(413).json({ error: 'Fichier trop volumineux (max 10MB)' });
-    }
-    return res.status(500).json({ error: "Erreur lors de l'upload" });
+    return res.status(errorResponse.statusCode).json({ 
+      success: false,
+      error: errorResponse.error,
+      errorType: errorResponse.errorType,
+    });
   }
 }
 

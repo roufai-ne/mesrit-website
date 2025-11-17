@@ -215,6 +215,54 @@ export function useNewsAnalyticsV2() {
   }, []);
 
   /**
+   * Tracker un like d'article
+   */
+  const trackLike = useCallback(async (newsId) => {
+    try {
+      return await secureApi.post(`/api/news/${newsId}/like`, {}, true); // Requires auth (PROTECTED endpoint)
+    } catch (error) {
+      console.error('Erreur like article:', error);
+      throw error;
+    }
+  }, []);
+
+  /**
+   * Obtenir les stats de like
+   */
+  const getLikeStats = useCallback(async (newsId) => {
+    try {
+      return await secureApi.get(`/api/news/${newsId}/like`, false); // Public endpoint
+    } catch (error) {
+      console.error('Erreur récupération likes:', error);
+      throw error;
+    }
+  }, []);
+
+  /**
+   * Tracker une vue d'article
+   */
+  const trackViewEvent = useCallback(async (newsId, viewData = {}) => {
+    try {
+      return await secureApi.post(`/api/news/${newsId}/view`, viewData, false); // Public endpoint
+    } catch (error) {
+      console.error('Erreur tracking vue:', error);
+      throw error;
+    }
+  }, []);
+
+  /**
+   * Obtenir les stats de vue
+   */
+  const getViewStats = useCallback(async (newsId) => {
+    try {
+      return await secureApi.get(`/api/news/${newsId}/view`, false); // Public endpoint
+    } catch (error) {
+      console.error('Erreur récupération stats vue:', error);
+      throw error;
+    }
+  }, []);
+
+  /**
    * Obtenir les statistiques d'un article
    */
   const getNewsStats = useCallback(async (newsId, startDate, endDate) => {
@@ -246,7 +294,11 @@ export function useNewsAnalyticsV2() {
     trackView,
     trackShare,
     getNewsStats,
-    getGlobalStats
+    getGlobalStats,
+    trackLike,
+    getLikeStats,
+    trackViewEvent,
+    getViewStats
   };
 }
 

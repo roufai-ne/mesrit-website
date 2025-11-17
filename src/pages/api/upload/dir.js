@@ -1,8 +1,14 @@
 import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
+import { UPLOAD_PATHS, UPLOAD_LIMITS, ALLOWED_MIME_TYPES } from '@/lib/uploadConfig';
+import { 
+  ensureUploadDir, 
+  getSecureFilename, 
+  validateMimeType, 
+  cleanupUploadFile 
+} from '@/lib/uploadManager';
+import { handleUploadError } from '@/lib/uploadErrorHandler';
 import formidable from 'formidable';
 import path from 'path';
-import fs from 'fs/promises';
-import crypto from 'crypto';
 
 export const config = {
   api: {
@@ -24,46 +30,29 @@ const uploadDirImage = async (req, res) => {
       });
     }
 
-    // Définir le chemin de destination
-    const uploadDir = path.join(process.cwd(), 'public/images/dir');
+    // Assurer que le dossier d'upload existe avec les bonnes permissions
+    // IMPORTANT: Appeler AVANT formidable.init()
+    await ensureUploadDir(UPLOAD_PATHS.IMAGES_DIR);
 
-    // Vérifier si le dossier existe, sinon le créer
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    // Créer un nom de fichier sécurisé
-    const generateSecureFilename = (originalFilename) => {
-      const timestamp = Date.now();
-      const randomString = crypto.randomBytes(16).toString('hex');
-      const extension = path.extname(originalFilename);
-      return `dir_${timestamp}_${randomString}${extension}`;
-    };
-
+    // Initialiser formidable
     const form = formidable({
-      uploadDir,
+      uploadDir: UPLOAD_PATHS.IMAGES_DIR,
       keepExtensions: true,
-      maxFileSize: 5 * 1024 * 1024, // 5MB
+      maxFileSize: UPLOAD_LIMITS.IMAGE,
       filename: (name, ext, part) => {
-        if (part.mimetype && !part.mimetype.includes('image/')) {
-          throw new Error('Seules les images sont autorisées');
-        }
-        return generateSecureFilename(part.originalFilename || 'image.jpg');
-      },
-      filter: ({ mimetype }) => {
-        return mimetype && mimetype.includes('image');
+        return getSecureFilename(part.originalFilename || 'image.jpg', 'dir');
       }
     });
 
-    const [files] = await new Promise((resolve, reject) => {
+    // Parser le formulaire
+    const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
         resolve([fields, files]);
       });
     });
 
+    // Extraire le fichier
     const file = files.file;
     if (!file) {
       return res.status(400).json({ 
@@ -72,25 +61,36 @@ const uploadDirImage = async (req, res) => {
       });
     }
 
-    // Vérification du type MIME
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
-      await fs.unlink(file.filepath);
+    // Valider le type MIME
+    if (!validateMimeType(file.mimetype, ALLOWED_MIME_TYPES.IMAGE)) {
+      await cleanupUploadFile(file.filepath);
       return res.status(400).json({ 
         success: false,
         error: 'Type de fichier non autorisé. Utilisez JPG, PNG ou GIF.' 
       });
     }
 
+    // Retourner le chemin relatif
+    const filename = path.basename(file.filepath);
     return res.status(200).json({
       success: true,
-      url: `/images/dir/${path.basename(file.filepath)}`
+      url: `/uploads/images/dir/${filename}`,
+      filename,
+      size: file.size,
+      type: file.mimetype
     });
+
   } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ 
+    // Gérer l'erreur de manière centralisée
+    const errorResponse = await handleUploadError(error, {
+      endpointName: '/api/upload/dir',
+      userId: req.user?._id,
+    });
+
+    return res.status(errorResponse.statusCode).json({
       success: false,
-      error: error.message || 'Erreur lors de l\'upload du fichier' 
+      error: errorResponse.error,
+      errorType: errorResponse.errorType,
     });
   }
 };

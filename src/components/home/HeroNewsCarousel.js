@@ -11,6 +11,9 @@ import { clsx } from 'clsx';
 export default function HeroNewsCarousel() {
   const [news, setNews] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [thumbnailMediaView, setThumbnailMediaView] = useState({}); // Track which view (photos/videos) for each thumbnail
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false); // Pause carousel on hover
+  const [hoveredVideoIndex, setHoveredVideoIndex] = useState(null); // Track which video is hovered in mini-previews
   const { execute, loading, error } = useApiAction();
   const { isDark } = useTheme();
 
@@ -20,14 +23,14 @@ export default function HeroNewsCarousel() {
 
   // Auto rotation pour le carrousel
   useEffect(() => {
-    if (news.length === 0) return;
+    if (news.length === 0 || isCarouselPaused) return; // Don't auto-rotate if paused
     
     const interval = setInterval(() => {
       setActiveIndex((current) => (current + 1) % Math.min(news.length, 8));
     }, 6000); // 6 secondes pour laisser le temps de lire
     
     return () => clearInterval(interval);
-  }, [news.length]);
+  }, [news.length, isCarouselPaused]);
 
   const fetchNews = async () => {
     try {
@@ -50,6 +53,37 @@ export default function HeroNewsCarousel() {
 
   const retry = () => {
     fetchNews();
+  };
+
+  // Helper: Get thumbnail image based on view preference and available media
+  const getThumbnailImage = (article, articleId) => {
+    const showVideos = thumbnailMediaView[articleId];
+    
+    if (showVideos && article.videos?.length > 0) {
+      // Show video thumbnail if available, fallback to image
+      const mainVideo = article.videos.find(v => v.isMain);
+      return mainVideo?.thumbnail || article.videos[0]?.thumbnail || article.image || '/images/news-placeholder.svg';
+    } else {
+      // Show image by default
+      return article.images?.[0]?.url || article.image || '/images/news-placeholder.svg';
+    }
+  };
+
+  // Helper: Get count of images and videos
+  const getMediaCounts = (article) => {
+    return {
+      imagesCount: article.images?.length || (article.image ? 1 : 0),
+      videosCount: article.videos?.length || 0
+    };
+  };
+
+  // Toggle between photos and videos view for a thumbnail
+  const toggleThumbnailView = (articleId, e) => {
+    e.stopPropagation();
+    setThumbnailMediaView(prev => ({
+      ...prev,
+      [articleId]: !prev[articleId]
+    }));
   };
 
   if (loading) {
@@ -95,58 +129,111 @@ export default function HeroNewsCarousel() {
       <div className="hero-news-carousel relative h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] xl:h-[600px] overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl">
         {/* Image/Vidéo Principale */}
         <div className="absolute inset-0">
-          {currentNews?.mainVideo ? (
-            <VideoPlayer
-              src={currentNews.mainVideo}
-              poster={currentNews.videos?.find(v => v.isMain)?.thumbnail || currentNews.image}
-              title={currentNews.title}
-              newsId={currentNews._id}
-              className="w-full h-full object-cover"
-              controls={false}
-              autoPlay={false}
-              muted={true}
-            />
-          ) : currentNews?.image ? (
-            <Image
-              src={currentNews.image}
-              alt={currentNews.title}
-              fill
-              sizes="100vw"
-              className="object-cover object-center transition-transform duration-1000 ease-out"
-              style={{ objectPosition: 'center 25%' }}
-              priority={activeIndex === 0}
-              loading={activeIndex === 0 ? "eager" : "lazy"}
-            />
-          ) : (
-            <Image
-              src="/images/news-placeholder.svg"
-              alt="Actualité MESRIT"
-              fill
-              sizes="100vw"
-              className="object-contain opacity-60"
-              priority={activeIndex === 0}
-              loading={activeIndex === 0 ? "eager" : "lazy"}
-            />
-          )}
+          {(() => {
+            const hasImages = currentNews?.images?.length > 0 || currentNews?.image;
+            const hasVideos = currentNews?.mainVideo || currentNews?.videos?.length > 0;
+            
+            // Priority: Show images first, videos only if no images
+            if (hasImages) {
+              return (
+                <Image
+                  src={currentNews.images?.[0]?.url || currentNews.image || '/images/news-placeholder.svg'}
+                  alt={currentNews.title}
+                  fill
+                  sizes="100vw"
+                  className="object-cover object-center transition-transform duration-1000 ease-out"
+                  style={{ objectPosition: 'center 25%' }}
+                  priority={activeIndex === 0}
+                  loading={activeIndex === 0 ? "eager" : "lazy"}
+                />
+              );
+            } else if (currentNews?.mainVideo) {
+              return (
+                <VideoPlayer
+                  src={currentNews.mainVideo}
+                  poster={currentNews.videos?.find(v => v.isMain)?.thumbnail || '/images/news-placeholder.svg'}
+                  title={currentNews.title}
+                  newsId={currentNews._id}
+                  className="w-full h-full object-cover"
+                  controls={false}
+                  autoPlay={false}
+                  muted={true}
+                />
+              );
+            } else if (currentNews?.videos?.length > 0) {
+              const firstVideo = currentNews.videos[0];
+              return (
+                <VideoPlayer
+                  src={firstVideo.url}
+                  poster={firstVideo.thumbnail || '/images/news-placeholder.svg'}
+                  title={currentNews.title}
+                  newsId={currentNews._id}
+                  className="w-full h-full object-cover"
+                  controls={false}
+                  autoPlay={false}
+                  muted={true}
+                />
+              );
+            } else {
+              return (
+                <Image
+                  src="/images/news-placeholder.svg"
+                  alt="Actualité MESRIT"
+                  fill
+                  sizes="100vw"
+                  className="object-contain opacity-60"
+                  priority={activeIndex === 0}
+                  loading={activeIndex === 0 ? "eager" : "lazy"}
+                />
+              );
+            }
+          })()}
         </div>
 
         {/* Overlay gradiant */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 sm:from-black/80 via-black/30 sm:via-black/40 to-black/10 sm:to-black/20" />
 
-        {/* Badge Catégorie et Vidéo */}
+        {/* Badge Catégorie et Médias */}
         <div className="absolute top-3 sm:top-4 md:top-6 left-3 sm:left-4 md:left-6 flex flex-wrap gap-2 sm:gap-3">
           {currentNews?.category && (
             <span className="inline-block px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-niger-orange text-white rounded-full font-medium shadow-lg">
               {currentNews.category}
             </span>
           )}
-          {currentNews?.mainVideo && (
-            <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-black/50 text-white rounded-full font-medium shadow-lg backdrop-blur-sm">
-              <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span className="hidden sm:inline">Vidéo</span>
-              <span className="sm:hidden">▶</span>
-            </span>
-          )}
+          {(() => {
+            const { imagesCount, videosCount } = getMediaCounts(currentNews);
+            // Show media badge if there's more content than what's displayed
+            const displayingImage = currentNews?.images?.length > 0 || currentNews?.image;
+            
+            if (displayingImage && videosCount > 0) {
+              // Displaying image but has videos
+              return (
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-black/50 text-white rounded-full font-medium shadow-lg backdrop-blur-sm">
+                  <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <span className="hidden sm:inline">{videosCount} vidéo{videosCount > 1 ? 's' : ''}</span>
+                  <span className="sm:hidden">🎥 {videosCount}</span>
+                </span>
+              );
+            } else if ((currentNews?.mainVideo || videosCount > 0) && imagesCount > 0) {
+              // Displaying video but has images
+              return (
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-black/50 text-white rounded-full font-medium shadow-lg backdrop-blur-sm">
+                  <span className="hidden sm:inline">📷 {imagesCount} photo{imagesCount > 1 ? 's' : ''}</span>
+                  <span className="sm:hidden">📷 {imagesCount}</span>
+                </span>
+              );
+            } else if (currentNews?.mainVideo || videosCount > 0) {
+              // Only has video
+              return (
+                <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-black/50 text-white rounded-full font-medium shadow-lg backdrop-blur-sm">
+                  <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <span className="hidden sm:inline">Vidéo</span>
+                  <span className="sm:hidden">▶</span>
+                </span>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {/* Contenu Principal */}
@@ -187,6 +274,71 @@ export default function HeroNewsCarousel() {
             </div>
           </div>
         </div>
+
+        {/* Mini Previews des Vidéos - Empilées verticalement en haut à droite */}
+        {currentNews?.videos && currentNews.videos.length > 0 && (
+          <div 
+            className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 flex flex-col gap-3"
+            onMouseEnter={() => setIsCarouselPaused(true)}
+            onMouseLeave={() => {
+              setIsCarouselPaused(false);
+              setHoveredVideoIndex(null);
+            }}
+          >
+            {currentNews.videos.slice(0, 3).map((video, videoIdx) => (
+              <div
+                key={videoIdx}
+                onMouseEnter={() => setHoveredVideoIndex(videoIdx)}
+                onMouseLeave={() => setHoveredVideoIndex(null)}
+                className={clsx(
+                  'relative rounded-lg overflow-hidden shadow-xl transition-all duration-300 cursor-pointer',
+                  'w-32 sm:w-40 md:w-48 aspect-video',
+                  hoveredVideoIndex === videoIdx 
+                    ? 'ring-3 ring-niger-orange scale-110 z-20 shadow-2xl shadow-niger-orange/50' 
+                    : 'hover:ring-2 hover:ring-white/70 hover:scale-105'
+                )}
+              >
+                {/* Vidéo Aperçu - Toujours visible, avec play overlay */}
+                <div className="absolute inset-0">
+                  <VideoPlayer
+                    src={video.url}
+                    poster={video.thumbnail}
+                    title={video.title || `Vidéo ${videoIdx + 1}`}
+                    newsId={currentNews._id}
+                    className="w-full h-full object-cover"
+                    controls={false}
+                    autoPlay={hoveredVideoIndex === videoIdx}
+                    muted={true}
+                  />
+                </div>
+
+                {/* Badge Play Icon - Visible quand pas survolé */}
+                {hoveredVideoIndex !== videoIdx && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-all duration-300 pointer-events-none">
+                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg" />
+                  </div>
+                )}
+
+                {/* Overlay indicateur si survolé */}
+                {hoveredVideoIndex === videoIdx && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-niger-orange/60 via-transparent to-transparent pointer-events-none" />
+                )}
+
+                {/* Numéro vidéo */}
+                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs sm:text-sm px-2 py-1 rounded-full font-medium">
+                  {videoIdx + 1}/{currentNews.videos.length}
+                </div>
+
+                {/* Titre vidéo au survol */}
+                {hoveredVideoIndex === videoIdx && video.title && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2">
+                    <p className="text-white text-xs sm:text-sm line-clamp-2">{video.title}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Contrôles de Navigation */}
         {news.length > 1 && (
@@ -237,6 +389,8 @@ export default function HeroNewsCarousel() {
                       setActiveIndex(index);
                     }
                   }}
+                  onMouseEnter={() => setIsCarouselPaused(true)}
+                  onMouseLeave={() => setIsCarouselPaused(false)}
                   tabIndex={0}
                   role="button"
                   aria-label={`Voir l'actualité: ${article.title}`}
@@ -251,39 +405,53 @@ export default function HeroNewsCarousel() {
                 >
                   {/* Vignette Image/Vidéo - Largeur fixe sur mobile, aspect ratio sur tablette+ */}
                   <div className="relative w-28 h-28 md:w-full md:aspect-[4/3] flex-shrink-0 overflow-hidden">
-                    {article.mainVideo ? (
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={article.videos?.find(v => v.isMain)?.thumbnail || article.image || '/images/news-placeholder.svg'}
-                          alt={article.title}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="news-thumbnail-image object-cover object-center"
-                          style={{ objectPosition: 'center 25%' }}
-                        />
-                        {/* Badge vidéo plus visible */}
-                        <div className="absolute top-2 right-2">
-                          <div className="w-8 h-8 bg-niger-orange/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg badge-animate">
-                            <Play className="w-4 h-4 text-white ml-0.5" />
-                          </div>
-                        </div>
-                        {/* Overlay vidéo */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-                            <Play className="w-6 h-6 text-niger-orange ml-1" />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <Image
-                        src={article.image || '/images/news-placeholder.svg'}
-                        alt={article.title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="news-thumbnail-image object-cover object-center"
-                        style={{ objectPosition: 'center 25%' }}
-                      />
+                    {/* Image/Vidéo principale */}
+                    <Image
+                      src={getThumbnailImage(article, article._id)}
+                      alt={article.title}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="news-thumbnail-image object-cover object-center"
+                      style={{ objectPosition: 'center 25%' }}
+                    />
+
+                    {/* Badge vidéo cliquable si des vidéos disponibles */}
+                    {article.videos && article.videos.length > 0 && (
+                      <button
+                        onClick={(e) => toggleThumbnailView(article._id, e)}
+                        className={clsx(
+                          'absolute top-2 right-2 transition-all duration-300',
+                          'w-8 h-8 rounded-full flex items-center justify-center shadow-lg',
+                          'backdrop-blur-sm font-medium text-xs',
+                          thumbnailMediaView[article._id]
+                            ? 'bg-niger-orange/90 text-white'
+                            : 'bg-black/50 text-white hover:bg-niger-orange/80'
+                        )}
+                        title={thumbnailMediaView[article._id] ? 'Voir les photos' : 'Voir les vidéos'}
+                        aria-label={thumbnailMediaView[article._id] ? 'Voir les photos' : 'Voir les vidéos'}
+                      >
+                        {thumbnailMediaView[article._id] ? (
+                          <span className="text-sm">🎥</span>
+                        ) : (
+                          <Play className="w-4 h-4 ml-0.5" />
+                        )}
+                      </button>
                     )}
+
+                    {/* Badge de comptage de médias */}
+                    {(() => {
+                      const { imagesCount, videosCount } = getMediaCounts(article);
+                      if (imagesCount > 0 || videosCount > 0) {
+                        return (
+                          <div className="absolute bottom-2 left-2 text-xs font-medium bg-black/60 text-white px-2 py-1 rounded-full backdrop-blur-sm">
+                            {imagesCount > 0 && <span>📷 {imagesCount}</span>}
+                            {imagesCount > 0 && videosCount > 0 && <span> • </span>}
+                            {videosCount > 0 && <span>🎥 {videosCount}</span>}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                     
                     {/* Overlay avec gradient */}
                     <div className={clsx(
