@@ -7,6 +7,7 @@
 import { connectDB } from './mongodb';
 import News from '@/models/News';
 import SearchService from '@/services/search';
+import StatsService from '@/services/statsService';
 
 /**
  * Service de chat IA
@@ -60,6 +61,19 @@ export class AIChatService {
         .limit(3)
         .lean();
 
+      // Récupérer les statistiques si la question concerne des chiffres
+      let statistics = null;
+      if (userQuestion && /combien|nombre|statistique|chiffre|total|effectif/i.test(userQuestion)) {
+        try {
+          const statsResult = await StatsService.searchStats(userQuestion);
+          if (statsResult.hasData) {
+            statistics = StatsService.generateSummaryText(statsResult);
+          }
+        } catch (statsError) {
+          console.warn('[AIChatService] Stats unavailable:', statsError.message);
+        }
+      }
+
       return {
         siteInfo,
         relevantContent: relevantContent.map(item => ({
@@ -76,7 +90,8 @@ export class AIChatService {
           excerpt: news.excerpt,
           category: news.category,
           date: news.createdAt
-        }))
+        })),
+        statistics
       };
     } catch (error) {
       console.error('[AIChatService] Erreur récupération contexte depuis MongoDB:', error.message);
@@ -123,6 +138,11 @@ ${context.degradedMode ? '6. En mode dégradé, informe l\'utilisateur que le co
 
 PAGES PRINCIPALES DU SITE:
 ${context.siteInfo.mainUrls.map(page => `- ${page.title}: ${page.url} - ${page.description}`).join('\n')}
+
+${context.statistics ? `
+STATISTIQUES OFFICIELLES:
+${context.statistics}
+` : ''}
 
 ${context.relevantContent && context.relevantContent.length > 0 ? `
 CONTEXTE PERTINENT:
