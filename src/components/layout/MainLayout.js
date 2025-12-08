@@ -15,6 +15,15 @@ export default function MainLayout({ children }) {
   return (
 
     <div className="min-h-screen flex flex-col relative">
+      {/* Skip Link pour l'accessibilité */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-6 focus:py-3 focus:bg-gradient-to-r focus:from-orange-500 focus:to-green-500 focus:text-white focus:font-bold focus:rounded-xl focus:shadow-2xl focus:ring-4 focus:ring-orange-400/50 focus:transform focus:scale-105 transition-all duration-200"
+        tabIndex={0}
+      >
+        Passer au contenu principal
+      </a>
+
       {/* Image en filigrane */}
       <div
         className="fixed inset-0 pointer-events-none z-0 transition-transform duration-700 ease-in-out hover:scale-105"
@@ -34,7 +43,7 @@ export default function MainLayout({ children }) {
     <div className="min-h-screen flex flex-col">
 
       <Header />
-      <main className="flex-grow">
+      <main id="main-content" className="flex-grow" tabIndex={-1}>
         {children}
       </main>
       <Footer />

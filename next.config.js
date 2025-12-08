@@ -1,8 +1,14 @@
 /** @type {import('next').NextConfig} */
+
+// Bundle Analyzer Configuration
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig = {
   // Remove exposed environment variables for security
   // Environment variables should be accessed directly in API routes
-  
+
   // Image optimization configuration
   images: {
     domains: ['localhost', 'site.mesrit.com', 'www.site.mesrit.com'],
@@ -111,4 +117,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

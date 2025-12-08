@@ -214,13 +214,13 @@ export default function Navigation() {
                         className={clsx(
                           'group relative flex items-center rounded-2xl font-semibold text-sm transition-all duration-300',
                           'transform hover:scale-[1.02] focus-within:ring-4',
-                          isActive 
+                          isActive
                             ? isDark
                               ? `bg-gradient-to-br from-gray-700 to-gray-900 text-white ${neumorph.dark.inset}`
                               : `bg-gradient-to-br from-gray-50 to-gray-200 text-gray-900 ${neumorph.light.inset}`
-                            : isDark 
-                              ? `text-gray-300 hover:text-white ${neumorph.dark.button}` 
-                              : `text-gray-700 hover:text-gray-900 ${neumorph.light.button}`,
+                            : isDark
+                              ? `text-gray-200 hover:text-white ${neumorph.dark.button}`
+                              : `text-gray-800 hover:text-gray-900 ${neumorph.light.button}`,
                           isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-gray-100 hover:bg-gray-50'
                         )}
                         style={{
