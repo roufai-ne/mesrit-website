@@ -72,7 +72,7 @@ export default function Chatbot() {
         body: JSON.stringify({
           message: userMessage,
           conversationHistory,
-          provider: 'claude' // ou 'claude'
+          provider: 'claude' // 'openai' ou 'claude'
         })
       });
 
@@ -94,10 +94,22 @@ export default function Chatbot() {
     } catch (error) {
       console.error('[Chatbot] Erreur:', error);
 
-      // Message d'erreur
+      // Message d'erreur détaillé selon le type d'erreur
+      let errorContent = "Désolé, je n'ai pas pu traiter votre demande.";
+
+      if (error.message?.includes('Failed to fetch')) {
+        errorContent = "Impossible de contacter le serveur. Vérifiez votre connexion internet.";
+      } else if (error.message?.includes('API key')) {
+        errorContent = "Le service de chat n'est pas configuré. Veuillez contacter l'administrateur.";
+      } else if (error.message?.includes('rate limit')) {
+        errorContent = "Le service est temporairement surchargé. Veuillez réessayer dans quelques minutes.";
+      } else if (error.message?.includes('timeout')) {
+        errorContent = "Le serveur met trop de temps à répondre. Veuillez réessayer.";
+      }
+
       const errorMessage = {
         role: 'assistant',
-        content: "Désolé, je n'ai pas pu traiter votre demande. Veuillez réessayer.",
+        content: errorContent,
         timestamp: new Date(),
         isError: true
       };

@@ -18,23 +18,30 @@ export class AIChatService {
    * Utilise désormais la recherche intelligente pour un contexte pertinent
    */
   static async getSiteContext(userQuestion = null) {
-    try {
-      await connectDB();
+    // Contexte de base (toujours disponible, même sans MongoDB)
+    const siteInfo = {
+      name: "MESRIT - Ministère de l'Enseignement Supérieur de la Recherche et de l'Innovation Technologique",
+      description: "Site officiel du MESRIT",
+      sections: [
+        "Ministère et Organisation",
+        "Services aux étudiants, chercheurs et établissements",
+        "Formations (Licence, Master, Doctorat)",
+        "Recherche et Innovation",
+        "Coopération Internationale",
+        "Actualités et Communiqués",
+        "Ressources et Documents"
+      ],
+      mainUrls: [
+        { title: "Accueil", url: "/", description: "Page d'accueil du site MESRIT" },
+        { title: "À propos", url: "/a-propos", description: "Informations sur le ministère" },
+        { title: "Services", url: "/services", description: "Services disponibles" },
+        { title: "Contact", url: "/contact", description: "Nous contacter" }
+      ]
+    };
 
-      // Contexte du site
-      const siteInfo = {
-        name: "MESRIT - Ministère de l'Enseignement Supérieur de la Recherche et de l'Innovation Technologique",
-        description: "Site officiel du MESRIT",
-        sections: [
-          "Ministère et Organisation",
-          "Services aux étudiants, chercheurs et établissements",
-          "Formations (Licence, Master, Doctorat)",
-          "Recherche et Innovation",
-          "Coopération Internationale",
-          "Actualités et Communiqués",
-          "Ressources et Documents"
-        ]
-      };
+    try {
+      // Tenter de se connecter à MongoDB
+      await connectDB();
 
       // Si une question est fournie, utiliser la recherche adaptative
       let relevantContent = [];
@@ -72,14 +79,15 @@ export class AIChatService {
         }))
       };
     } catch (error) {
-      console.error('[AIChatService] Erreur récupération contexte:', error);
+      console.error('[AIChatService] Erreur récupération contexte depuis MongoDB:', error.message);
+      console.warn('[AIChatService] Utilisation du contexte de base (mode dégradé)');
+
+      // Retourner un contexte minimal mais fonctionnel
       return {
-        siteInfo: {
-          name: "MESRIT",
-          description: "Ministère de l'Enseignement Supérieur"
-        },
+        siteInfo,
         relevantContent: [],
-        recentNews: []
+        recentNews: [],
+        degradedMode: true
       };
     }
   }
@@ -88,8 +96,11 @@ export class AIChatService {
    * Construire le prompt système avec le contexte du site
    */
   static buildSystemPrompt(context) {
-    return `Tu es un assistant virtuel pour le site ${context.siteInfo.name}.
+    const degradedModeNotice = context.degradedMode ?
+      '\n⚠️ MODE DÉGRADÉ: Base de données indisponible. Tu disposes uniquement des informations générales du site.\n' : '';
 
+    return `Tu es un assistant virtuel pour le site ${context.siteInfo.name}.
+${degradedModeNotice}
 RÔLE:
 Tu dois aider les visiteurs en répondant uniquement aux questions concernant le contenu public du site MESRIT:
 - Informations sur le ministère, sa mission et son organisation
@@ -106,11 +117,15 @@ RÈGLES IMPORTANTES:
 3. Sois concis, précis et professionnel (max 3-4 phrases)
 4. Si tu ne trouves pas l'information exacte dans le contexte, suggère de:
    - Consulter la page concernée (en indiquant l'URL si disponible)
-   - Contacter le ministère directement
+   - Contacter le ministère directement via la page /contact
 5. JAMAIS d'informations inventées - reste fidèle au contexte fourni
+${context.degradedMode ? '6. En mode dégradé, informe l\'utilisateur que le contenu complet n\'est pas disponible actuellement' : ''}
 
-CONTEXTE PERTINENT:
+PAGES PRINCIPALES DU SITE:
+${context.siteInfo.mainUrls.map(page => `- ${page.title}: ${page.url} - ${page.description}`).join('\n')}
+
 ${context.relevantContent && context.relevantContent.length > 0 ? `
+CONTEXTE PERTINENT:
 Pages et informations du site:
 ${context.relevantContent.map((item, i) =>
   `${i + 1}. [${item.type === 'page' ? 'PAGE' : 'ACTUALITÉ'}] ${item.title}
@@ -122,7 +137,7 @@ ${context.relevantContent.map((item, i) =>
 ` : ''}
 
 ${context.recentNews && context.recentNews.length > 0 ? `
-Dernières actualités:
+DERNIÈRES ACTUALITÉS:
 ${context.recentNews.map((news, i) =>
   `${i + 1}. ${news.title} (${news.category}) - ${news.excerpt || 'Voir l\'actualité pour plus de détails'}`
 ).join('\n')}
