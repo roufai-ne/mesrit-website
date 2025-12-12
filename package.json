@@ -26,7 +26,8 @@
     "optimize:v2": "node scripts/performanceOptimizerV2.js",
     "crawler": "node scripts/crawler.cjs",
     "crawler:incremental": "node scripts/crawler.cjs incremental",
-    "crawler:local": "node scripts/crawlLocal.js"
+    "crawler:local": "node scripts/crawlLocal.js",
+    "index:directors": "node scripts/indexDirectors.cjs"
   },
   "dependencies": {
     "@eslint/config-array": "^0.19.2",

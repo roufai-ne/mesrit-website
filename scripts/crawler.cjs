@@ -388,6 +388,18 @@ async function main() {
     }
 
     console.log('\n✅ Crawler terminé avec succès!');
+
+    // Indexer les données dynamiques (directeurs, etc.)
+    console.log('\n[Crawler] Indexation des données dynamiques...');
+    try {
+      const { main: indexDirectors } = require('./indexDirectors.cjs');
+      await indexDirectors();
+      console.log('[Crawler] ✅ Données dynamiques indexées');
+    } catch (indexError) {
+      console.warn('[Crawler] ⚠️  Erreur lors de l\'indexation des données dynamiques:', indexError.message);
+      console.warn('[Crawler] Le crawler a réussi mais les données dynamiques n\'ont pas été indexées');
+    }
+
     process.exit(0);
 
   } catch (error) {
