@@ -1,0 +1,600 @@
+[
+  {
+    "_id": "675acddda721e8cf1e597574",
+    "title": "1er forum International Annuel sur le Liptako Gourma (FIA/LG)",
+    "content": "Panel animé par le Sg/MES/R/IT, President du comité scientifique PCRSS Niger et chef de la délégation du Niger au 1er forum International Anuel sur le liptako gourma (FIA/LG) qui se tient à Bamako; et modéré par la DGRIT membre du comité scientifique PCRSS Niger et rapporteur du comité régional de coordination CRC PCRSS-ALG.",
+    "date": "2024-12-12T00:00:00.000Z",
+    "category": "Communiqués",
+    "status": "published",
+    "image": "/images/news/Panel_bamako2.jpg",
+    "tags": [
+      "Forum",
+      "Liptako-gourma"
+    ],
+    "summary": "1er forum International Anuel sur le liptako gourma (FIA/LG) qui se tient à Bamako",
+    "createdAt": "2024-12-12T11:49:49.045Z",
+    "updatedAt": "2025-02-06T17:07:23.148Z",
+    "__v": 0,
+    "images": [],
+    "slug": "1er-forum-international-annuel-sur-le-liptako-gourma-fialg"
+  },
+  {
+    "_id": "675ad043a721e8cf1e59757b",
+    "title": "Atelier de formation des points focaux à Maradi",
+    "content": "contenu",
+    "date": "2024-12-12T00:00:00.000Z",
+    "category": "Atelier",
+    "status": "published",
+    "image": "/images/news/atelier_maradi1.jpg",
+    "tags": [
+      "Atelier",
+      "Statistiques",
+      "DSI"
+    ],
+    "summary": "Atelier de formation des points focaux des universités et institutions d'enseignement supérieur",
+    "createdAt": "2024-12-12T12:00:03.857Z",
+    "updatedAt": "2024-12-12T13:00:06.392Z",
+    "__v": 0,
+    "slug": "null-1"
+  },
+  {
+    "_id": "6776c94401bc6f8d2fdedcbf",
+    "title": "Formation des points focaux des EES de Niamey",
+    "content": "Atelier de formation des points focaux des EES de la ville de Niamey, couplé à la collecte des donées statistiques pour l'élaboration de l'annuaire statistique 2023-2024, organisé par la DSI",
+    "date": "2024-12-31T00:00:00.000Z",
+    "category": "Atelier",
+    "status": "published",
+    "image": "/images/news/news_1735837872567.jpg",
+    "tags": [
+      "Atelier"
+    ],
+    "summary": "Atelier de formation des points focaux des EES de Niamey pour la collecte des données statistiques 2023-2024",
+    "createdAt": "2025-01-02T17:13:40.622Z",
+    "updatedAt": "2025-01-28T11:55:53.456Z",
+    "__v": 0,
+    "slug": "null-2"
+  },
+  {
+    "_id": "6799518e80f9eb5dedb21402",
+    "title": "7ème édition de la fête de la Science à Tahoua",
+    "content": "La direction générale de la Recherche et de l'Innovation Technologique a organisé à l'Université Djibo Hamani de Tahoua, la 7éme édition de la fête de la science qui a pour thème cette année: apport et contribution de la science au développement économique et culturel",
+    "date": "2025-01-27T00:00:00.000Z",
+    "category": "Evènement",
+    "status": "published",
+    "image": "/images/news/news_1738100826163.jpg",
+    "tags": [
+      "DGRIT"
+    ],
+    "summary": "Contribution de la science au developpement économique et culturel",
+    "createdAt": "2025-01-28T21:52:14.786Z",
+    "updatedAt": "2025-10-09T16:42:34.515Z",
+    "__v": 0,
+    "metaDescription": "Contribution de la science au developpement économique et culturel",
+    "metaTitle": "7ème édition de la fête de la Science à Tahoua",
+    "slug": "7eme-edition-de-la-fete-de-la-science-a-tahoua"
+  },
+  {
+    "_id": "67a46fe24762648d43b25618",
+    "title": "Lancement des travaux d'infrastructures socio-académiques à l'UAM",
+    "content": "Lancement des travaux d'infrastructures socio-académiques à l'UAM",
+    "date": "2025-02-04T00:00:00.000Z",
+    "category": "Actualités",
+    "status": "published",
+    "image": "/images/news/news_1738829674732.jpg",
+    "images": [
+      {
+        "url": "/images/news/news_1738829700499.jpg",
+        "description": "Le ministre avec le PM",
+        "_id": "68e50e88107a3b206cf2a715"
+      },
+      {
+        "url": "/images/news/news_1738829700584.jpg",
+        "description": "Vue des membres du CNSP",
+        "_id": "68e50e88107a3b206cf2a716"
+      },
+      {
+        "url": "/images/news/news_1738829700659.jpg",
+        "description": "Allocution du ministre",
+        "_id": "68e50e88107a3b206cf2a717"
+      },
+      {
+        "url": "/images/news/news_1738829700721.jpg",
+        "description": "Le secretariat général",
+        "_id": "68e50e88107a3b206cf2a718"
+      }
+    ],
+    "tags": [
+      "mesrit"
+    ],
+    "summary": "Lancement des travaux d'infrastructures socio-académiques à l'UAM",
+    "createdAt": "2025-02-06T08:16:34.214Z",
+    "updatedAt": "2025-10-09T16:42:04.331Z",
+    "__v": 0,
+    "metaDescription": "Lancement des travaux d'infrastructures socio-académiques à l'UAM",
+    "metaTitle": "Lancement des travaux d'infrastructures socio-académiques...",
+    "slug": "lancement-des-travaux-dinfrastructures-socio-academiques-a",
+    "updatedBy": "676968a37219260e30a3e365"
+  },
+  {
+    "_id": "67ab729f4e9860fc027351a3",
+    "title": "Logo MESRIT",
+    "content": "test",
+    "date": "2025-02-11T00:00:00.000Z",
+    "category": "test1",
+    "status": "draft",
+    "image": "/images/news/news_1739289463544.png",
+    "images": [],
+    "tags": [],
+    "summary": "test",
+    "createdAt": "2025-02-11T15:54:07.160Z",
+    "updatedAt": "2025-02-18T10:56:32.920Z",
+    "__v": 0,
+    "slug": "null-3"
+  },
+  {
+    "_id": "691ae0063a0c5debda3cf594",
+    "title": "test upload",
+    "content": "Contenu detaillé",
+    "date": "2025-11-17T00:00:00.000Z",
+    "category": "Actualités",
+    "status": "published",
+    "image": "/images/news/news_1763368885964_3e755358755d2c4f8e10f11698a6ea14.png",
+    "images": [
+      {
+        "url": "/images/news/news_1763368910269_f67386d905e5c5ce15e594429ef11818.png",
+        "description": "",
+        "_id": "691ae0243a0c5debda3cf5a0"
+      },
+      {
+        "url": "/images/news/news_1763368918157_f641890977edbdfc71c63b686f51841a.png",
+        "description": "",
+        "_id": "691ae0243a0c5debda3cf5a1"
+      }
+    ],
+    "mainVideo": "/videos/news/video_1763368934918_0d66d40c565963b7fbdadcb287b9aee9.mp4",
+    "videos": [
+      {
+        "url": "/videos/news/video_1763368934918_0d66d40c565963b7fbdadcb287b9aee9.mp4",
+        "title": "47 - A vous de jouer... 0039",
+        "description": "",
+        "thumbnail": "/videos/news/thumbnails/default-video-thumbnail.jpg",
+        "duration": 0,
+        "format": "mp4",
+        "size": 2289014,
+        "uploadedAt": "2025-11-17T08:42:14.937Z",
+        "isMain": true,
+        "_id": "691ae0063a0c5debda3cf597"
+      },
+      {
+        "url": "/videos/news/video_1763368954950_14f1e48dd88aea6acf20b8feafbfd9bc.mp4",
+        "title": "01 - Introduction à la formation 0122",
+        "description": "",
+        "thumbnail": "/videos/news/thumbnails/default-video-thumbnail.jpg",
+        "duration": 0,
+        "format": "mp4",
+        "size": 5123581,
+        "uploadedAt": "2025-11-17T08:42:34.994Z",
+        "isMain": false,
+        "_id": "691ae0063a0c5debda3cf598"
+      }
+    ],
+    "tags": [],
+    "summary": "Résumé",
+    "archived": false,
+    "version": 1,
+    "createdBy": "676968a37219260e30a3e365",
+    "updatedBy": "676968a37219260e30a3e365",
+    "previousVersions": [],
+    "createdAt": "2025-11-17T08:42:46.150Z",
+    "updatedAt": "2025-11-17T10:05:19.328Z",
+    "slug": "test",
+    "__v": 37,
+    "likes": [
+      {
+        "userId": "676968a37219260e30a3e365",
+        "likedAt": "2025-11-17T10:00:48.652Z",
+        "_id": "691af2500a852bfe50500854"
+      }
+    ],
+    "likesCount": 1,
+    "views": [
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 62,
+        "readingTime": 0,
+        "sessionId": "1763373259833-0.7557986428882542",
+        "viewedAt": "2025-11-17T09:54:19.940Z",
+        "_id": "691af0cb0a852bfe5050047d"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 100,
+        "readingTime": 0,
+        "sessionId": "1763373404491-0.1782339919470176",
+        "viewedAt": "2025-11-17T09:56:44.530Z",
+        "_id": "691af15c0a852bfe5050049e"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 100,
+        "readingTime": 0,
+        "sessionId": "1763373413482-0.9664227075449153",
+        "viewedAt": "2025-11-17T09:56:53.547Z",
+        "_id": "691af1650a852bfe505004bb"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 100,
+        "readingTime": 0,
+        "sessionId": "1763373417485-0.8885326127384308",
+        "viewedAt": "2025-11-17T09:56:58.016Z",
+        "_id": "691af16a0a852bfe505004dc"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 0,
+        "readingTime": 0,
+        "sessionId": "1763373643998-0.5743410125246508",
+        "viewedAt": "2025-11-17T10:00:44.535Z",
+        "_id": "691af24c0a852bfe50500588"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 2,
+        "readingTime": 0,
+        "sessionId": "1763373647028-0.3558801866799538",
+        "viewedAt": "2025-11-17T10:00:47.063Z",
+        "_id": "691af24f0a852bfe505005ab"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 7,
+        "readingTime": 0,
+        "sessionId": "1763373647053-0.6884066177187015",
+        "viewedAt": "2025-11-17T10:00:47.143Z",
+        "_id": "691af24f0a852bfe505005b9"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 15,
+        "readingTime": 0,
+        "sessionId": "1763373647069-0.16099879242914372",
+        "viewedAt": "2025-11-17T10:00:47.183Z",
+        "_id": "691af24f0a852bfe505005c8"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 20,
+        "readingTime": 0,
+        "sessionId": "1763373647093-0.5186060805850708",
+        "viewedAt": "2025-11-17T10:00:47.210Z",
+        "_id": "691af24f0a852bfe505005d8"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 22,
+        "readingTime": 0,
+        "sessionId": "1763373647111-0.5451829612232129",
+        "viewedAt": "2025-11-17T10:00:47.295Z",
+        "_id": "691af24f0a852bfe505005e9"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 23,
+        "readingTime": 0,
+        "sessionId": "1763373647436-0.9099458342542461",
+        "viewedAt": "2025-11-17T10:00:47.472Z",
+        "_id": "691af24f0a852bfe505005fb"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 25,
+        "readingTime": 0,
+        "sessionId": "1763373647478-0.19769947761227813",
+        "viewedAt": "2025-11-17T10:00:47.531Z",
+        "_id": "691af24f0a852bfe5050060e"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 26,
+        "readingTime": 0,
+        "sessionId": "1763373647488-0.09915823999437734",
+        "viewedAt": "2025-11-17T10:00:47.594Z",
+        "_id": "691af24f0a852bfe50500622"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 29,
+        "readingTime": 0,
+        "sessionId": "1763373647499-0.427401098692347",
+        "viewedAt": "2025-11-17T10:00:47.649Z",
+        "_id": "691af24f0a852bfe50500637"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 31,
+        "readingTime": 0,
+        "sessionId": "1763373647518-0.31275381338650676",
+        "viewedAt": "2025-11-17T10:00:47.699Z",
+        "_id": "691af24f0a852bfe5050064d"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 33,
+        "readingTime": 0,
+        "sessionId": "1763373647534-0.09877349631946786",
+        "viewedAt": "2025-11-17T10:00:47.750Z",
+        "_id": "691af24f0a852bfe50500665"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 36,
+        "readingTime": 0,
+        "sessionId": "1763373647549-0.14881520683683258",
+        "viewedAt": "2025-11-17T10:00:47.754Z",
+        "_id": "691af24f0a852bfe5050067a"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 37,
+        "readingTime": 0,
+        "sessionId": "1763373647583-0.4502697345251908",
+        "viewedAt": "2025-11-17T10:00:47.787Z",
+        "_id": "691af24f0a852bfe50500694"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 39,
+        "readingTime": 0,
+        "sessionId": "1763373647595-0.2676898324195408",
+        "viewedAt": "2025-11-17T10:00:47.810Z",
+        "_id": "691af24f0a852bfe505006ae"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 40,
+        "readingTime": 0,
+        "sessionId": "1763373647613-0.3800934956205416",
+        "viewedAt": "2025-11-17T10:00:47.839Z",
+        "_id": "691af24f0a852bfe505006c9"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 41,
+        "readingTime": 0,
+        "sessionId": "1763373647876-0.10103347715603683",
+        "viewedAt": "2025-11-17T10:00:47.917Z",
+        "_id": "691af24f0a852bfe505006e5"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 42,
+        "readingTime": 0,
+        "sessionId": "1763373647907-0.900510265534547",
+        "viewedAt": "2025-11-17T10:00:47.957Z",
+        "_id": "691af24f0a852bfe50500701"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 44,
+        "readingTime": 0,
+        "sessionId": "1763373647938-0.836142124815014",
+        "viewedAt": "2025-11-17T10:00:48.015Z",
+        "_id": "691af2500a852bfe5050071f"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 46,
+        "readingTime": 0,
+        "sessionId": "1763373647954-0.20116613857032917",
+        "viewedAt": "2025-11-17T10:00:48.087Z",
+        "_id": "691af2500a852bfe5050073f"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 49,
+        "readingTime": 0,
+        "sessionId": "1763373647970-0.9372386981783933",
+        "viewedAt": "2025-11-17T10:00:48.092Z",
+        "_id": "691af2500a852bfe5050075c"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 52,
+        "readingTime": 0,
+        "sessionId": "1763373648002-0.7081099049385206",
+        "viewedAt": "2025-11-17T10:00:48.150Z",
+        "_id": "691af2500a852bfe5050077e"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 54,
+        "readingTime": 0,
+        "sessionId": "1763373648018-0.9751053615636704",
+        "viewedAt": "2025-11-17T10:00:48.162Z",
+        "_id": "691af2500a852bfe5050079d"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 57,
+        "readingTime": 0,
+        "sessionId": "1763373648020-0.4076831511847243",
+        "viewedAt": "2025-11-17T10:00:48.168Z",
+        "_id": "691af2500a852bfe505007bc"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 59,
+        "readingTime": 0,
+        "sessionId": "1763373648037-0.4093383519052629",
+        "viewedAt": "2025-11-17T10:00:48.210Z",
+        "_id": "691af2500a852bfe505007e2"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 61,
+        "readingTime": 0,
+        "sessionId": "1763373648052-0.20004680176826317",
+        "viewedAt": "2025-11-17T10:00:48.251Z",
+        "_id": "691af2500a852bfe50500808"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 62,
+        "readingTime": 0,
+        "sessionId": "1763373648082-0.09662726672943389",
+        "viewedAt": "2025-11-17T10:00:48.292Z",
+        "_id": "691af2500a852bfe5050082b"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 72,
+        "readingTime": 0,
+        "sessionId": "1763373918750-0.954200554164614",
+        "viewedAt": "2025-11-17T10:05:19.273Z",
+        "_id": "691af35f0a852bfe505008cb"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 65,
+        "readingTime": 0,
+        "sessionId": "1763373918698-0.499601414879121",
+        "viewedAt": "2025-11-17T10:05:19.266Z",
+        "_id": "691af35f0a852bfe505008a5"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 68,
+        "readingTime": 0,
+        "sessionId": "1763373918719-0.5100978409345437",
+        "viewedAt": "2025-11-17T10:05:19.255Z",
+        "_id": "691af35f0a852bfe5050087f"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 70,
+        "readingTime": 0,
+        "sessionId": "1763373918734-0.06312309826999885",
+        "viewedAt": "2025-11-17T10:05:19.281Z",
+        "_id": "691af35f0a852bfe505008f1"
+      },
+      {
+        "userId": null,
+        "ip": "127.0.0.1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+        "referrer": "http://localhost:3000/actualites/test",
+        "scrollDepth": 73,
+        "readingTime": 0,
+        "sessionId": "1763373918796-0.9152941770123775",
+        "viewedAt": "2025-11-17T10:05:19.320Z",
+        "_id": "691af35f0a852bfe5050091c"
+      }
+    ],
+    "viewsCount": 26
+  }
+]

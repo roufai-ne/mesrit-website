@@ -1,18 +1,20 @@
 // src/pages/documentation/lois.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  Scale, 
-  Download, 
-  FileText, 
-  Calendar, 
-  ChevronRight, 
+import {
+  Scale,
+  Download,
+  FileText,
+  Calendar,
+  ChevronRight,
   Search,
   Filter,
   AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+// import { secureApi } from '@/lib/secureApi'; // REMOVED
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapDocument } from '@/utils/strapiMapper';
 
 export default function LoisPage() {
   const [documents, setDocuments] = useState([]);
@@ -32,8 +34,16 @@ export default function LoisPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/documents?category=regulatory', false);
-      setDocuments(data.filter(doc => doc.status === 'published'));
+      // Fetch regulatory documents
+      const response = await fetchAPI(endpoints.documents, {
+        filters: {
+          category: { $in: ['loi', 'decret', 'arrete', 'ordonnance'] }
+        },
+        populate: ['file'],
+        pagination: { limit: 100 },
+        sort: ['publicationDate:desc']
+      });
+      setDocuments(mapStrapiList(response, mapDocument));
     } catch (error) {
       console.error('Erreur:', error);
       setError(error.message);
@@ -44,9 +54,9 @@ export default function LoisPage() {
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesYear = selectedYear === 'all' || 
-                       new Date(doc.publicationDate).getFullYear().toString() === selectedYear;
+      doc.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesYear = selectedYear === 'all' ||
+      new Date(doc.publicationDate).getFullYear().toString() === selectedYear;
     const matchesType = selectedType === 'all' || doc.subType === selectedType;
     return matchesSearch && matchesYear && matchesType;
   });
@@ -90,7 +100,7 @@ export default function LoisPage() {
               <p>{error}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={fetchDocuments}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -117,17 +127,17 @@ export default function LoisPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Lois et Décrets</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <Scale className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Lois et Décrets</h1>
           </div>
-          
+
           <p className="text-xl text-red-100 max-w-3xl">
-            Consultez l'ensemble des textes législatifs et réglementaires régissant 
+            Consultez l'ensemble des textes législatifs et réglementaires régissant
             l'enseignement supérieur, la recherche et l'innovation technologique au Niger.
           </p>
-          
+
           <div className="mt-6 text-red-100">
             {filteredDocuments.length} document{filteredDocuments.length > 1 ? 's' : ''} trouvé{filteredDocuments.length > 1 ? 's' : ''}
           </div>
@@ -184,11 +194,10 @@ export default function LoisPage() {
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
-                  className={`p-4 rounded-xl transition-all text-center ${
-                    selectedType === type
+                  className={`p-4 rounded-xl transition-all text-center ${selectedType === type
                       ? 'bg-red-600 text-white shadow-lg'
                       : 'bg-white hover:bg-red-50 shadow'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-center mb-2">
                     {getTypeIcon(type)}
@@ -203,7 +212,7 @@ export default function LoisPage() {
           {/* Liste des documents */}
           <div className="space-y-4">
             {filteredDocuments.map((doc) => (
-              <div 
+              <div
                 key={doc._id}
                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
               >
@@ -222,10 +231,10 @@ export default function LoisPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     <h3 className="text-xl font-bold mb-3 text-gray-900">{doc.title}</h3>
                     <p className="text-gray-600 mb-4 line-clamp-2">{doc.description}</p>
-                    
+
                     <div className="flex items-center text-sm text-gray-500 space-x-4">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2" />
@@ -260,7 +269,7 @@ export default function LoisPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="ml-6 flex flex-col gap-2">
                     <a
                       href={doc.url}

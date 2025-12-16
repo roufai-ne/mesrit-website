@@ -1,5 +1,4 @@
 // src/pages/api/ministere/content.js
-import { connectDB } from '@/lib/mongodb';
 import logger from '@/lib/logger';
 
 export default async function handler(req, res) {
@@ -8,12 +7,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    await connectDB();
-    
-    // Contenu statique pour l'instant - sera migré vers MongoDB plus tard
-    const ministerContent = null;
-
-    // Contenu par défaut si rien en base
+    // Contenu statique pour l'instant (MongoDB retiré)
+    // À terme : connecter à Strapi Single Type
     const defaultContent = {
       hero: {
         title: "Le Ministère",
@@ -67,7 +62,7 @@ export default async function handler(req, res) {
         },
         {
           title: "Documentation",
-          icon: "BookOpen", 
+          icon: "BookOpen",
           link: "/documentation",
           description: "Accédez à nos ressources et publications"
         },
@@ -82,19 +77,17 @@ export default async function handler(req, res) {
       version: "1.0"
     };
 
-    const content = ministerContent || defaultContent;
-
     // Log de l'accès
     logger.info('minister_content_accessed', 'Minister content accessed', {
-      hasCustomContent: !!ministerContent,
-      sectionsCount: content.sections?.length || 0,
+      hasCustomContent: false,
+      sectionsCount: defaultContent.sections.length,
       userAgent: req.headers['user-agent']
     });
 
     res.status(200).json({
       success: true,
-      data: content,
-      cached: !ministerContent
+      data: defaultContent,
+      cached: true
     });
 
   } catch (error) {

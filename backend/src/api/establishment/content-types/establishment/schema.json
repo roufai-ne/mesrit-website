@@ -1,0 +1,74 @@
+{
+  "kind": "collectionType",
+  "collectionName": "establishments",
+  "info": {
+    "singularName": "establishment",
+    "pluralName": "establishments",
+    "displayName": "Establishment",
+    "description": "Universities, Schools and Institutes"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "Université",
+        "Institut",
+        "École",
+        "Centre"
+      ],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "public",
+        "privé"
+      ],
+      "default": "public"
+    },
+    "region": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "openingDate": {
+      "type": "date"
+    },
+    "website": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "contactEmail": {
+      "type": "email"
+    },
+    "contactPhone": {
+      "type": "string"
+    },
+    "contactAddress": {
+      "type": "text"
+    },
+    "studentCount": {
+      "type": "integer"
+    },
+    "programCount": {
+      "type": "integer"
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}

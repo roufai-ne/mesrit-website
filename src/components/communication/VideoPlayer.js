@@ -1,21 +1,20 @@
 // src/components/communication/VideoPlayer.js
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
   Minimize,
   SkipBack,
   SkipForward
 } from 'lucide-react';
-import { useNewsAnalyticsV2 } from '@/hooks/useNewsV2';
 
-export default function VideoPlayer({ 
-  src, 
-  poster, 
-  title, 
+export default function VideoPlayer({
+  src,
+  poster,
+  title,
   newsId,
   className = '',
   autoPlay = false,
@@ -25,8 +24,7 @@ export default function VideoPlayer({
 }) {
   const videoRef = useRef(null);
   const progressRef = useRef(null);
-  const { trackView } = useNewsAnalyticsV2();
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -37,26 +35,6 @@ export default function VideoPlayer({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  // Analytics tracking
-  const [viewStartTime] = useState(Date.now());
-  const [hasTrackedView, setHasTrackedView] = useState(false);
-  const [lastTrackingTime, setLastTrackingTime] = useState(0);
-  const [videoInteractions, setVideoInteractions] = useState([]);
-
-  // Fonction pour tracker les interactions vidéo
-  const trackVideoInteraction = (type, value = null) => {
-    if (!newsId) return;
-    
-    const interaction = {
-      type,
-      timestamp: Date.now(),
-      value,
-      currentTime: videoRef.current?.currentTime || 0
-    };
-    
-    setVideoInteractions(prev => [...prev, interaction]);
-  };
-
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -64,67 +42,23 @@ export default function VideoPlayer({
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
       setIsLoading(false);
-      
-      // Tracker les métadonnées de la vidéo
-      if (newsId) {
-        trackVideoInteraction('metadata_loaded', {
-          duration: video.duration,
-          videoSrc: src
-        });
-      }
     };
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
-      
-      // Tracker la vue après 5 secondes de visionnage
-      if (!hasTrackedView && video.currentTime > 5 && newsId) {
-        const watchTime = Math.round((Date.now() - viewStartTime) / 1000);
-        trackView(newsId, { 
-          readingTime: watchTime, 
-          scrollDepth: 0,
-          videoWatched: true,
-          videoCurrentTime: video.currentTime,
-          videoTotalDuration: video.duration,
-          videoWatchPercentage: (video.currentTime / video.duration) * 100
-        });
-        setHasTrackedView(true);
-      }
-
-      // Tracker les jalons de visionnage (25%, 50%, 75%, 100%)
-      const watchPercentage = (video.currentTime / video.duration) * 100;
-      const milestones = [25, 50, 75, 90];
-      
-      milestones.forEach(milestone => {
-        if (watchPercentage >= milestone && lastTrackingTime < milestone) {
-          trackVideoInteraction('milestone', {
-            percentage: milestone,
-            currentTime: video.currentTime,
-            duration: video.duration
-          });
-          setLastTrackingTime(milestone);
-        }
-      });
     };
 
     const handlePlay = () => {
       setIsPlaying(true);
-      trackVideoInteraction('play', video.currentTime);
     };
-    
+
     const handlePause = () => {
       setIsPlaying(false);
-      trackVideoInteraction('pause', video.currentTime);
     };
-    
+
     const handleVolumeChange = () => {
       setVolume(video.volume);
       setIsMuted(video.muted);
-      trackVideoInteraction('volume_change', video.volume);
-    };
-
-    const handleSeeking = () => {
-      trackVideoInteraction('seek', video.currentTime);
     };
 
     const handleError = () => {
@@ -140,7 +74,6 @@ export default function VideoPlayer({
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     video.addEventListener('volumechange', handleVolumeChange);
-    video.addEventListener('seeking', handleSeeking);
     video.addEventListener('error', handleError);
     video.addEventListener('loadstart', handleLoadStart);
     video.addEventListener('canplay', handleCanPlay);
@@ -151,17 +84,16 @@ export default function VideoPlayer({
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
-      video.removeEventListener('seeking', handleSeeking);
       video.removeEventListener('error', handleError);
       video.removeEventListener('loadstart', handleLoadStart);
       video.removeEventListener('canplay', handleCanPlay);
     };
-  }, [newsId, trackView, viewStartTime, hasTrackedView]);
+  }, []);
 
   // Masquer les contrôles après inactivité
   useEffect(() => {
     let timeout;
-    
+
     const resetTimeout = () => {
       clearTimeout(timeout);
       setShowControls(true);
@@ -193,7 +125,7 @@ export default function VideoPlayer({
   const handleProgressClick = (e) => {
     const video = videoRef.current;
     const progressBar = progressRef.current;
-    
+
     if (video && progressBar) {
       const rect = progressBar.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
@@ -225,7 +157,7 @@ export default function VideoPlayer({
 
   const toggleFullscreen = () => {
     const container = videoRef.current?.parentElement;
-    
+
     if (!document.fullscreenElement) {
       // Entrer en plein écran
       if (container?.requestFullscreen) {
@@ -236,7 +168,6 @@ export default function VideoPlayer({
         container.mozRequestFullScreen();
       }
       setIsFullscreen(true);
-      trackVideoInteraction('fullscreen', 'enter');
     } else {
       // Sortir du plein écran
       if (document.exitFullscreen) {
@@ -247,7 +178,6 @@ export default function VideoPlayer({
         document.mozCancelFullScreen();
       }
       setIsFullscreen(false);
-      trackVideoInteraction('fullscreen', 'exit');
     }
   };
 
@@ -276,7 +206,7 @@ export default function VideoPlayer({
   }
 
   return (
-    <div 
+    <div
       className={`relative bg-black rounded-lg overflow-hidden group ${className}`}
       style={{ width, height }}
       onMouseMove={() => setShowControls(true)}
@@ -302,10 +232,9 @@ export default function VideoPlayer({
 
       {/* Contrôles personnalisés */}
       {controls && (
-        <div 
-          className={`absolute inset-0 transition-opacity duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0'
-          }`}
+        <div
+          className={`absolute inset-0 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           {/* Bouton play central */}
           {!isPlaying && !isLoading && (
@@ -322,12 +251,12 @@ export default function VideoPlayer({
           {/* Barre de contrôles */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
             {/* Barre de progression */}
-            <div 
+            <div
               ref={progressRef}
               className="w-full h-2 bg-white/30 rounded-full cursor-pointer mb-4"
               onClick={handleProgressClick}
             >
-              <div 
+              <div
                 className="h-full bg-niger-orange rounded-full transition-all"
                 style={{ width: `${progressPercentage}%` }}
               />
@@ -342,15 +271,15 @@ export default function VideoPlayer({
                 </button>
 
                 {/* Skip */}
-                <button 
-                  onClick={() => skip(-10)} 
+                <button
+                  onClick={() => skip(-10)}
                   className="hover:text-niger-orange transition-colors"
                   title="Reculer de 10s"
                 >
                   <SkipBack className="w-4 h-4" />
                 </button>
-                <button 
-                  onClick={() => skip(10)} 
+                <button
+                  onClick={() => skip(10)}
                   className="hover:text-niger-orange transition-colors"
                   title="Avancer de 10s"
                 >
@@ -388,8 +317,8 @@ export default function VideoPlayer({
                 )}
 
                 {/* Plein écran */}
-                <button 
-                  onClick={toggleFullscreen} 
+                <button
+                  onClick={toggleFullscreen}
                   className="hover:text-niger-orange transition-colors"
                 >
                   {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}

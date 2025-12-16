@@ -1,0 +1,44 @@
+[
+  {
+    "_id": "67a9db5f2ffb7c769f4179c5",
+    "title": "Decret pm",
+    "description": "decret",
+    "category": "regulatory",
+    "publicationDate": "2025-02-10T00:00:00.000Z",
+    "type": "pdf",
+    "size": "1.34 MB",
+    "url": "/documents/doc-1739185002564-817859534.pdf",
+    "status": "published",
+    "createdAt": "2025-02-10T10:56:32.003Z",
+    "updatedAt": "2025-02-11T11:50:27.869Z",
+    "__v": 0
+  },
+  {
+    "_id": "67a9dc272ffb7c769f4179da",
+    "title": "Annuaire statistique 2021-2022",
+    "description": "Annuaire statistique des données du système au titre de l'année 2021-2022",
+    "category": "reports",
+    "publicationDate": "2025-02-10T00:00:00.000Z",
+    "type": "pdf",
+    "size": "2.84 MB",
+    "url": "/documents/doc-1739185191721-609394462.pdf",
+    "status": "published",
+    "createdAt": "2025-02-10T10:59:51.793Z",
+    "updatedAt": "2025-02-10T10:59:51.793Z",
+    "__v": 0
+  },
+  {
+    "_id": "67ab64b54e9860fc027350f4",
+    "title": "Python",
+    "description": "Python pour la data science",
+    "category": "guides",
+    "publicationDate": "2025-02-11T00:00:00.000Z",
+    "type": "pdf",
+    "size": "1.34 MB",
+    "url": "/documents/1760112683062-cdb72cba1947ff9fad608f63931a4a88.pdf",
+    "status": "published",
+    "createdAt": "2025-02-11T14:54:45.809Z",
+    "updatedAt": "2025-10-10T16:11:23.292Z",
+    "__v": 0
+  }
+]

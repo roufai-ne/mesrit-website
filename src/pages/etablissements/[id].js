@@ -4,12 +4,12 @@ import { useRouter } from 'next/router';
 import MainLayout from '@/components/layout/MainLayout';
 import Image from 'next/image';
 import Link from 'next/link';
-import { 
-  Building2, 
-  MapPin, 
-  Globe, 
-  Phone, 
-  Mail, 
+import {
+  Building2,
+  MapPin,
+  Globe,
+  Phone,
+  Mail,
   Calendar,
   Users,
   BookOpen,
@@ -23,7 +23,8 @@ import {
   Shield,
   GraduationCap
 } from 'lucide-react';
-import { secureApi } from '@/lib/secureApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapEstablishment } from '@/utils/strapiMapper';
 
 const EstablishmentDetail = () => {
   const router = useRouter();
@@ -41,8 +42,13 @@ const EstablishmentDetail = () => {
   const fetchEstablishment = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get(`/api/establishments/${id}`, false);
-      setEstablishment(data);
+      const response = await fetchAPI(`${endpoints.establishments}/${id}`, {
+        populate: ['logo']
+      });
+      // response.data for single item (depending on Strapi version/wrapper, standard is { data: { attributes: ... }})
+      // fetchAPI usually returns loaded json.
+      const mapped = mapEstablishment(response.data);
+      setEstablishment(mapped);
     } catch (err) {
       setError('Établissement non trouvé');
       console.error('Erreur:', err);
@@ -179,11 +185,10 @@ const EstablishmentDetail = () => {
               </div>
               <div>
                 <div className="flex flex-wrap gap-3 mb-4">
-                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-                    establishment.statut === 'public' 
-                      ? 'bg-niger-green/20 text-niger-cream border border-niger-green/30' 
+                  <span className={`px-4 py-2 rounded-full text-sm font-medium ${establishment.statut === 'public'
+                      ? 'bg-niger-green/20 text-niger-cream border border-niger-green/30'
                       : 'bg-niger-orange/20 text-niger-cream border border-niger-orange/30'
-                  }`}>
+                    }`}>
                     {establishment.statut === 'public' ? 'Public' : 'Privé'}
                   </span>
                   <span className="bg-niger-white/20 text-niger-cream px-4 py-2 rounded-full text-sm font-medium border border-niger-white/30">
@@ -253,7 +258,7 @@ const EstablishmentDetail = () => {
                   <Shield className="w-6 h-6 mr-3" />
                   Informations d'accréditation
                 </h2>
-                
+
                 <div className={`p-6 rounded-xl border-2 ${accreditationInfo.bgColor} mb-6`}>
                   <div className="flex items-center gap-3 mb-4">
                     {accreditationInfo.icon}
@@ -273,7 +278,7 @@ const EstablishmentDetail = () => {
                         {establishment.accreditation.accreditationNumber || 'Non spécifié'}
                       </p>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-semibold text-niger-green dark:text-niger-green-light mb-2">
                         Niveau d'accréditation
@@ -282,31 +287,31 @@ const EstablishmentDetail = () => {
                         {establishment.accreditation.accreditationLevel || 'Non spécifié'}
                       </p>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-semibold text-niger-green dark:text-niger-green-light mb-2">
                         Date d'accréditation
                       </h4>
                       <p className="text-readable dark:text-foreground">
-                        {establishment.accreditation.accreditationDate 
+                        {establishment.accreditation.accreditationDate
                           ? new Date(establishment.accreditation.accreditationDate).toLocaleDateString('fr-FR')
                           : 'Non spécifiée'
                         }
                       </p>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-semibold text-niger-green dark:text-niger-green-light mb-2">
                         Date d'expiration
                       </h4>
                       <p className="text-readable dark:text-foreground">
-                        {establishment.accreditation.accreditationExpiry 
+                        {establishment.accreditation.accreditationExpiry
                           ? new Date(establishment.accreditation.accreditationExpiry).toLocaleDateString('fr-FR')
                           : 'Non spécifiée'
                         }
                       </p>
                     </div>
-                    
+
                     <div className="md:col-span-2">
                       <h4 className="font-semibold text-niger-green dark:text-niger-green-light mb-2">
                         Organisme d'accréditation
@@ -346,7 +351,7 @@ const EstablishmentDetail = () => {
               <h3 className="text-xl font-bold text-niger-green dark:text-niger-green-light mb-6">
                 Informations générales
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-niger-orange" />
@@ -393,14 +398,14 @@ const EstablishmentDetail = () => {
                 <h3 className="text-xl font-bold text-niger-green dark:text-niger-green-light mb-6">
                   Contact
                 </h3>
-                
+
                 <div className="space-y-4">
                   {establishment.contact.phone && (
                     <div className="flex items-center gap-3">
                       <Phone className="w-5 h-5 text-niger-orange" />
                       <div>
                         <p className="text-sm text-readable-muted dark:text-muted-foreground">Téléphone</p>
-                        <a 
+                        <a
                           href={`tel:${establishment.contact.phone}`}
                           className="font-medium text-readable dark:text-foreground hover:text-niger-orange transition-colors"
                         >
@@ -415,7 +420,7 @@ const EstablishmentDetail = () => {
                       <Mail className="w-5 h-5 text-niger-orange" />
                       <div>
                         <p className="text-sm text-readable-muted dark:text-muted-foreground">Email</p>
-                        <a 
+                        <a
                           href={`mailto:${establishment.contact.email}`}
                           className="font-medium text-readable dark:text-foreground hover:text-niger-orange transition-colors"
                         >

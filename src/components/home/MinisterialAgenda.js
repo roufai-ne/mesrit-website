@@ -3,7 +3,8 @@ import { Clock, MapPin, Users, X, AlertCircle, Calendar, ArrowRight } from 'luci
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
-import { fetchWithApiKey } from '@/lib/publicApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapAlert, mapEvent } from '@/utils/strapiMapper';
 
 export default function MinisterialAgenda({ compact = false }) {
   const [announcements, setAnnouncements] = useState([]);
@@ -33,37 +34,20 @@ export default function MinisterialAgenda({ compact = false }) {
     setError(null);
     setFetchAttempted(true);
     try {
-      const response = await fetchWithApiKey('/api/alerts');
-      
-      if (!response.ok) {
-        // Gestion spécifique des erreurs
-        if (response.status === 404) {
-          setAnnouncements([]);
-          return;
-        }
-        
-        let message = `Erreur de chargement des annonces (${response.status})`;
-        if (response.status === 429) message = 'Trop de requêtes, veuillez patienter.';
-        if (response.status === 401) message = 'Accès non autorisé.';
-        if (response.status === 403) message = 'Accès interdit.';
-        
-        // Essayer de récupérer le message d'erreur du serveur
-        try {
-          const errorData = await response.json();
-          message = errorData.error || message;
-        } catch (e) {
-          // Ignorer l'erreur de parsing JSON
-        }
-        
-        throw new Error(message);
-      }
-      
-      const data = await response.json();
-      setAnnouncements(Array.isArray(data) ? data.filter(item => item.status === 'active') : []);
+      const response = await fetchAPI(endpoints.alerts, {
+        pagination: { limit: 5 },
+        sort: ['priority:desc', 'startDate:desc']
+      });
+
+      const data = mapStrapiList(response, mapAlert);
+      // Filter out expired alerts if strapi doesn't do it
+      const activeData = data.filter(item => item.status === 'active' || new Date(item.endDate) >= new Date());
+
+      setAnnouncements(activeData);
     } catch (error) {
       console.error('Erreur fetchAnnouncements:', error);
       setError(error.message);
-      
+
       // En cas d'erreur, utiliser des données de fallback
       setAnnouncements([
         {
@@ -84,34 +68,21 @@ export default function MinisterialAgenda({ compact = false }) {
     setEventsLoading(true);
     setEventsError(null);
     try {
-      const response = await fetchWithApiKey('/api/events');
-      
-      if (!response.ok) {
-        // Gestion spécifique des erreurs
-        if (response.status === 404) {
-          setEvents([]);
-          return;
+      const response = await fetchAPI(endpoints.events, {
+        pagination: { limit: 6 },
+        sort: ['startDate:asc'],
+        filters: {
+          startDate: { $gte: new Date().toISOString() } // Upcoming events
         }
-        
-        // Essayer de récupérer le message d'erreur du serveur
-        let errorMessage = `Erreur de chargement des événements (${response.status})`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // Ignorer l'erreur de parsing JSON
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      const data = await response.json();
-      setEvents(Array.isArray(data) ? data : []);
+      });
+
+      const data = mapStrapiList(response, mapEvent);
+      setEvents(data);
     } catch (error) {
       console.error('Erreur fetchEvents:', error);
       setEventsError(error.message);
       setEvents([]);
-      
+
       // En cas d'erreur, utiliser des données de fallback
       setEvents([
         {
@@ -143,8 +114,8 @@ export default function MinisterialAgenda({ compact = false }) {
             <div>
               <h2 className={clsx(
                 'text-2xl font-bold',
-                isDark 
-                  ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800' 
+                isDark
+                  ? 'bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800'
                   : 'text-gray-900'
               )}>
                 Agenda
@@ -153,8 +124,8 @@ export default function MinisterialAgenda({ compact = false }) {
                 isDark ? 'text-gray-600' : 'text-gray-600'
               )}>Consultez les prochains événements du Ministère</p>
             </div>
-            <button 
-              onClick={() => setIsVisible(false)} 
+            <button
+              onClick={() => setIsVisible(false)}
               className={clsx(
                 'p-2 hover:bg-gray-100 rounded-full transition-colors',
                 isDark ? 'hover:bg-gray-100' : 'hover:bg-gray-200'
@@ -167,8 +138,8 @@ export default function MinisterialAgenda({ compact = false }) {
             {[1, 2, 3].map((index) => (
               <div key={index} className={clsx(
                 'animate-pulse rounded-xl p-4 border',
-                isDark 
-                  ? 'bg-white border-gray-100' 
+                isDark
+                  ? 'bg-white border-gray-100'
                   : 'bg-white border-gray-200 shadow-sm'
               )}>
                 <div className="flex items-start space-x-4">
@@ -194,17 +165,17 @@ export default function MinisterialAgenda({ compact = false }) {
         <div className="container mx-auto px-6">
           <div className={clsx(
             'border rounded-xl p-4',
-            isDark 
-              ? 'bg-red-50 border-red-100 text-red-600' 
+            isDark
+              ? 'bg-red-50 border-red-100 text-red-600'
               : 'bg-red-50 border-red-200 text-red-700'
           )}>
             <p className="font-medium">Une erreur est survenue</p>
             <p className="text-sm mt-1">{compact ? error : eventsError}</p>
             {/* Fallback anti-boucle : aucune redirection, bouton manuel uniquement */}
             <button
-              onClick={() => { 
+              onClick={() => {
                 if (compact) {
-                  setFetchAttempted(false); 
+                  setFetchAttempted(false);
                   setError(null);
                 } else {
                   setEventsError(null);
@@ -241,8 +212,8 @@ export default function MinisterialAgenda({ compact = false }) {
             {[...Array(3)].map((_, index) => (
               <div key={index} className={clsx(
                 'animate-pulse p-4 rounded-lg border',
-                isDark 
-                  ? 'bg-gray-800/50 border-gray-700' 
+                isDark
+                  ? 'bg-gray-800/50 border-gray-700'
                   : 'bg-gray-100 border-gray-200'
               )}>
                 <div className="flex items-center space-x-3">
@@ -267,8 +238,8 @@ export default function MinisterialAgenda({ compact = false }) {
         ) : error ? (
           <div className={clsx(
             'text-center py-8 px-4 rounded-lg border',
-            isDark 
-              ? 'bg-red-900/20 border-red-800 text-red-400' 
+            isDark
+              ? 'bg-red-900/20 border-red-800 text-red-400'
               : 'bg-red-50 border-red-200 text-red-600'
           )}>
             <AlertCircle className="w-8 h-8 mx-auto mb-2" />
@@ -300,8 +271,8 @@ export default function MinisterialAgenda({ compact = false }) {
                   onClick={() => setSelectedAnnouncement(announcement)}
                   className={clsx(
                     'p-4 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer',
-                    isDark 
-                      ? 'bg-gray-800/30 border-gray-700 hover:bg-gray-800/50 hover:border-gray-600' 
+                    isDark
+                      ? 'bg-gray-800/30 border-gray-700 hover:bg-gray-800/50 hover:border-gray-600'
                       : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-gray-300'
                   )}
                 >
@@ -311,21 +282,21 @@ export default function MinisterialAgenda({ compact = false }) {
                       <span className={clsx(
                         'text-xs px-2 py-1 rounded-full font-medium',
                         announcement.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' :
-                        announcement.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
-                        'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
+                          announcement.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
+                            'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
                       )}>
                         {announcement.priority === 'high' ? 'URGENT' :
-                         announcement.priority === 'medium' ? 'Important' : 'Info'}
+                          announcement.priority === 'medium' ? 'Important' : 'Info'}
                       </span>
-                      
+
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(announcement.startDate).toLocaleDateString('fr-FR', { 
-                          day: '2-digit', 
-                          month: '2-digit' 
+                        {new Date(announcement.startDate).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: '2-digit'
                         })}
                       </span>
                     </div>
-                    
+
                     {/* Titre */}
                     <h4 className={clsx(
                       'font-medium text-sm line-clamp-2 leading-tight',
@@ -333,7 +304,7 @@ export default function MinisterialAgenda({ compact = false }) {
                     )}>
                       {announcement.title}
                     </h4>
-                    
+
                     {/* Description tronquée */}
                     <p className={clsx(
                       'text-xs line-clamp-2 leading-relaxed',
@@ -341,7 +312,7 @@ export default function MinisterialAgenda({ compact = false }) {
                     )}>
                       {announcement.description}
                     </p>
-                    
+
                     {/* Indicateur "Cliquer pour lire" */}
                     <div className="text-xs text-niger-orange font-medium">
                       Cliquer pour lire →
@@ -350,15 +321,15 @@ export default function MinisterialAgenda({ compact = false }) {
                 </div>
               ))}
             </div>
-            
+
             {announcements.length > 5 && (
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Link
                   href="/admin/ministere?tab=announcements"
                   className={clsx(
                     'block text-center text-sm font-medium py-2 px-4 rounded-lg transition-colors',
-                    isDark 
-                      ? 'text-niger-orange hover:bg-niger-orange/10' 
+                    isDark
+                      ? 'text-niger-orange hover:bg-niger-orange/10'
                       : 'text-niger-orange hover:bg-niger-orange/10'
                   )}
                 >
@@ -368,7 +339,7 @@ export default function MinisterialAgenda({ compact = false }) {
             )}
           </>
         )}
-        
+
         {/* Modal pour lire l'annonce complète */}
         {selectedAnnouncement && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -380,13 +351,13 @@ export default function MinisterialAgenda({ compact = false }) {
                 <span className={clsx(
                   'text-xs px-2 py-1 rounded-full font-medium',
                   selectedAnnouncement.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' :
-                  selectedAnnouncement.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
-                  'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
+                    selectedAnnouncement.priority === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400' :
+                      'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
                 )}>
                   {selectedAnnouncement.priority === 'high' ? 'URGENT' :
-                   selectedAnnouncement.priority === 'medium' ? 'Important' : 'Info'}
+                    selectedAnnouncement.priority === 'medium' ? 'Important' : 'Info'}
                 </span>
-                
+
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
                   className={clsx(
@@ -397,19 +368,19 @@ export default function MinisterialAgenda({ compact = false }) {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <h3 className={clsx(
                 'text-lg font-bold mb-3',
                 isDark ? 'text-white' : 'text-gray-900'
               )}>
                 {selectedAnnouncement.title}
               </h3>
-              
+
               <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Du {new Date(selectedAnnouncement.startDate).toLocaleDateString('fr-FR')} 
+                Du {new Date(selectedAnnouncement.startDate).toLocaleDateString('fr-FR')}
                 au {new Date(selectedAnnouncement.endDate).toLocaleDateString('fr-FR')}
               </div>
-              
+
               <div className={clsx(
                 'text-sm leading-relaxed',
                 isDark ? 'text-gray-300' : 'text-gray-700'
@@ -442,15 +413,15 @@ export default function MinisterialAgenda({ compact = false }) {
             {[...Array(6)].map((_, index) => (
               <div key={index} className={clsx(
                 'animate-pulse rounded-xl p-4 border backdrop-blur-md',
-                isDark 
-                  ? 'bg-niger-white-glass/30 border-niger-orange/20' 
+                isDark
+                  ? 'bg-niger-white-glass/30 border-niger-orange/20'
                   : 'bg-white border-gray-200 shadow-sm'
               )}>
                 <div className="flex items-center space-x-4">
                   <div className={clsx(
                     'flex-shrink-0 w-14 h-14 rounded-lg border',
-                    isDark 
-                      ? 'bg-niger-green-glass/50 border-niger-green/40' 
+                    isDark
+                      ? 'bg-niger-green-glass/50 border-niger-green/40'
                       : 'bg-gray-100 border-gray-200'
                   )} />
                   <div className="flex-1 space-y-2">
@@ -512,16 +483,16 @@ export default function MinisterialAgenda({ compact = false }) {
                 key={event._id}
                 className={clsx(
                   'group p-4 rounded-xl border transition-all duration-300 transform hover:-translate-y-1 backdrop-blur-md',
-                  isDark 
-                    ? 'bg-niger-white-glass/30 border-niger-orange/20 hover:border-niger-orange/40 hover:shadow-glass' 
+                  isDark
+                    ? 'bg-niger-white-glass/30 border-niger-orange/20 hover:border-niger-orange/40 hover:shadow-glass'
                     : 'bg-white border-gray-200 hover:border-niger-orange/30 hover:shadow-lg shadow-md'
                 )}
               >
                 <div className="flex items-start space-x-4">
                   <div className={clsx(
                     'flex-shrink-0 w-14 h-14 rounded-lg border flex items-center justify-center',
-                    isDark 
-                      ? 'bg-niger-green-glass/50 border-niger-green/40' 
+                    isDark
+                      ? 'bg-niger-green-glass/50 border-niger-green/40'
                       : 'bg-niger-green-glass/20 border-niger-green/30'
                   )}>
                     <Calendar className={clsx(
@@ -529,7 +500,7 @@ export default function MinisterialAgenda({ compact = false }) {
                       isDark ? 'text-niger-green-light' : 'text-niger-green'
                     )} />
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <h3 className={clsx(
                       'font-semibold mb-1 line-clamp-2',
@@ -537,13 +508,13 @@ export default function MinisterialAgenda({ compact = false }) {
                     )}>
                       {event.title}
                     </h3>
-                    
+
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center text-niger-orange">
                         <Clock className="w-4 h-4 mr-2" />
                         <span>{new Date(event.date).toLocaleDateString('fr-FR')}</span>
                       </div>
-                      
+
                       {event.location && (
                         <div className={clsx(
                           'flex items-center',
@@ -553,7 +524,7 @@ export default function MinisterialAgenda({ compact = false }) {
                           <span className="line-clamp-1">{event.location}</span>
                         </div>
                       )}
-                      
+
                       {event.participants && (
                         <div className={clsx(
                           'flex items-center',
@@ -566,7 +537,7 @@ export default function MinisterialAgenda({ compact = false }) {
                     </div>
                   </div>
                 </div>
-                
+
                 {event.description && (
                   <p className={clsx(
                     'mt-3 text-sm line-clamp-2',
@@ -575,23 +546,23 @@ export default function MinisterialAgenda({ compact = false }) {
                     {event.description}
                   </p>
                 )}
-                
+
                 <div className="mt-4 flex items-center justify-between">
                   <span className={clsx(
                     'text-xs px-2 py-1 rounded-full',
-                    isDark 
-                      ? 'bg-white/10 text-white/60' 
+                    isDark
+                      ? 'bg-white/10 text-white/60'
                       : 'bg-gray-100 text-gray-600'
                   )}>
                     {event.category || 'Événement'}
                   </span>
-                  
+
                   <Link
                     href={`/evenements/${event._id}`}
                     className={clsx(
                       'inline-flex items-center text-sm font-medium group-hover:underline',
-                      isDark 
-                        ? 'text-niger-orange hover:text-niger-orange-light' 
+                      isDark
+                        ? 'text-niger-orange hover:text-niger-orange-light'
                         : 'text-niger-orange hover:text-niger-orange-dark'
                     )}
                   >
@@ -610,8 +581,8 @@ export default function MinisterialAgenda({ compact = false }) {
               href="/evenements"
               className={clsx(
                 'inline-flex items-center px-6 py-3 rounded-lg transition-all group shadow-lg',
-                isDark 
-                  ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white hover:from-niger-orange-dark hover:to-niger-green-dark shadow-glass' 
+                isDark
+                  ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white hover:from-niger-orange-dark hover:to-niger-green-dark shadow-glass'
                   : 'bg-niger-green text-white hover:bg-niger-green-dark shadow-niger-green'
               )}
             >

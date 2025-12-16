@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Bell, X, AlertTriangle, Loader2 } from 'lucide-react';
 
 
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapAlert } from '@/utils/strapiMapper';
+
 export default function AlertBanner() {
   const [alerts, setAlerts] = useState([]);
   const [currentAlert, setCurrentAlert] = useState(0);
@@ -22,7 +25,7 @@ export default function AlertBanner() {
   // Auto-rotation des alertes
   useEffect(() => {
     if (alerts.length <= 1) return;
-    
+
     const timer = setInterval(() => {
       setIsAnimating(true);
       setTimeout(() => {
@@ -39,15 +42,15 @@ export default function AlertBanner() {
     setError(null);
     setFetchAttempted(true);
     try {
-      const response = await fetch('/api/alerts');
-      if (!response.ok) {
-        let message = `Erreur de chargement des alertes (${response.status})`;
-        if (response.status === 429) message = 'Trop de requêtes, veuillez patienter.';
-        if (response.status === 401) message = 'Accès non autorisé.';
-        if (response.status === 403) message = 'Accès interdit.';
-        throw new Error(message);
-      }
-      const data = await response.json();
+      // Fetch active alerts
+      const response = await fetchAPI(endpoints.alerts, {
+        filters: {
+          // You might want to filter by date if you added status/date logic in Strapi
+          // For now, fetching all and filtering in frontend or trusting API
+        },
+        pagination: { limit: 10 }
+      });
+      const data = mapStrapiList(response, mapAlert);
       setAlerts(data);
     } catch (error) {
       console.error('Erreur:', error);
@@ -125,9 +128,8 @@ export default function AlertBanner() {
               )}
             </span>
 
-            <div className={`ml-3 flex-1 transition-all duration-500 ${
-              isAnimating ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'
-            }`}>
+            <div className={`ml-3 flex-1 transition-all duration-500 ${isAnimating ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'
+              }`}>
               <p className="font-semibold text-white">
                 {alerts[currentAlert].title}
               </p>
@@ -136,25 +138,24 @@ export default function AlertBanner() {
               </p>
             </div>
           </div>
-          
+
           {alerts.length > 1 && (
             <div className="flex items-center space-x-2 mx-4">
               {alerts.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentAlert(idx)}
-                  className={`transition-all duration-300 ${
-                    idx === currentAlert
+                  className={`transition-all duration-300 ${idx === currentAlert
                       ? 'w-6 h-1.5 bg-white'
                       : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/75'
-                  } rounded-full`}
+                    } rounded-full`}
                   aria-label={`Afficher l'alerte ${idx + 1}`}
                 />
               ))}
             </div>
           )}
-          
-          <button 
+
+          <button
             onClick={() => setIsDismissed(true)}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors ml-4"
           >

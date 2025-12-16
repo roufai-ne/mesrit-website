@@ -7,7 +7,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { fetchWithApiKey } from "@/lib/publicApi";
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapStatistic } from '@/utils/strapiMapper';
 import toast from "react-hot-toast";
 
 export default function StatsSection() {
@@ -40,72 +41,69 @@ export default function StatsSection() {
           setRefreshing(true);
         }
 
-        // Ajouter un timestamp pour éviter le cache
-        const response = await fetchWithApiKey(
-          `/api/stats/homepage?t=${Date.now()}`,
-          {
-            cache: "no-store",
-            headers: {
-              "Cache-Control": "no-cache",
-            },
-          }
-        );
+        const response = await fetchAPI(endpoints.statistics, {
+          sort: ['order:asc'],
+          pagination: { limit: 10 }
+        });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.stats) {
-            setStats((prevStats) => {
-              const hasChanged =
-                JSON.stringify(prevStats) !== JSON.stringify(data.stats);
+        const dataList = mapStrapiList(response, mapStatistic);
 
-              // Initialiser immédiatement les valeurs animées avec les vraies valeurs
-              const initialAnimatedStats = {};
-              Object.entries(data.stats).forEach(([key, stat]) => {
-                initialAnimatedStats[key] = stat.value;
-              });
-              setAnimatedStats(initialAnimatedStats);
+        // Transform list to object with keys
+        const statsObject = {};
+        dataList.forEach(stat => {
+          statsObject[stat.key] = stat;
+        });
 
-              setError(null);
-              setLastUpdated(new Date());
-
-              // Redémarre l'animation seulement si les données ont changé ou premier chargement
-              if (hasChanged || !silent) {
-                setTimeout(() => animateCounters(data.stats), silent ? 200 : 500);
-              }
-
-              return data.stats;
-            });
-          } else {
-            throw new Error("Format de données invalide");
-          }
-        } else {
-          throw new Error(`Erreur HTTP: ${response.status}`);
+        // Use defaults if empty
+        if (Object.keys(statsObject).length === 0) {
+          throw new Error("No stats found in Strapi");
         }
+
+        setStats((prevStats) => {
+          const hasChanged = JSON.stringify(prevStats) !== JSON.stringify(statsObject);
+
+          // Initialize animated stats
+          if (!prevStats) {
+            const initialAnimatedStats = {};
+            Object.entries(statsObject).forEach(([key, stat]) => {
+              initialAnimatedStats[key] = stat.value;
+            });
+            setAnimatedStats(initialAnimatedStats);
+          }
+
+          setError(null);
+          setLastUpdated(new Date());
+
+          if (hasChanged || !silent) {
+            setTimeout(() => animateCounters(statsObject), silent ? 200 : 500);
+          }
+          return statsObject;
+        });
+
       } catch (error) {
         console.error("Erreur lors du chargement des statistiques:", error);
         setError(error.message);
 
         if (!silent) {
-          toast.error("Erreur lors du chargement des statistiques");
+          // toast.error("Erreur lors du chargement des statistiques");
         }
 
         // Utilise les stats par défaut seulement si on n'a pas encore de données
         setStats((prevStats) => {
           if (!prevStats) {
             const defaultStats = {
-              students: { value: 25000, label: "Étudiants", color: "blue" },
+              students: { value: 25000, label: "Étudiants", color: "blue", suffix: "+" },
               institutions: {
                 value: 15,
                 label: "Établissements",
                 color: "green",
               },
-              teachers: { value: 1500, label: "Enseignants", color: "purple" },
+              teachers: { value: 1500, label: "Enseignants", color: "purple", suffix: "+" },
               publications: {
-                value: 0,
+                value: 120,
                 label: "Publications Scientifiques",
                 color: "orange",
-              },
-              // Retirer les actualités et services
+              }
             };
 
             // Initialiser immédiatement les valeurs animées avec les valeurs par défaut
@@ -221,11 +219,10 @@ export default function StatsSection() {
       <section className="py-8 relative overflow-hidden">
         {/* Arrière-plan avec gradient */}
         <div
-          className={`absolute inset-0 ${
-            isDark
+          className={`absolute inset-0 ${isDark
               ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
               : "bg-gradient-to-br from-blue-50 via-white to-orange-50"
-          }`}
+            }`}
         >
           <div
             className="absolute inset-0 opacity-40"
@@ -267,11 +264,10 @@ export default function StatsSection() {
     <section className="py-8 relative overflow-hidden">
       {/* Arrière-plan avec gradient */}
       <div
-        className={`absolute inset-0 ${
-          isDark
+        className={`absolute inset-0 ${isDark
             ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
             : "bg-gradient-to-br from-blue-50 via-white to-orange-50"
-        }`}
+          }`}
       >
         <div
           className="absolute inset-0 opacity-40"
@@ -286,20 +282,18 @@ export default function StatsSection() {
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="flex items-center gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isDark
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark
                     ? "bg-orange-500/20 text-orange-400"
                     : "bg-orange-100 text-orange-600"
-                }`}
+                  }`}
               >
                 <Users className="w-4 h-4" />
               </div>
               <h2
-                className={`text-2xl font-bold bg-gradient-to-r ${
-                  isDark
+                className={`text-2xl font-bold bg-gradient-to-r ${isDark
                     ? "from-white to-gray-300"
                     : "from-gray-900 to-gray-600"
-                } bg-clip-text text-transparent`}
+                  } bg-clip-text text-transparent`}
               >
                 MESRIT en Chiffres
               </h2>
@@ -307,21 +301,18 @@ export default function StatsSection() {
             <button
               onClick={handleRefresh}
               disabled={loading || refreshing}
-              className={`p-3 rounded-full border transition-all duration-300 hover:scale-110 transform ${
-                isDark
+              className={`p-3 rounded-full border transition-all duration-300 hover:scale-110 transform ${isDark
                   ? "border-orange-500/30 text-orange-400 hover:bg-orange-500/20 hover:shadow-orange-500/20"
                   : "border-orange-200 text-orange-600 hover:bg-orange-50 hover:shadow-orange-500/20"
-              } ${
-                loading || refreshing
+                } ${loading || refreshing
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:shadow-xl"
-              }`}
+                }`}
               title="Actualiser les statistiques"
             >
               <RefreshCw
-                className={`w-5 h-5 ${
-                  loading || refreshing ? "animate-spin" : ""
-                }`}
+                className={`w-5 h-5 ${loading || refreshing ? "animate-spin" : ""
+                  }`}
               />
             </button>
           </div>
@@ -372,23 +363,21 @@ export default function StatsSection() {
                   {/* Icône avec effet de background */}
                   <div className="relative mb-4">
                     <div
-                      className={`stats-icon w-12 h-12 mx-auto rounded-xl flex items-center justify-center ${
-                        isDark ? "bg-white/10" : "bg-white/80"
-                      } shadow-lg`}
+                      className={`stats-icon w-12 h-12 mx-auto rounded-xl flex items-center justify-center ${isDark ? "bg-white/10" : "bg-white/80"
+                        } shadow-lg`}
                     >
                       <Icon className="w-6 h-6" />
                     </div>
                     {/* Effet de halo */}
                     <div
-                      className={`absolute inset-0 w-12 h-12 mx-auto rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl ${
-                        stat.color === "blue"
+                      className={`absolute inset-0 w-12 h-12 mx-auto rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl ${stat.color === "blue"
                           ? "bg-blue-500"
                           : stat.color === "green"
-                          ? "bg-green-500"
-                          : stat.color === "purple"
-                          ? "bg-purple-500"
-                          : "bg-orange-500"
-                      }`}
+                            ? "bg-green-500"
+                            : stat.color === "purple"
+                              ? "bg-purple-500"
+                              : "bg-orange-500"
+                        }`}
                     ></div>
                   </div>
 
@@ -463,16 +452,13 @@ export default function StatsSection() {
         {/* Note sur les données avec style amélioré */}
         <div className="text-center mt-12">
           <div
-            className={`inline-flex items-center gap-4 px-6 py-3 rounded-full ${
-              isDark ? "bg-gray-800/50" : "bg-white/50"
-            } backdrop-blur-sm border ${
-              isDark ? "border-gray-700" : "border-gray-200"
-            } shadow-lg`}
+            className={`inline-flex items-center gap-4 px-6 py-3 rounded-full ${isDark ? "bg-gray-800/50" : "bg-white/50"
+              } backdrop-blur-sm border ${isDark ? "border-gray-700" : "border-gray-200"
+              } shadow-lg`}
           >
             <p
-              className={`text-sm font-medium ${
-                isDark ? "text-gray-300" : "text-gray-600"
-              }`}
+              className={`text-sm font-medium ${isDark ? "text-gray-300" : "text-gray-600"
+                }`}
             >
               Données officielles MESRIT • 2024-2025
             </p>
@@ -480,9 +466,8 @@ export default function StatsSection() {
               <>
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span
-                  className={`text-sm font-semibold ${
-                    isDark ? "text-green-400" : "text-green-600"
-                  }`}
+                  className={`text-sm font-semibold ${isDark ? "text-green-400" : "text-green-600"
+                    }`}
                 >
                   Temps réel
                 </span>
@@ -492,9 +477,8 @@ export default function StatsSection() {
               <>
                 <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                 <span
-                  className={`text-sm font-semibold ${
-                    isDark ? "text-yellow-400" : "text-yellow-600"
-                  }`}
+                  className={`text-sm font-semibold ${isDark ? "text-yellow-400" : "text-yellow-600"
+                    }`}
                 >
                   Mode dégradé
                 </span>

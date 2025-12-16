@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "directors",
+  "info": {
+    "singularName": "director",
+    "pluralName": "directors",
+    "displayName": "Director",
+    "description": "Directeurs et Responsables (Organigramme)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true
+    },
+    "titre": {
+      "type": "string",
+      "required": true
+    },
+    "direction": {
+      "type": "string"
+    },
+    "key": {
+      "type": "string"
+    },
+    "nomComplet": {
+      "type": "string"
+    },
+    "responsable": {
+      "type": "string"
+    },
+    "mission": {
+      "type": "text"
+    },
+    "email": {
+      "type": "email"
+    },
+    "telephone": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}

@@ -1,9 +1,8 @@
-import { connectDB } from '@/lib/mongodb';
-import Newsletter from '@/models/Newsletter';
-import crypto from 'crypto';
+// Configuration
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+const STRAPI_TOKEN = process.env.STRAPI_ADMIN_TOKEN;
 
 export default async function handler(req, res) {
-  await connectDB();
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -15,24 +14,46 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Token requis' });
     }
 
-    const subscriber = await Newsletter.findOne({
-      unsubscribeToken: token,
-      unsubscribeTokenExpires: { $gt: new Date() },
+    // 1. Find subscriber by token
+    const query = new URLSearchParams({
+      'filters[unsubscribeToken][$eq]': token,
+      'filters[unsubscribeTokenExpires][$gt]': new Date().toISOString()
     });
+
+    const searchRes = await fetch(`${STRAPI_URL}/api/subscribers?${query}`, {
+      headers: { Authorization: `Bearer ${STRAPI_TOKEN}` }
+    });
+
+    if (!searchRes.ok) throw new Error('Erreur Strapi fetch');
+
+    const searchData = await searchRes.json();
+    const subscriber = searchData.data?.[0];
 
     if (!subscriber) {
       return res.status(400).json({ error: 'Token invalide ou expiré' });
     }
 
-    // Mettre à jour le statut à 'unsubscribed'
-    subscriber.status = 'unsubscribed';
-    subscriber.unsubscribeToken = undefined;
-    subscriber.unsubscribeTokenExpires = undefined;
-    await subscriber.save();
+    // 2. Update subscriber
+    const updateRes = await fetch(`${STRAPI_URL}/api/subscribers/${subscriber.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${STRAPI_TOKEN}`
+      },
+      body: JSON.stringify({
+        data: {
+          status: 'unsubscribed',
+          unsubscribeToken: null,
+          unsubscribeTokenExpires: null
+        }
+      })
+    });
+
+    if (!updateRes.ok) throw new Error('Erreur Strapi update');
 
     return res.status(200).json({ message: 'Désinscription réussie' });
   } catch (error) {
-    console.error(error);
+    console.error('Unsubscribe Newsletter Error:', error);
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 }

@@ -1,19 +1,20 @@
 // src/pages/etablissements/instituts.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  School, 
-  MapPin, 
-  Users, 
-  BookOpen, 
-  ChevronRight, 
+import {
+  School,
+  MapPin,
+  Users,
+  BookOpen,
+  ChevronRight,
   Search,
   Award,
   FlaskConical,
   Briefcase
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
 
 export default function InstitutsPage() {
   const [instituts, setInstituts] = useState([]);
@@ -30,7 +31,11 @@ export default function InstitutsPage() {
   const fetchInstituts = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/establishments?type=Institut', false);
+      const response = await fetchAPI(endpoints.establishments, {
+        filters: { type: 'Institut' },
+        pagination: { limit: 100 }
+      });
+      const data = mapStrapiList(response, mapEstablishment);
       setInstituts(data);
     } catch (error) {
       console.error('Erreur:', error);
@@ -41,7 +46,7 @@ export default function InstitutsPage() {
 
   const filteredInstituts = instituts.filter(institut => {
     const matchesSearch = institut.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         institut.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      institut.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDomain = selectedDomain === 'all' || institut.domain === selectedDomain;
     return matchesSearch && matchesDomain;
   });
@@ -95,17 +100,17 @@ export default function InstitutsPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Instituts</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <School className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Instituts Spécialisés</h1>
           </div>
-          
+
           <p className="text-xl text-purple-100 max-w-3xl">
-            Des institutions spécialisées offrant une formation technique et professionnelle 
+            Des institutions spécialisées offrant une formation technique et professionnelle
             de haut niveau dans des domaines stratégiques pour le développement du Niger.
           </p>
-          
+
           <div className="mt-6 text-purple-100">
             {filteredInstituts.length} institut{filteredInstituts.length > 1 ? 's' : ''} trouvé{filteredInstituts.length > 1 ? 's' : ''}
           </div>
@@ -152,11 +157,10 @@ export default function InstitutsPage() {
                 <button
                   key={domain}
                   onClick={() => setSelectedDomain(domain)}
-                  className={`p-4 rounded-xl transition-all text-center ${
-                    selectedDomain === domain
+                  className={`p-4 rounded-xl transition-all text-center ${selectedDomain === domain
                       ? 'bg-purple-600 text-white shadow-lg'
                       : 'bg-white hover:bg-purple-50 shadow'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-center mb-2">
                     {getDomainIcon(domain)}
@@ -191,7 +195,7 @@ export default function InstitutsPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{institut.nom}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-3">{institut.description}</p>

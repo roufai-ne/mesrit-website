@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  HelpCircle, 
-  Search, 
-  Mail, 
-  Plus, 
-  Minus, 
-  AlertCircle, 
-  BookOpen, 
-  FileText, 
-  Loader 
+import {
+  ChevronRight,
+  ChevronDown,
+  HelpCircle,
+  Search,
+  Mail,
+  Plus,
+  Minus,
+  AlertCircle,
+  BookOpen,
+  FileText,
+  Loader
 } from 'lucide-react';
-import Link from 'next/link';
 import { sanitizeForReact } from '@/lib/sanitize';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList } from '@/utils/strapiMapper';
+
+const mapFAQ = (faq) => ({
+  _id: faq.id,
+  question: faq.attributes.question,
+  answer: faq.attributes.answer,
+  category: faq.attributes.category
+});
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState([]);
@@ -29,13 +37,13 @@ export default function FAQPage() {
     const fetchFAQs = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/faq');
-        if (!response.ok) {
-          throw new Error('Erreur lors du chargement des FAQs');
-        }
-        const data = await response.json();
+        const response = await fetchAPI(endpoints.faqs, {
+          sort: ['order:asc', 'publishedAt:desc'],
+          pagination: { limit: 100 }
+        });
+        const data = mapStrapiList(response, mapFAQ);
         setFaqs(data);
-        
+
         // Initialiser l'état d'expansion (premier élément ouvert)
         if (data.length > 0) {
           setExpandedItems({ [data[0]._id]: true });
@@ -52,8 +60,8 @@ export default function FAQPage() {
 
   // Filtrage des FAQs en fonction de la recherche
   const filteredFaqs = faqs.filter(faq => {
-    const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
@@ -109,12 +117,12 @@ export default function FAQPage() {
             <ChevronRight className="w-4 h-4 mx-2" aria-hidden="true" />
             <span aria-current="page">Foire Aux Questions</span>
           </nav>
-          
+
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Foire Aux Questions
           </h1>
           <p className="text-xl text-blue-100 max-w-3xl">
-            Trouvez rapidement des réponses à vos questions concernant l'enseignement 
+            Trouvez rapidement des réponses à vos questions concernant l'enseignement
             supérieur, les procédures administratives et les services du ministère.
           </p>
 
@@ -139,18 +147,17 @@ export default function FAQPage() {
       {/* Main Content */}
       <main className="py-16 bg-gray-50">
         <div className="container mx-auto px-6">
-          
+
           {/* Filtres par catégorie */}
           <div className="mb-10 flex flex-wrap gap-2">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  activeCategory === category
-                    ? 'bg-niger-orange text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 border border-gray-200 dark:border-gray-600'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === category
+                  ? 'bg-niger-orange text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 border border-gray-200 dark:border-gray-600'
+                  }`}
               >
                 {category === 'all' ? 'Toutes les questions' : category}
               </button>
@@ -204,11 +211,11 @@ export default function FAQPage() {
                         )}
                       </div>
                     </button>
-                    
+
                     {expandedItems[faq._id] && (
                       <div className="px-6 pb-5 pt-1">
                         <div className="border-t border-gray-100 dark:border-gray-600 pt-4">
-                          <div 
+                          <div
                             className="prose prose-niger-orange max-w-none text-gray-700 dark:text-gray-300"
                             dangerouslySetInnerHTML={sanitizeForReact(faq.answer, 'rich')}
                           />
@@ -231,7 +238,7 @@ export default function FAQPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Aucun résultat trouvé</h3>
                   <p className="text-gray-700 dark:text-gray-300">
-                    Aucune FAQ ne correspond à votre recherche. Essayez d'autres termes ou consultez 
+                    Aucune FAQ ne correspond à votre recherche. Essayez d'autres termes ou consultez
                     toutes les questions en effaçant votre recherche.
                   </p>
                 </div>
@@ -242,7 +249,7 @@ export default function FAQPage() {
           {/* Ressources supplémentaires */}
           <section aria-labelledby="additional-resources" className="bg-white rounded-xl shadow-lg p-8 mt-16">
             <h2 id="additional-resources" className="text-2xl font-bold mb-8">Ressources supplémentaires</h2>
-            
+
             <div className="grid md:grid-cols-3 gap-6">
               {resourceGroups.map((group) => {
                 const Icon = group.icon;
@@ -257,7 +264,7 @@ export default function FAQPage() {
                     <ul className="space-y-2 pl-12">
                       {group.items.map((item) => (
                         <li key={item.title}>
-                          <Link 
+                          <Link
                             href={item.link}
                             className="text-gray-700 hover:text-blue-600 hover:underline flex items-center"
                           >
@@ -277,10 +284,10 @@ export default function FAQPage() {
           <div className="bg-blue-50 rounded-xl shadow-sm p-8 mt-16 text-center">
             <h2 className="text-xl font-bold mb-4">Vous n'avez pas trouvé votre réponse ?</h2>
             <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Si vous ne trouvez pas la réponse à votre question, n'hésitez pas à nous contacter 
+              Si vous ne trouvez pas la réponse à votre question, n'hésitez pas à nous contacter
               directement. Notre équipe vous répondra dans les plus brefs délais.
             </p>
-            <Link 
+            <Link
               href="/contact"
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >

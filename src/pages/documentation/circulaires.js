@@ -1,17 +1,19 @@
 // src/pages/documentation/circulaires.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  FileText, 
-  Download, 
-  Calendar, 
-  ChevronRight, 
+import {
+  FileText,
+  Download,
+  Calendar,
+  ChevronRight,
   Search,
   AlertTriangle,
   Target
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+// import { secureApi } from '@/lib/secureApi'; // REMOVED
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapDocument } from '@/utils/strapiMapper';
 
 export default function CirculairesPage() {
   const [documents, setDocuments] = useState([]);
@@ -29,8 +31,13 @@ export default function CirculairesPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/documents?category=circulaires', false);
-      setDocuments(data.filter(doc => doc.status === 'published'));
+      const response = await fetchAPI(endpoints.documents, {
+        filters: { category: 'circulaire' },
+        populate: ['file'],
+        pagination: { limit: 100 },
+        sort: ['publicationDate:desc']
+      });
+      setDocuments(mapStrapiList(response, mapDocument));
     } catch (error) {
       console.error('Erreur:', error);
       setError(error.message);
@@ -41,9 +48,9 @@ export default function CirculairesPage() {
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesYear = selectedYear === 'all' || 
-                       new Date(doc.publicationDate).getFullYear().toString() === selectedYear;
+      doc.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesYear = selectedYear === 'all' ||
+      new Date(doc.publicationDate).getFullYear().toString() === selectedYear;
     return matchesSearch && matchesYear;
   });
 
@@ -77,17 +84,17 @@ export default function CirculairesPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Circulaires</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <FileText className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Circulaires Ministérielles</h1>
           </div>
-          
+
           <p className="text-xl text-blue-100 max-w-3xl">
-            Accédez aux circulaires, notes de service et instructions du ministère 
+            Accédez aux circulaires, notes de service et instructions du ministère
             destinées aux établissements d'enseignement supérieur.
           </p>
-          
+
           <div className="mt-6 text-blue-100">
             {filteredDocuments.length} circulaire{filteredDocuments.length > 1 ? 's' : ''} trouvée{filteredDocuments.length > 1 ? 's' : ''}
           </div>
@@ -129,7 +136,7 @@ export default function CirculairesPage() {
           {/* Liste des circulaires */}
           <div className="space-y-4">
             {filteredDocuments.map((doc) => (
-              <div 
+              <div
                 key={doc._id}
                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
               >
@@ -146,10 +153,10 @@ export default function CirculairesPage() {
                         </span>
                       )}
                     </div>
-                    
+
                     <h3 className="text-xl font-bold mb-3 text-gray-900">{doc.title}</h3>
                     <p className="text-gray-600 mb-4 line-clamp-2">{doc.description}</p>
-                    
+
                     <div className="flex items-center text-sm text-gray-500 space-x-4">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2" />
@@ -171,7 +178,7 @@ export default function CirculairesPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   <a
                     href={doc.url}
                     download

@@ -4,8 +4,6 @@
  * Utilise OpenAI API pour répondre aux questions sur le contenu public
  */
 
-import { connectDB } from './mongodb';
-import News from '@/models/News';
 import SearchService from '@/services/search';
 import StatsService from '@/services/statsService';
 
@@ -19,7 +17,7 @@ export class AIChatService {
    * Utilise désormais la recherche intelligente pour un contexte pertinent
    */
   static async getSiteContext(userQuestion = null) {
-    // Contexte de base (toujours disponible, même sans MongoDB)
+    // Contexte de base
     const siteInfo = {
       name: "MESRIT - Ministère de l'Enseignement Supérieur de la Recherche et de l'Innovation Technologique",
       description: "Site officiel du MESRIT",
@@ -41,9 +39,6 @@ export class AIChatService {
     };
 
     try {
-      // Tenter de se connecter à MongoDB
-      await connectDB();
-
       // Si une question est fournie, utiliser la recherche adaptative
       let relevantContent = [];
       if (userQuestion) {
@@ -53,13 +48,6 @@ export class AIChatService {
         // Sinon, récupérer le contexte général
         relevantContent = await SearchService.getGeneralContext(5);
       }
-
-      // Récupérer aussi quelques actualités récentes
-      const recentNews = await News.find({ status: 'published' })
-        .select('title slug excerpt category createdAt')
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .lean();
 
       // Récupérer les statistiques si la question concerne des chiffres
       let statistics = null;
@@ -85,24 +73,18 @@ export class AIChatService {
           // Limiter le contenu pour économiser les tokens (max 800 chars)
           content: item.content?.substring(0, 800) || item.description
         })),
-        recentNews: recentNews.map(news => ({
-          title: news.title,
-          excerpt: news.excerpt,
-          category: news.category,
-          date: news.createdAt
-        })),
         statistics
       };
     } catch (error) {
-      console.error('[AIChatService] Erreur récupération contexte depuis MongoDB:', error.message);
-      console.warn('[AIChatService] Utilisation du contexte de base (mode dégradé)');
+      console.error('[AIChatService] Erreur récupération contexte:', error.message);
 
       // Retourner un contexte minimal mais fonctionnel
       return {
         siteInfo,
         relevantContent: [],
-        recentNews: [],
-        degradedMode: true
+        relevantContent: [],
+        degradedMode: true,
+        error: error.message // DEBUG: Exposed error
       };
     }
   }
@@ -133,7 +115,7 @@ RÈGLES IMPORTANTES:
 4. Si tu ne trouves pas l'information exacte dans le contexte, suggère de:
    - Consulter la page concernée (en indiquant l'URL si disponible)
    - Contacter le ministère directement via la page /contact
-5. JAMAIS d'informations inventées - reste fidèle au contexte fourni
+5. JAMAIS d'informations inventé - reste fidèle au contexte fourni
 ${context.degradedMode ? '6. En mode dégradé, informe l\'utilisateur que le contenu complet n\'est pas disponible actuellement' : ''}
 
 PAGES PRINCIPALES DU SITE:
@@ -148,19 +130,12 @@ ${context.relevantContent && context.relevantContent.length > 0 ? `
 CONTEXTE PERTINENT:
 Pages et informations du site:
 ${context.relevantContent.map((item, i) =>
-  `${i + 1}. [${item.type === 'page' ? 'PAGE' : 'ACTUALITÉ'}] ${item.title}
+      `${i + 1}. [${item.type === 'page' ? 'PAGE' : 'ACTUALITÉ'}] ${item.title}
    Section: ${item.section}
    ${item.description ? `Description: ${item.description}` : ''}
    ${item.content ? `Contenu: ${item.content.substring(0, 500)}...` : ''}
    URL: ${item.url}
 `).join('\n')}
-` : ''}
-
-${context.recentNews && context.recentNews.length > 0 ? `
-DERNIÈRES ACTUALITÉS:
-${context.recentNews.map((news, i) =>
-  `${i + 1}. ${news.title} (${news.category}) - ${news.excerpt || 'Voir l\'actualité pour plus de détails'}`
-).join('\n')}
 ` : ''}
 
 Réponds toujours en français, de manière professionnelle et concise. Cite les URLs quand tu fais référence à des pages spécifiques.`;
@@ -328,7 +303,7 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
       return { valid: false, reason: 'Message trop long (max 1000 caractères)' };
     }
 
-    // Filtrage basique de contenu inapproprié (à personnaliser)
+    // Filtrage basique de contenu inapproprié
     const inappropriatePatterns = [
       /\b(spam|hack|exploit)\b/i
     ];

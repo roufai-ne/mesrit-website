@@ -1,236 +1,90 @@
-// middleware/securityMiddleware.js
-import ApiSecurity from '@/lib/apiSecurity';
-import { verifyToken } from '@/lib/auth';
-import rateLimit from 'express-rate-limit';
-import { sanitize } from 'express-mongo-sanitize';
-import crypto from 'crypto';
-import { applySecurityHeaders, getCSPForPage } from '@/lib/securityHeaders';
-import { sanitizeInput } from '@/lib/sanitize';
-
-// Configuration du rate limiting avec options avancées
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limite à 100 requêtes par fenêtre
-  keyGenerator: (req) => {
-    return req.headers['x-api-key'] || req.ip;
-  },
-  handler: (req, res) => {
-    res.status(429).json({
-      message: 'Trop de requêtes, veuillez réessayer plus tard.',
-      retryAfter: res.getHeader('Retry-After')
-    });
-  },
-  skipFailedRequests: true, // Ne pas compter les requêtes échouées
-  standardHeaders: true, // Retourne les headers standards de rate limit
-  legacyHeaders: false // Désactive les anciens headers
-});
-
-// Types de routes
-const ROUTE_TYPES = {
-  PUBLIC: 'public',      // Accessible à tous avec API key
-  PROTECTED: 'protected' // Nécessite API key + authentification
+export const ROUTE_TYPES = {
+    PUBLIC: 'public',
+    PROTECTED: 'protected',
+    ADMIN: 'admin'
 };
 
-// Headers de sécurité SIMPLIFIÉS pour APIs (compatible site web)
-// En production, Caddy gère la CSP - on ne l'applique qu'en développement
-const getEnhancedSecurityHeaders = (routeType = 'api') => {
-  const headers = {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'SAMEORIGIN', // Permissif
-    'X-XSS-Protection': '0', // Désactivé (obsolète)
-    'Referrer-Policy': 'no-referrer-when-downgrade',
-    'Permissions-Policy': 'interest-cohort=()',
-    'Cross-Origin-Opener-Policy': 'unsafe-none', // Permissif
-    'Cross-Origin-Resource-Policy': 'cross-origin', // Permissif
-    'Cross-Origin-Embedder-Policy': 'unsafe-none', // Permissif
-    'Cache-Control': routeType === 'api'
-      ? 'no-store, no-cache, must-revalidate, proxy-revalidate'
-      : 'public, max-age=31536000, immutable'
-  };
+// Simple In-Memory Rate Limiter (replacement for Redis)
+class SimpleRateLimit {
+    constructor(windowMs = 60000, maxRequests = 100) {
+        this.windowMs = windowMs;
+        this.maxRequests = maxRequests;
+        this.hits = new Map();
 
-  // CSP uniquement en développement (en production = géré par Caddy)
-  if (process.env.NODE_ENV !== 'production') {
-    headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:";
-    headers['Strict-Transport-Security'] = 'max-age=0'; // Pas de HSTS forcé en dev
-  }
-
-  return headers;
-};
-
-// Configuration des limites de requête
-const REQUEST_LIMITS = {
-  MAX_BODY_SIZE: 5*1024 * 1024, // 1MB
-  MAX_FIELDS: 1000
-};
-
-// Fonction de validation du Content-Type
-const validateContentType = (req) => {
-  // Pour les méthodes GET et HEAD, pas besoin de vérifier le Content-Type
-  if (req.method === 'GET' || req.method === 'HEAD') return true;
-  
-  // Pour les uploads de fichiers (généralement en POST avec multipart/form-data)
-  if (req.method === 'POST' && req.headers['content-type']?.includes('multipart/form-data')) {
-    return true;
-  }
-  
-  // Pour les autres requêtes, vérifier que c'est du JSON
-  const contentType = req.headers['content-type'];
-  return contentType && contentType.includes('application/json');
-};
-
-// Enhanced sanitization with DOMPurify integration
-const sanitizeRequest = (req) => {
-  // Validation de la taille de la requête
-  const contentLength = parseInt(req.headers['content-length'] || 0);
-  if (contentLength > REQUEST_LIMITS.MAX_BODY_SIZE) {
-    throw new Error('Request too large');
-  }
-
-  // Enhanced sanitization using our custom sanitize utility
-  const deepSanitize = (obj) => {
-    if (Array.isArray(obj)) {
-      return obj.map(deepSanitize);
+        // Cleanup interval
+        setInterval(() => this.cleanup(), windowMs);
     }
-    if (obj && typeof obj === 'object') {
-      const sanitizedObj = {};
-      for (const [key, value] of Object.entries(obj)) {
-        if (Object.keys(sanitizedObj).length >= REQUEST_LIMITS.MAX_FIELDS) {
-          throw new Error('Too many fields in request');
+
+    cleanup() {
+        const now = Date.now();
+        for (const [ip, data] of this.hits.entries()) {
+            if (now - data.timestamp > this.windowMs) {
+                this.hits.delete(ip);
+            }
         }
-        // Use both mongo sanitize and our custom sanitizer
-        const cleanKey = sanitize(key);
-        sanitizedObj[cleanKey] = deepSanitize(value);
-      }
-      return sanitizedObj;
     }
-    // Use our enhanced sanitization for strings
-    return typeof obj === 'string' ? sanitizeInput(sanitize(obj)) : sanitize(obj);
-  };
 
-  req.body = deepSanitize(req.body);
-  req.query = deepSanitize(req.query);
-  req.params = deepSanitize(req.params);
-};
+    check(req, res) {
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+        const now = Date.now();
 
-// Gestion avancée des erreurs
-const handleError = (error, req, res) => {
-  const errorId = crypto.randomUUID();
-  
-  // Log structuré de l'erreur
-  console.error({
-    errorId,
-    timestamp: new Date().toISOString(),
-    type: error.name,
-    message: error.message,
-    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-    request: {
-      method: req.method,
-      url: req.url,
-      headers: Object.keys(req.headers).reduce((acc, key) => {
-        // Ne pas logger les informations sensibles
-        if (!['authorization', 'cookie', 'x-api-key'].includes(key.toLowerCase())) {
-          acc[key] = req.headers[key];
+        if (!this.hits.has(ip)) {
+            this.hits.set(ip, { count: 1, timestamp: now });
+            return true;
         }
-        return acc;
-      }, {}),
-      ip: req.ip
+
+        const data = this.hits.get(ip);
+
+        if (now - data.timestamp > this.windowMs) {
+            // Reset window
+            data.count = 1;
+            data.timestamp = now;
+            return true;
+        }
+
+        if (data.count >= this.maxRequests) {
+            return false;
+        }
+
+        data.count++;
+        return true;
     }
-  });
-
-  // Réponse sécurisée
-  return res.status(error.status || 500).json({
-    errorId,
-    message: error.publicMessage || 'Une erreur est survenue',
-    ...(process.env.NODE_ENV === 'development' && {
-      detail: error.message,
-      stack: error.stack
-    })
-  });
-};
-
-// Middleware principal de sécurité
-export function securityMiddleware(routeType = ROUTE_TYPES.PUBLIC) {
-  return async (req, res, next) => {
-    try {
-      console.log(`Method: ${req.method}, Route type: ${routeType}`);
-      
-      // Apply enhanced security headers
-      const headers = getEnhancedSecurityHeaders('api');
-      Object.entries(headers).forEach(([key, value]) => {
-        res.setHeader(key, value);
-      });
-
-      const origin = req.headers.origin;
-      if (origin && !await ApiSecurity.validateOrigin(origin)) {
-        throw new Error('Unauthorized origin');
-      }
-
-      if (!validateContentType(req)) {
-        throw new Error('Unsupported Content-Type');
-      }
-
-      // Pour les routes protégées, vérifier d'abord l'authentification par token
-      if (routeType === ROUTE_TYPES.PROTECTED) {
-        const user = await verifyToken(req);
-        if (!user) {
-          throw new Error('Not authenticated');
-        }
-        req.user = user;
-      } else {
-        // Pour les routes publiques, vérifier l'API key pour s'assurer que seul le site officiel peut accéder
-        const apiKey = req.headers['x-api-key'];
-        if (!apiKey || !await ApiSecurity.validateApiKey(apiKey)) {
-          throw new Error('Invalid API key');
-        }
-      }
-
-      sanitizeRequest(req);
-
-      const metadata = await ApiSecurity.getRequestMetadata(req);
-      console.log('Request metadata:', metadata);
-
-      return next();
-    } catch (error) {
-      return handleError(error, req, res);
-    }
-  };
 }
 
-// Helper pour les routes d'API
-export function apiHandler(handlers, routeTypes = {}) {
-  return async (req, res) => {
-    try {
-      // Appliquer le rate limiting
-      await new Promise((resolve, reject) => {
-        limiter(req, res, (err) => (err ? reject(err) : resolve()));
-      });
+// Export pre-configured limiters
+export const rateLimiters = {
+    chat: new SimpleRateLimit(60 * 1000, 5), // 5 requests per minute per IP for chat
+    newsletter: new SimpleRateLimit(60 * 1000, 3), // 3 subscriptions per minute per IP
+    api: new SimpleRateLimit(60 * 1000, 60) // 60 requests per minute general
+};
 
-      // Déterminer le type de route pour la méthode actuelle
-      const method = req.method;
-      const routeType = routeTypes[method] || ROUTE_TYPES.PUBLIC; // Par défaut PUBLIC si non spécifié
-      console.log(`Méthode: ${method}, Type appliqué: ${routeType}`);
+/**
+ * Middleware de gestion des routes API
+ * Simplifié pour la migration Strapi (suppression des dépendances Mongo/Redis complexes)
+ */
+export function apiHandler(handlers, routeConfig = {}) {
+    return async (req, res) => {
+        const method = req.method;
+        const handler = handlers[method];
 
-      // Appliquer le middleware de sécurité avec le type de route
-      await new Promise((resolve, reject) => {
-        securityMiddleware(routeType)(req, res, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
+        if (!handler) {
+            return res.status(405).json({
+                success: false,
+                error: `Méthode ${method} non autorisée`
+            });
+        }
 
-      // Vérifier si le handler existe pour cette méthode
-      const handler = handlers[method];
-      if (!handler || typeof handler !== 'function') {
-        res.setHeader('Allow', Object.keys(handlers));
-        throw new Error(`Method ${method} Not Allowed`);
-      }
+        try {
+            await handler(req, res);
+        } catch (error) {
+            console.error(`[API] Erreur non gérée sur ${req.url}:`, error);
 
-      // Exécuter le handler
-      return await handler(req, res);
-    } catch (error) {
-      return handleError(error, req, res);
-    }
-  };
+            if (!res.headersSent) {
+                res.status(500).json({
+                    success: false,
+                    error: 'Erreur serveur interne'
+                });
+            }
+        }
+    };
 }
-
-export { ROUTE_TYPES };

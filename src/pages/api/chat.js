@@ -8,6 +8,16 @@ const sendMessage = async (req, res) => {
   try {
     const { message, conversationHistory = [], provider = 'openai' } = req.body;
 
+    // Check Rate Limit
+    const { rateLimiters } = require('@/middleware/securityMiddleware');
+    if (!rateLimiters.chat.check(req, res)) {
+      console.warn(`[Chat API] Rate limit exceeded for IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
+      return res.status(429).json({
+        success: false,
+        error: 'Trop de requêtes. Veuillez patienter une minute.'
+      });
+    }
+
     console.log('[Chat API] Nouvelle requête chat');
 
     // Validation du message

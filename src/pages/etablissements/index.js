@@ -6,11 +6,11 @@ import EstablishmentCard from '@/components/ui/establishment-card';
 import EstablishmentListItem from '@/components/ui/establishment-list-item';
 import Pagination from '@/components/ui/Pagination';
 
-import { 
-  Building2, 
-  MapPin, 
-  Globe, 
-  ChevronRight, 
+import {
+  Building2,
+  MapPin,
+  Globe,
+  ChevronRight,
   ChevronLeft,
   GraduationCap,
   School,
@@ -23,7 +23,8 @@ import {
   Settings
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi, useApiAction } from '@/lib/secureApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
 
 const REGIONS_NIGER = [
   'Agadez', 'Diffa', 'Dosso', 'Maradi', 'Niamey', 'Tahoua', 'Tillabéri', 'Zinder'
@@ -41,7 +42,7 @@ const Toast = ({ message }) => (
   </div>
 );
 
- const Etablissements = ({ initialEstablishments = [] }) => {
+const Etablissements = ({ initialEstablishments = [] }) => {
   // États
   const [establishments, setEstablishments] = useState(initialEstablishments);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,13 +53,14 @@ const Toast = ({ message }) => (
   const [showMap, setShowMap] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  
+
   // Nouveaux états pour pagination et vue
   const [viewMode, setViewMode] = useState('cards'); // 'cards' ou 'list'
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
-  
-  const { execute, loading, error } = useApiAction();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const displayToast = (message) => {
     setToastMessage(message);
@@ -73,20 +75,24 @@ const Toast = ({ message }) => (
 
   const fetchEstablishments = async () => {
     try {
-      await execute(async () => {
-        // Charger tous les établissements sans filtrage par statut
-        const data = await secureApi.get('/api/establishments', false);
-        setEstablishments(data);
+      setLoading(true);
+      const response = await fetchAPI(endpoints.establishments, {
+        pagination: { limit: 500 }
       });
+      const data = mapStrapiList(response, mapEstablishment);
+      setEstablishments(data);
     } catch (err) {
       displayToast('Erreur lors du chargement des établissements');
+      setError('Erreur lors du chargement');
+    } finally {
+      setLoading(false);
     }
   };
 
   // Filtrage des établissements
   const filteredEstablishments = establishments.filter(etab => {
     const matchesSearch = etab.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        (etab.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (etab.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || etab.type === selectedType;
     const matchesRegion = selectedRegion === 'all' || etab.region === selectedRegion;
     const matchesStatus = selectedStatus === 'all' || etab.statut === selectedStatus;
@@ -130,7 +136,7 @@ const Toast = ({ message }) => (
   };
 
   const handleFilterChange = (type, value) => {
-    switch(type) {
+    switch (type) {
       case 'type':
         setSelectedType(value);
         displayToast(`Filtrage par type : ${value === 'all' ? 'Tous les types' : value}`);
@@ -168,7 +174,7 @@ const Toast = ({ message }) => (
       contentElement.scrollIntoView({ behavior: 'smooth' });
     }
   };
-  
+
   // Loading state
   if (loading && establishments.length === 0) {
     return (
@@ -198,7 +204,7 @@ const Toast = ({ message }) => (
             <ChevronRight className="w-4 h-4 mx-2" />
             <span className="text-niger-cream font-medium">Établissements</span>
           </div>
-          
+
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
             <div className="flex-1">
               <div className="flex items-center mb-6">
@@ -209,13 +215,13 @@ const Toast = ({ message }) => (
                 </div>
               </div>
               <p className="text-xl text-niger-cream max-w-3xl leading-relaxed">
-                Découvrez notre réseau d'établissements d'enseignement supérieur à travers le Niger. 
-                Des universités aux instituts spécialisés, explorez la diversité de notre offre éducative avec 
+                Découvrez notre réseau d'établissements d'enseignement supérieur à travers le Niger.
+                Des universités aux instituts spécialisés, explorez la diversité de notre offre éducative avec
                 des filtres avancés par région, type et statut.
               </p>
             </div>
             <div className="flex flex-col gap-4">
-              <button 
+              <button
                 onClick={() => setShowMap(!showMap)}
                 className="px-8 py-4 bg-niger-white/20 hover:bg-niger-white/30 backdrop-blur-sm rounded-xl transition-all duration-300 flex items-center gap-3 text-white font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
@@ -236,73 +242,67 @@ const Toast = ({ message }) => (
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
               <button
                 onClick={() => handleFilterChange('status', 'all')}
-                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                  selectedStatus === 'all'
-                    ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
-                    : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
-                }`}
+                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedStatus === 'all'
+                  ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
+                  : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
+                  }`}
               >
                 <div className="text-2xl font-bold mb-1">{statistics.total}</div>
                 <div className="text-sm font-medium">Total</div>
               </button>
-              
+
               <button
                 onClick={() => handleFilterChange('status', 'public')}
-                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                  selectedStatus === 'public'
-                    ? 'bg-gradient-to-r from-niger-green to-niger-green-dark text-white shadow-lg'
-                    : 'bg-white dark:bg-secondary-800 hover:bg-niger-green/10 dark:hover:bg-niger-green/20 shadow-md border border-niger-green/20'
-                }`}
+                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedStatus === 'public'
+                  ? 'bg-gradient-to-r from-niger-green to-niger-green-dark text-white shadow-lg'
+                  : 'bg-white dark:bg-secondary-800 hover:bg-niger-green/10 dark:hover:bg-niger-green/20 shadow-md border border-niger-green/20'
+                  }`}
               >
                 <div className="text-2xl font-bold mb-1">{statistics.public}</div>
                 <div className="text-sm font-medium">Publics</div>
               </button>
-              
+
               <button
                 onClick={() => handleFilterChange('status', 'privé')}
-                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                  selectedStatus === 'privé'
-                    ? 'bg-gradient-to-r from-niger-orange-dark to-niger-orange text-white shadow-lg'
-                    : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
-                }`}
+                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedStatus === 'privé'
+                  ? 'bg-gradient-to-r from-niger-orange-dark to-niger-orange text-white shadow-lg'
+                  : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
+                  }`}
               >
                 <div className="text-2xl font-bold mb-1">{statistics.prive}</div>
                 <div className="text-sm font-medium">Privés</div>
               </button>
-              
+
               <button
                 onClick={() => handleFilterChange('type', 'Université')}
-                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                  selectedType === 'Université'
-                    ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
-                    : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
-                }`}
+                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedType === 'Université'
+                  ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
+                  : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
+                  }`}
               >
                 <GraduationCap className="w-6 h-6 mx-auto mb-1 text-niger-orange" />
                 <div className="text-lg font-bold mb-1">{statistics.universite}</div>
                 <div className="text-xs font-medium">Universités</div>
               </button>
-              
+
               <button
                 onClick={() => handleFilterChange('type', 'Institut')}
-                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                  selectedType === 'Institut'
-                    ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
-                    : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
-                }`}
+                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedType === 'Institut'
+                  ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
+                  : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
+                  }`}
               >
                 <School className="w-6 h-6 mx-auto mb-1 text-niger-green" />
                 <div className="text-lg font-bold mb-1">{statistics.institut}</div>
                 <div className="text-xs font-medium">Instituts</div>
               </button>
-              
+
               <button
                 onClick={() => handleFilterChange('type', 'École')}
-                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                  selectedType === 'École'
-                    ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
-                    : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
-                }`}
+                className={`p-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedType === 'École'
+                  ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
+                  : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20'
+                  }`}
               >
                 <BookOpen className="w-6 h-6 mx-auto mb-1 text-niger-orange-dark" />
                 <div className="text-lg font-bold mb-1">{statistics.ecole}</div>
@@ -317,34 +317,32 @@ const Toast = ({ message }) => (
                   <Filter className="w-5 h-5 text-niger-orange" />
                   <h3 className="text-lg font-semibold text-niger-green dark:text-niger-green-light">Filtres avancés</h3>
                 </div>
-                
+
                 {/* Contrôles de vue et paramètres */}
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 bg-niger-cream dark:bg-secondary-700 rounded-lg p-1">
                     <button
                       onClick={() => handleViewModeChange('cards')}
-                      className={`p-2 rounded-md transition-all duration-300 ${
-                        viewMode === 'cards'
-                          ? 'bg-niger-orange text-white shadow-md'
-                          : 'text-niger-orange hover:bg-niger-orange/10'
-                      }`}
+                      className={`p-2 rounded-md transition-all duration-300 ${viewMode === 'cards'
+                        ? 'bg-niger-orange text-white shadow-md'
+                        : 'text-niger-orange hover:bg-niger-orange/10'
+                        }`}
                       title="Vue cartes"
                     >
                       <Grid3X3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleViewModeChange('list')}
-                      className={`p-2 rounded-md transition-all duration-300 ${
-                        viewMode === 'list'
-                          ? 'bg-niger-orange text-white shadow-md'
-                          : 'text-niger-orange hover:bg-niger-orange/10'
-                      }`}
+                      className={`p-2 rounded-md transition-all duration-300 ${viewMode === 'list'
+                        ? 'bg-niger-orange text-white shadow-md'
+                        : 'text-niger-orange hover:bg-niger-orange/10'
+                        }`}
                       title="Vue liste"
                     >
                       <List className="w-4 h-4" />
                     </button>
                   </div>
-                  
+
                   <select
                     value={itemsPerPage}
                     onChange={(e) => {
@@ -359,7 +357,7 @@ const Toast = ({ message }) => (
                   </select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="relative">
                   <input
@@ -371,7 +369,7 @@ const Toast = ({ message }) => (
                   />
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-niger-orange w-5 h-5" />
                 </div>
-                
+
                 <select
                   value={selectedType}
                   onChange={(e) => handleFilterChange('type', e.target.value)}
@@ -382,7 +380,7 @@ const Toast = ({ message }) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
-                
+
                 <select
                   value={selectedRegion}
                   onChange={(e) => handleFilterChange('region', e.target.value)}
@@ -393,7 +391,7 @@ const Toast = ({ message }) => (
                     <option key={region} value={region}>{region}</option>
                   ))}
                 </select>
-                
+
                 <select
                   value={selectedStatus}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
@@ -406,20 +404,20 @@ const Toast = ({ message }) => (
               </div>
             </div>
           </div>
-          
+
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg my-6 border border-red-200 dark:border-red-800">
               {error}
             </div>
           )}
-          
+
           {/* Map Section */}
           {showMap && (
-            <div 
-              id="map-section" 
+            <div
+              id="map-section"
               className="mt-8 rounded-2xl overflow-hidden shadow-xl border border-niger-orange/20"
             >
-              <EstablishmentMap 
+              <EstablishmentMap
                 etablissements={filteredEstablishments}
                 selectedId={selectedEstablishment}
                 onMarkerClick={handleMarkerClick}

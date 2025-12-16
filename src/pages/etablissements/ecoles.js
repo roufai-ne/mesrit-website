@@ -1,19 +1,20 @@
 // src/pages/etablissements/ecoles.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  BookOpen, 
-  MapPin, 
-  Users, 
-  GraduationCap, 
-  ChevronRight, 
+import {
+  BookOpen,
+  MapPin,
+  Users,
+  GraduationCap,
+  ChevronRight,
   Search,
   Award,
   Clock,
   Target
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
 
 export default function EcolesPage() {
   const [ecoles, setEcoles] = useState([]);
@@ -30,7 +31,11 @@ export default function EcolesPage() {
   const fetchEcoles = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/establishments?type=École', false);
+      const response = await fetchAPI(endpoints.establishments, {
+        filters: { type: 'École' },
+        pagination: { limit: 100 }
+      });
+      const data = mapStrapiList(response, mapEstablishment);
       setEcoles(data);
     } catch (error) {
       console.error('Erreur:', error);
@@ -41,7 +46,7 @@ export default function EcolesPage() {
 
   const filteredEcoles = ecoles.filter(ecole => {
     const matchesSearch = ecole.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ecole.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      ecole.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || ecole.subType === selectedType;
     return matchesSearch && matchesType;
   });
@@ -86,17 +91,17 @@ export default function EcolesPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Écoles</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <BookOpen className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Écoles Professionnelles</h1>
           </div>
-          
+
           <p className="text-xl text-green-100 max-w-3xl">
-            Des écoles spécialisées proposant des formations professionnelles et techniques 
+            Des écoles spécialisées proposant des formations professionnelles et techniques
             adaptées aux besoins du marché du travail nigérien.
           </p>
-          
+
           <div className="mt-6 text-green-100">
             {filteredEcoles.length} école{filteredEcoles.length > 1 ? 's' : ''} trouvée{filteredEcoles.length > 1 ? 's' : ''}
           </div>
@@ -143,11 +148,10 @@ export default function EcolesPage() {
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
-                  className={`p-4 rounded-xl transition-all text-center ${
-                    selectedType === type
+                  className={`p-4 rounded-xl transition-all text-center ${selectedType === type
                       ? 'bg-green-600 text-white shadow-lg'
                       : 'bg-white hover:bg-green-50 shadow'
-                  }`}
+                    }`}
                 >
                   <div className="font-medium text-sm mb-1">{type}</div>
                   <div className="text-xs opacity-75">{count} école{count > 1 ? 's' : ''}</div>
@@ -179,7 +183,7 @@ export default function EcolesPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{ecole.nom}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-3">{ecole.description}</p>

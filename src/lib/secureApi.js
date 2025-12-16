@@ -1,17 +1,9 @@
 // lib/secureApi.js
 import { AppError, parseApiError, handleFetchError, ERROR_TYPES } from '@/lib/errorHandler';
-import router from 'next/router';
-
-// Lazy AuthContext/Toast import to avoid circular deps
-let logoutFn = null;
-let toastFn = null;
-export function registerAuthUtils({ logout, toast }) {
-  logoutFn = logout;
-  toastFn = toast;
-}
+// Router import removed
 
 /**
- * Client API sécurisé pour les appels frontend et backend
+ * Client API sécurisé pour les appels frontend
  */
 export const secureApi = {
   async fetch(url, options = {}, requireAuth = false) {
@@ -29,9 +21,7 @@ export const secureApi = {
 
       // Ajouter le token d'authentification uniquement si nécessaire
       if (requireAuth) {
-        // Côté client : récupérer le token depuis les cookies (httpOnly cookies are handled automatically)
-        // For client-side requests, cookies will be sent automatically
-        // No need to manually add authorization header for httpOnly cookies
+        // Auth removed
       }
 
       // Log uniquement en développement
@@ -51,14 +41,9 @@ export const secureApi = {
       // Gérer les différents types de réponses
       const contentType = response.headers.get('content-type');
       if (!response.ok) {
-        // Gestion centralisée session expirée
+        // Auth redirection removed
         if (response.status === 401 || response.status === 403) {
-          if (logoutFn) logoutFn();
-          if (toastFn) toastFn.error('Votre session a expiré, veuillez vous reconnecter.');
-          if (typeof window !== 'undefined') {
-            router.push('/auth/login');
-          }
-          throw new AppError('Session expirée', ERROR_TYPES.AUTHENTICATION, response.status);
+          console.warn('Unauthorized access', url);
         }
         let errorData;
         try {
@@ -98,35 +83,35 @@ export const secureApi = {
 
   async post(url, data, requireAuth = true, options = {}) {
     return this.fetch(
-      url, 
+      url,
       {
         method: 'POST',
         body: JSON.stringify(data),
         ...options
-      }, 
+      },
       requireAuth
     );
   },
 
   async put(url, data, requireAuth = true, options = {}) {
     return this.fetch(
-      url, 
+      url,
       {
         method: 'PUT',
         body: JSON.stringify(data),
         ...options
-      }, 
+      },
       requireAuth
     );
   },
 
   async delete(url, requireAuth = true, options = {}) {
     return this.fetch(
-      url, 
+      url,
       {
         method: 'DELETE',
         ...options
-      }, 
+      },
       requireAuth
     );
   },
@@ -179,7 +164,7 @@ export const secureApi = {
       throw handledError;
     }
   },
-  
+
   // Méthode utilitaire pour créer des URL avec paramètres
   buildUrl(baseUrl, params = {}) {
     const url = new URL(baseUrl, window.location.origin);

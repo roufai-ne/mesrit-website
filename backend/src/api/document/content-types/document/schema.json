@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "documents",
+  "info": {
+    "singularName": "document",
+    "pluralName": "documents",
+    "displayName": "Document"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "loi",
+        "decret",
+        "arrete",
+        "circulaire",
+        "rapport",
+        "guide"
+      ]
+    },
+    "subType": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "enumeration",
+      "enum": [
+        "Étudiants",
+        "Enseignants",
+        "Administrateurs",
+        "Chercheurs",
+        "Tous"
+      ]
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "files",
+        "images"
+      ]
+    },
+    "publicationDate": {
+      "type": "date"
+    }
+  }
+}

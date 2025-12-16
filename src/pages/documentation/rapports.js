@@ -1,16 +1,18 @@
 // src/pages/documentation/rapports.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  BarChart3, 
-  Download, 
-  Calendar, 
-  ChevronRight, 
+import {
+  BarChart3,
+  Download,
+  Calendar,
+  ChevronRight,
   Search,
   TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+// import { secureApi } from '@/lib/secureApi'; // REMOVED
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapDocument } from '@/utils/strapiMapper';
 
 export default function RapportsPage() {
   const [documents, setDocuments] = useState([]);
@@ -27,8 +29,13 @@ export default function RapportsPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/documents?category=reports', false);
-      setDocuments(data.filter(doc => doc.status === 'published'));
+      const response = await fetchAPI(endpoints.documents, {
+        filters: { category: 'rapport' },
+        populate: ['file'],
+        pagination: { limit: 100 },
+        sort: ['publicationDate:desc']
+      });
+      setDocuments(mapStrapiList(response, mapDocument));
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -72,14 +79,14 @@ export default function RapportsPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Rapports</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <BarChart3 className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Rapports Annuels</h1>
           </div>
-          
+
           <p className="text-xl text-green-100 max-w-3xl">
-            Découvrez nos rapports d'activité, bilans statistiques et études sectorielles 
+            Découvrez nos rapports d'activité, bilans statistiques et études sectorielles
             sur l'évolution de l'enseignement supérieur au Niger.
           </p>
         </div>
@@ -119,7 +126,7 @@ export default function RapportsPage() {
           {/* Grille des rapports */}
           <div className="grid md:grid-cols-2 gap-6">
             {filteredDocuments.map((doc) => (
-              <div 
+              <div
                 key={doc._id}
                 className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
               >
@@ -138,10 +145,10 @@ export default function RapportsPage() {
                     <Download className="w-4 h-4" />
                   </a>
                 </div>
-                
+
                 <h3 className="text-xl font-bold mb-3 text-gray-900">{doc.title}</h3>
                 <p className="text-gray-600 mb-4">{doc.description}</p>
-                
+
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="w-4 h-4 mr-2" />
                   {new Date(doc.publicationDate).toLocaleDateString('fr-FR', {

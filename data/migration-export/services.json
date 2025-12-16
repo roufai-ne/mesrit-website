@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "68ee0acb7e95a95d3a9a6207",
+    "title": "Listes pour Service Civic",
+    "description": "Liste des mises à disposition pour le service civique national pour les appelés de 2021",
+    "longDescription": "Liste des mises à disposition pour le service civique national pour les appelés de 2021",
+    "icon": "FileText",
+    "category": "etudiants",
+    "status": "published",
+    "url": "https://service-civique.ne",
+    "features": [],
+    "image": "",
+    "priority": 0,
+    "tags": [
+      "Service"
+    ],
+    "isExternal": false,
+    "isPopular": true,
+    "usageCount": 0,
+    "createdAt": "2025-10-14T08:33:15.552Z",
+    "updatedAt": "2025-10-14T09:32:11.775Z",
+    "__v": 0
+  }
+]

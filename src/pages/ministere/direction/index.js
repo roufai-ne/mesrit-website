@@ -1,13 +1,13 @@
 import { React, useEffect, useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  Users, 
-  ChevronRight, 
-  ArrowLeft, 
-  Search, 
-  Filter, 
-  Mail, 
-  Phone, 
+import {
+  Users,
+  ChevronRight,
+  ArrowLeft,
+  Search,
+  Filter,
+  Mail,
+  Phone,
   MapPin,
   Calendar,
   Award,
@@ -20,8 +20,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { secureApi } from '@/lib/secureApi';
 import toast from 'react-hot-toast';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapDirector } from '@/utils/strapiMapper';
 
 
 export default function DirectionPage() {
@@ -34,7 +35,7 @@ export default function DirectionPage() {
   const [currentDirection, setCurrentDirection] = useState(null);
   const [sousDirections, setSousDirections] = useState({});
   const [error, setError] = useState(null);
-  
+
   // Nouvelles fonctionnalités
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -49,16 +50,22 @@ export default function DirectionPage() {
   const fetchDirectors = async () => {
     try {
       setLoading(true);
-      // Utiliser secureApi sans authentification (endpoint public)
-      const data = await secureApi.get('/api/directors', false);
+
+      const response = await fetchAPI(endpoints.directors, {
+        pagination: { limit: 100 },
+        populate: ['photo'] // Ensure photo is populated
+      });
+
+      const data = mapStrapiList(response, mapDirector);
 
       if (Array.isArray(data)) {
         setAllDirectors(data);
-        setMinistre(data.find(d => d.titre === "Ministre"));
+        // Logic to find specific roles based on key or Title
+        setMinistre(data.find(d => d.key === "Ministre")); // inferred key
         setSg(data.find(d => d.key === "SG"));
         setSga(data.find(d => d.key === "SGA"));
         setDgs(data.filter(d => ["DGES", "DGR"].includes(d.key)));
-        
+
         const sousDir = data.reduce((acc, curr) => {
           if (curr.direction) {
             if (!acc[curr.direction]) {
@@ -68,9 +75,9 @@ export default function DirectionPage() {
           }
           return acc;
         }, {});
-        
+
         setSousDirections(sousDir);
-        toast.success('Équipe dirigeante chargée avec succès');
+        // toast.success('Équipe dirigeante chargée avec succès');
       } else {
         setError('Format de données invalide');
         toast.error('Erreur de format des données');
@@ -86,16 +93,16 @@ export default function DirectionPage() {
 
   // Fonctions de filtrage et recherche
   const filteredDirectors = allDirectors.filter(director => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       director.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       director.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       director.nomComplet?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesFilter = filterType === 'all' ||
       (filterType === 'cabinet' && ['ministre', 'sg', 'sga'].includes(director.key?.toLowerCase())) ||
       (filterType === 'dg' && ['dges', 'dgr'].includes(director.key?.toLowerCase())) ||
       (filterType === 'direction' && director.direction);
-    
+
     return matchesSearch && matchesFilter;
   });
 
@@ -144,7 +151,7 @@ export default function DirectionPage() {
           <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
             <h2 className="text-3xl font-bold mb-2">{ministre.titre}</h2>
             <p className="text-xl text-niger-cream">{ministre.nom}</p>
-            
+
             {/* Informations de contact */}
             <div className="mt-4 space-y-2">
               {ministre.email && (
@@ -169,7 +176,7 @@ export default function DirectionPage() {
               {ministre.message || "Message du ministre non disponible"}
             </p>
           </div>
-          
+
           {/* Actions */}
           <div className="flex gap-3">
             <button
@@ -193,9 +200,9 @@ export default function DirectionPage() {
 
   const renderDirectionCard = (data, showDirections = false) => {
     if (!data) return null;
-    
+
     const showContact = showContactInfo[data._id];
-    
+
     return (
       <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-6 relative group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <div className="flex items-center">
@@ -219,7 +226,7 @@ export default function DirectionPage() {
             </div>
             <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light mb-2">{data.titre}</h2>
             <p className="text-xl text-readable dark:text-foreground mb-2">{data.nom}</p>
-            
+
             {/* Mission si disponible */}
             {data.mission && (
               <p className="text-sm text-readable-muted dark:text-muted-foreground italic">
@@ -228,7 +235,7 @@ export default function DirectionPage() {
             )}
           </div>
         </div>
-        
+
         {/* Informations de contact (conditionnelles) */}
         {showContact && (data.email || data.telephone) && (
           <div className="mt-4 p-4 bg-niger-cream/20 dark:bg-secondary-700 rounded-lg border border-niger-orange/20">
@@ -249,7 +256,7 @@ export default function DirectionPage() {
             </div>
           </div>
         )}
-        
+
         {/* Actions */}
         <div className="mt-4 flex gap-2">
           {(data.email || data.telephone) && (
@@ -261,9 +268,9 @@ export default function DirectionPage() {
             </button>
           )}
         </div>
-        
+
         {showDirections && sousDirections[data.key]?.length > 0 && (
-          <button 
+          <button
             onClick={() => setCurrentSection(data)}
             className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-niger-orange to-niger-green text-white px-6 py-3 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 rounded-b-xl font-medium hover:shadow-lg"
           >
@@ -331,7 +338,7 @@ export default function DirectionPage() {
     return (
       <div className="space-y-4">
         {directions.map((direction, index) => (
-          <div 
+          <div
             key={direction.id || index}
             onClick={() => setCurrentDirection(direction)}
             className="bg-white dark:bg-secondary-800 p-6 rounded-xl shadow-lg hover:shadow-xl cursor-pointer transform hover:-translate-y-1 transition-all duration-300 border border-niger-orange/10 hover:border-niger-orange/30"
@@ -354,7 +361,7 @@ export default function DirectionPage() {
               </div>
               <ChevronRight className="w-5 h-5 text-niger-orange opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            
+
             {direction.mission && (
               <div className="mt-4 p-3 bg-niger-cream/20 dark:bg-secondary-700 rounded-lg">
                 <p className="text-sm text-readable-muted dark:text-muted-foreground italic">
@@ -371,7 +378,7 @@ export default function DirectionPage() {
   // Nouvelle fonction pour afficher les résultats de recherche
   const renderSearchResults = () => {
     if (!searchTerm && filterType === 'all') return null;
-    
+
     return (
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -388,7 +395,7 @@ export default function DirectionPage() {
             Effacer les filtres
           </button>
         </div>
-        
+
         {filteredDirectors.length === 0 ? (
           <div className="text-center py-12 bg-white dark:bg-secondary-800 rounded-xl">
             <Search className="w-12 h-12 mx-auto mb-4 text-readable-muted dark:text-muted-foreground opacity-50" />
@@ -439,7 +446,7 @@ export default function DirectionPage() {
             Erreur de chargement
           </h3>
           <div className="text-red-500 dark:text-red-400 mb-4">{error}</div>
-          <button 
+          <button
             onClick={fetchDirectors}
             className="bg-gradient-to-r from-niger-orange to-niger-green text-white px-6 py-3 rounded-lg hover:from-niger-orange-dark hover:to-niger-green-dark transition-all duration-300 shadow-lg hover:shadow-xl font-medium flex items-center gap-2 mx-auto"
           >
@@ -460,7 +467,7 @@ export default function DirectionPage() {
           <p className="text-readable-muted dark:text-muted-foreground mb-4">
             L'équipe dirigeante n'est pas encore configurée.
           </p>
-          <button 
+          <button
             onClick={fetchDirectors}
             className="bg-gradient-to-r from-niger-orange to-niger-green text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all duration-300 font-medium flex items-center gap-2 mx-auto"
           >
@@ -487,7 +494,7 @@ export default function DirectionPage() {
             {renderMinisterSection()}
           </div>
         )}
-        
+
         {/* Section Secrétariat Général */}
         {sg && (
           <div>
@@ -502,7 +509,7 @@ export default function DirectionPage() {
             {renderSgSection()}
           </div>
         )}
-        
+
         {/* Section Directions Générales */}
         {dgs.length > 0 && (
           <div>
@@ -542,7 +549,7 @@ export default function DirectionPage() {
             className="w-full pl-10 pr-4 py-3 border border-niger-orange/20 dark:border-secondary-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-niger-orange/20 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground"
           />
         </div>
-        
+
         {/* Filtres */}
         <div className="flex gap-3">
           <select
@@ -555,7 +562,7 @@ export default function DirectionPage() {
             <option value="dg">Directions Générales</option>
             <option value="direction">Directions</option>
           </select>
-          
+
           <button
             onClick={exportOrganigramme}
             className="px-4 py-3 bg-gradient-to-r from-niger-orange to-niger-green text-white rounded-lg hover:shadow-lg transition-all duration-300 flex items-center gap-2"
@@ -563,7 +570,7 @@ export default function DirectionPage() {
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
-          
+
           <button
             onClick={fetchDirectors}
             disabled={loading}
@@ -574,7 +581,7 @@ export default function DirectionPage() {
           </button>
         </div>
       </div>
-      
+
       {/* Statistiques */}
       {filteredDirectors.length !== allDirectors.length && (
         <div className="mt-4 text-sm text-readable-muted dark:text-muted-foreground">
@@ -596,7 +603,7 @@ export default function DirectionPage() {
               <ChevronRight className="w-4 h-4 mx-2" />
               <span className="text-niger-green dark:text-niger-green-light font-medium">Direction</span>
             </div>
-            
+
             {/* Titre avec statistiques */}
             <div className="text-right">
               <h1 className="text-2xl font-bold text-niger-green dark:text-niger-green-light mb-1">
@@ -607,7 +614,7 @@ export default function DirectionPage() {
               </p>
             </div>
           </div>
-          
+
           {/* Recherche et filtres */}
           {!currentDirection && !currentSection && renderSearchAndFilters()}
 
@@ -645,7 +652,7 @@ export default function DirectionPage() {
             <div>
               {/* Résultats de recherche */}
               {(searchTerm || filterType !== 'all') && renderSearchResults()}
-              
+
               {/* Contenu principal (si pas de recherche active) */}
               {(!searchTerm && filterType === 'all') && renderMainContent()}
             </div>

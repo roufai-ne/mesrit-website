@@ -1,11 +1,11 @@
 // src/pages/documentation/guides.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  BookOpen, 
-  Download, 
-  Calendar, 
-  ChevronRight, 
+import {
+  BookOpen,
+  Download,
+  Calendar,
+  ChevronRight,
   Search,
   User,
   Users,
@@ -15,7 +15,9 @@ import {
   Clock
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+// import { secureApi } from '@/lib/secureApi'; // REMOVED
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapDocument } from '@/utils/strapiMapper';
 
 export default function GuidesPage() {
   const [documents, setDocuments] = useState([]);
@@ -32,8 +34,13 @@ export default function GuidesPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/documents?category=guides', false);
-      setDocuments(data.filter(doc => doc.status === 'published'));
+      const response = await fetchAPI(endpoints.documents, {
+        filters: { category: 'guide' },
+        populate: ['file'],
+        pagination: { limit: 100 },
+        sort: ['publicationDate:desc']
+      });
+      setDocuments(mapStrapiList(response, mapDocument));
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -148,14 +155,14 @@ export default function GuidesPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Guides</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <BookOpen className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Guides Pratiques</h1>
           </div>
-          
+
           <p className="text-xl text-teal-100 max-w-3xl">
-            Des guides détaillés pour vous accompagner dans vos démarches administratives, 
+            Des guides détaillés pour vous accompagner dans vos démarches administratives,
             pédagogiques et de recherche au sein du système d'enseignement supérieur nigérien.
           </p>
         </div>
@@ -222,7 +229,7 @@ export default function GuidesPage() {
           {/* Documents disponibles */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-6">Documents Disponibles</h2>
-            
+
             {filteredDocuments.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
                 <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -236,7 +243,7 @@ export default function GuidesPage() {
             ) : (
               <div className="grid md:grid-cols-2 gap-6">
                 {filteredDocuments.map((doc) => (
-                  <div 
+                  <div
                     key={doc._id}
                     className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300"
                   >
@@ -256,7 +263,7 @@ export default function GuidesPage() {
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">{doc.title}</h3>
                         <p className="text-gray-600 mb-3">{doc.description}</p>
-                        
+
                         <div className="flex items-center text-sm text-gray-500 space-x-4">
                           <div className="flex items-center">
                             <Calendar className="w-4 h-4 mr-1" />
@@ -273,7 +280,7 @@ export default function GuidesPage() {
                           )}
                         </div>
                       </div>
-                      
+
                       <a
                         href={doc.url}
                         download

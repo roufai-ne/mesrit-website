@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Ouvrir http://localhost:3000
+Ouvrir [http://localhost:3000](http://localhost:3000)
 
 ### Production
 
@@ -22,49 +22,44 @@ npm run start
 
 ## 📦 Déploiement
 
-Voir **DEPLOIEMENT.md** pour les instructions complètes.
+Voir **[docs/GUIDE_DEPLOIEMENT.md](docs/GUIDE_DEPLOIEMENT.md)** pour les instructions complètes.
 
-## 🛠️ Technologies
-
-- Next.js 15.5.6
-- React 19
-- Tailwind CSS
-- MongoDB
-- Caddy v2
-
-## 📁 Structure
+## 📁 Structure du Projet
 
 ```
 mesrit-website/
 ├── src/
-│   ├── components/    # Composants React
-│   ├── pages/        # Pages Next.js & APIs
-│   ├── lib/          # Utilitaires
-│   └── styles/       # CSS global
-├── public/           # Fichiers statiques
-└── data/            # Données JSON
+│   ├── components/   # Composants React (UI, Layout, etc.)
+│   ├── pages/        # Routes & API Next.js
+│   ├── lib/          # Utilitaires & Services
+│   ├── styles/       # Styles globaux
+│   └── middleware/   # Sécurité & Headers
+├── public/           # Assets statiques
+├── scripts/          # Scripts de maintenance & tâches planifiées
+├── docs/             # Documentation
+│   ├── reports/      # Rapports d'audit et historiques
+│   └── env-examples/ # Exemples de configuration
+└── data/             # Données JSON statiques
 ```
 
 ## 🔧 Configuration
 
-- `.env` - Variables d'environnement locales
-- `.env.production.corrected` - Template pour production
-- `Caddyfile-CORRECTED` - Configuration Caddy
+- `.env` : Variables locales (ne pas commit).
+- `docs/env-examples/` : Modèles pour la production.
+- `Caddyfile-CORRECTED` : Configuration du serveur web Caddy.
 
-## 📝 Scripts
+## 🛡️ Sécurité
+
+Ce projet a fait l'objet d'un audit de sécurité (Phase 8).
+- **Rapports** : Voir `docs/reports/SECURITY-AUDIT.md` (ancien) et l'artifact `security_audit.md`.
+- **Note** : Les clés API et secrets ne doivent JAMAIS être commités.
+
+## 📝 Scripts Utiles
 
 ```bash
-npm run dev        # Mode développement
-npm run build      # Build production
-npm run start      # Démarrer en production
-npm run lint       # Linter le code
+npm run dev         # Serveur de dev
+npm run build       # Build pour prod
+npm run start       # Démarrer prod
+npm audit           # Vérifier les vulnérabilités
+npm run crawler     # Lancer l'indexation locale
 ```
-
-## 🌐 Déploiement Production
-
-Le site est déployé avec :
-- **Serveur :** Caddy v2 (reverse proxy + SSL)
-- **App :** Next.js (PM2)
-- **Base :** MongoDB
-
-Voir **DEPLOIEMENT.md** pour les détails.

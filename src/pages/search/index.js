@@ -19,7 +19,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
-import { secureApi } from "@/lib/secureApi";
+// import { secureApi } from "@/lib/secureApi"; // REMOVED
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapArticleToNews, mapDocument } from '@/utils/strapiMapper';
 
 export default function SearchResultsPage() {
   const router = useRouter();
@@ -49,17 +51,56 @@ export default function SearchResultsPage() {
     setError(null);
 
     try {
-      const data = await secureApi.get(
-        `/api/search?q=${encodeURIComponent(
-          query
-        )}&type=${searchType}&limit=${resultsPerPage}&page=${pageNum}`,
-        false
-      );
+      // Strapi Search Logic (Parallel Queries)
+      const searchPromises = [];
 
-      setSearchResults(data.results || []);
-      setTotalResults(data.total || 0);
-      setTotalPages(data.totalPages || 0);
-      setSuggestions(data.suggestions || []);
+      // 1. Fetch News
+      if (searchType === 'all' || searchType === 'news') {
+        searchPromises.push(
+          fetchAPI(endpoints.articles, {
+            filters: {
+              $or: [{ title: { $containsi: query } }, { summary: { $containsi: query } }]
+            },
+            populate: ['cover'],
+            pagination: { limit: 50 }, // Fetch plenty to merge
+            sort: ['publishedAt:desc']
+          }).then(res => res.data.map(item => ({ ...mapArticleToNews(item), type: 'news' })))
+        );
+      }
+
+      // 2. Fetch Documents
+      if (searchType === 'all' || searchType === 'document') {
+        searchPromises.push(
+          fetchAPI(endpoints.documents, {
+            filters: {
+              $or: [{ title: { $containsi: query } }, { description: { $containsi: query } }]
+            },
+            populate: ['file'],
+            pagination: { limit: 50 },
+            sort: ['publicationDate:desc']
+          }).then(res => res.data.map(item => ({ ...mapDocument(item), type: 'document' })))
+        );
+      }
+
+      const resultsArrays = await Promise.all(searchPromises);
+      let allResults = resultsArrays.flat();
+
+      // Sort by date equivalent
+      allResults.sort((a, b) => {
+        const dateA = new Date(a.date || a.publicationDate || a.createdAt);
+        const dateB = new Date(b.date || b.publicationDate || b.createdAt);
+        return dateB - dateA;
+      });
+
+      // Pagination handles locally for the merged set
+      const total = allResults.length;
+      const totalPagesCalc = Math.ceil(total / resultsPerPage);
+      const paginatedResults = allResults.slice((pageNum - 1) * resultsPerPage, pageNum * resultsPerPage);
+
+      setSearchResults(paginatedResults);
+      setTotalResults(total);
+      setTotalPages(totalPagesCalc);
+      setSuggestions([]); // No suggestions engine in this simple version
     } catch (err) {
       console.error("Search error:", err);
       setError(`Une erreur est survenue lors de la recherche: ${err.message}`);
@@ -283,11 +324,10 @@ export default function SearchResultsPage() {
                 <button
                   key={filter.value}
                   onClick={() => handleTypeChange(filter.value)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 ${
-                    selectedType === filter.value
-                      ? "bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg"
-                      : "bg-white dark:bg-secondary-700 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20 text-niger-green dark:text-niger-green-light"
-                  }`}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 ${selectedType === filter.value
+                    ? "bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg"
+                    : "bg-white dark:bg-secondary-700 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20 text-niger-green dark:text-niger-green-light"
+                    }`}
                 >
                   {filter.icon}
                   <span>{filter.label}</span>
@@ -386,11 +426,10 @@ export default function SearchResultsPage() {
                         <div className="flex flex-wrap items-center gap-4 text-xs">
                           {/* Type Badge */}
                           <span
-                            className={`px-3 py-1 rounded-full font-medium ${
-                              result.type === "news"
-                                ? "bg-niger-orange/20 text-niger-orange-dark border border-niger-orange/30"
-                                : "bg-niger-green/20 text-niger-green-dark border border-niger-green/30"
-                            }`}
+                            className={`px-3 py-1 rounded-full font-medium ${result.type === "news"
+                              ? "bg-niger-orange/20 text-niger-orange-dark border border-niger-orange/30"
+                              : "bg-niger-green/20 text-niger-green-dark border border-niger-green/30"
+                              }`}
                           >
                             {result.type === "news" ? "Actualité" : "Document"}
                           </span>
@@ -457,11 +496,10 @@ export default function SearchResultsPage() {
                           <button
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
-                            className={`min-w-[48px] h-12 px-4 rounded-xl font-medium transition-all ${
-                              currentPage === pageNum
-                                ? "bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg"
-                                : "bg-white dark:bg-secondary-800 text-niger-green dark:text-niger-green-light hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 border border-niger-orange/20"
-                            }`}
+                            className={`min-w-[48px] h-12 px-4 rounded-xl font-medium transition-all ${currentPage === pageNum
+                              ? "bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg"
+                              : "bg-white dark:bg-secondary-800 text-niger-green dark:text-niger-green-light hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 border border-niger-orange/20"
+                              }`}
                           >
                             {pageNum}
                           </button>

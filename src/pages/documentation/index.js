@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Download, FileText, Calendar, BookOpen, Filter, AlertTriangle, Search, ChevronRight, Scale, BarChart3, Users } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+// import { secureApi } from '@/lib/secureApi'; // REMOVED
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapDocument } from '@/utils/strapiMapper';
 
 export default function DocumentationPage() {
   const [documents, setDocuments] = useState([]);
@@ -20,7 +22,7 @@ export default function DocumentationPage() {
     { id: 'reports', label: 'Rapports', icon: BarChart3, color: 'niger-orange' },
     { id: 'guides', label: 'Guides', icon: BookOpen, color: 'niger-green' }
   ];
-  
+
   const documentTypes = ['all', 'PDF', 'DOC', 'DOCX', 'XLS', 'XLSX'];
   const years = ['all', '2024', '2023', '2022', '2021', '2020', '2019', '2018'];
 
@@ -31,8 +33,16 @@ export default function DocumentationPage() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/documents', false); // Public endpoint
-      setDocuments(data.filter(doc => doc.status === 'published'));
+      // Fetch all documents from Strapi (pagination? currently fetching all for client filter)
+      // Strapi default limit is 25. We might need more.
+      const response = await fetchAPI(endpoints.documents, {
+        pagination: { limit: 100 }, // Fetch reasonable amount
+        populate: ['file'],
+        sort: ['publicationDate:desc']
+      });
+
+      const mappedDocs = mapStrapiList(response, mapDocument);
+      setDocuments(mappedDocs);
     } catch (error) {
       console.error('Erreur:', error);
       setError(error.message);
@@ -43,14 +53,14 @@ export default function DocumentationPage() {
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase());
+      doc.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
     const matchesType = selectedType === 'all' || doc.type === selectedType;
-    const matchesYear = selectedYear === 'all' || 
-                       new Date(doc.publicationDate).getFullYear().toString() === selectedYear;
+    const matchesYear = selectedYear === 'all' ||
+      new Date(doc.publicationDate).getFullYear().toString() === selectedYear;
     return matchesSearch && matchesCategory && matchesType && matchesYear;
   });
-  
+
   // Statistiques par catégorie
   const getStatistics = () => {
     const stats = {
@@ -64,9 +74,9 @@ export default function DocumentationPage() {
   };
 
   const statistics = getStatistics();
-  
+
   const handleFilterChange = (type, value) => {
-    switch(type) {
+    switch (type) {
       case 'category':
         setSelectedCategory(value);
         break;
@@ -122,7 +132,7 @@ export default function DocumentationPage() {
               <p>{error}</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={fetchDocuments}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -157,8 +167,8 @@ export default function DocumentationPage() {
                 </div>
               </div>
               <p className="text-xl text-niger-cream max-w-3xl leading-relaxed mb-6">
-                Accédez à l'ensemble de nos documents officiels, textes législatifs, rapports et guides pratiques. 
-                Une ressource complète pour comprendre le cadre réglementaire et les politiques du secteur 
+                Accédez à l'ensemble de nos documents officiels, textes législatifs, rapports et guides pratiques.
+                Une ressource complète pour comprendre le cadre réglementaire et les politiques du secteur
                 avec recherche avancée et filtres par catégorie.
               </p>
             </div>
@@ -177,11 +187,10 @@ export default function DocumentationPage() {
                 <button
                   key={category.id}
                   onClick={() => handleFilterChange('category', category.id)}
-                  className={`p-6 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${
-                    selectedCategory === category.id
+                  className={`p-6 rounded-xl transition-all duration-300 text-center transform hover:scale-105 ${selectedCategory === category.id
                       ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-xl'
                       : 'bg-white dark:bg-secondary-800 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-lg border border-niger-orange/20'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-8 h-8 mx-auto mb-3 text-niger-orange" />
                   <div className="text-2xl font-bold mb-1">{count}</div>
@@ -197,7 +206,7 @@ export default function DocumentationPage() {
               <Filter className="w-5 h-5 text-niger-orange" />
               <h3 className="text-lg font-semibold text-niger-green dark:text-niger-green-light">Filtres avancés</h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
                 <input
@@ -209,7 +218,7 @@ export default function DocumentationPage() {
                 />
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-niger-orange w-5 h-5" />
               </div>
-              
+
               <select
                 value={selectedCategory}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
@@ -219,7 +228,7 @@ export default function DocumentationPage() {
                   <option key={cat.id} value={cat.id}>{cat.label}</option>
                 ))}
               </select>
-              
+
               <select
                 value={selectedType}
                 onChange={(e) => handleFilterChange('type', e.target.value)}
@@ -230,7 +239,7 @@ export default function DocumentationPage() {
                   <option key={type} value={type}>{type}</option>
                 ))}
               </select>
-              
+
               <select
                 value={selectedYear}
                 onChange={(e) => handleFilterChange('year', e.target.value)}
@@ -271,7 +280,7 @@ export default function DocumentationPage() {
               {filteredDocuments.map((doc) => {
                 const category = categories.find(cat => cat.id === doc.category);
                 return (
-                  <div 
+                  <div
                     key={doc._id}
                     className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-niger-orange/10 hover:border-niger-orange/30 transform hover:-translate-y-1 group"
                   >
@@ -279,12 +288,11 @@ export default function DocumentationPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              doc.category === 'regulatory' ? 'bg-red-100 text-red-700 border border-red-200' :
-                              doc.category === 'policy' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                              doc.category === 'reports' ? 'bg-green-100 text-green-700 border border-green-200' :
-                              'bg-niger-orange/20 text-niger-orange-dark border border-niger-orange/30'
-                            }`}>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${doc.category === 'regulatory' ? 'bg-red-100 text-red-700 border border-red-200' :
+                                doc.category === 'policy' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                                  doc.category === 'reports' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                    'bg-niger-orange/20 text-niger-orange-dark border border-niger-orange/30'
+                              }`}>
                               {category?.label}
                             </span>
                             {doc.type && (
@@ -299,7 +307,7 @@ export default function DocumentationPage() {
                           <p className="text-readable-muted dark:text-muted-foreground mb-4 line-clamp-2">
                             {doc.description}
                           </p>
-                          
+
                           <div className="flex items-center text-sm text-readable-muted dark:text-muted-foreground space-x-4">
                             <div className="flex items-center">
                               <Calendar className="w-4 h-4 mr-2 text-niger-orange" />
@@ -317,7 +325,7 @@ export default function DocumentationPage() {
                             )}
                           </div>
                         </div>
-                        
+
                         <a
                           href={doc.url}
                           download
@@ -333,7 +341,7 @@ export default function DocumentationPage() {
               })}
             </div>
           )}
-          
+
           {/* Quick Access Links */}
           <div className="mt-12 grid md:grid-cols-4 gap-6">
             <Link href="/documentation/lois" className="group">
@@ -343,7 +351,7 @@ export default function DocumentationPage() {
                 <p className="text-sm text-readable-muted dark:text-muted-foreground">Textes législatifs et réglementaires</p>
               </div>
             </Link>
-            
+
             <Link href="/documentation/rapports" className="group">
               <div className="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-green-200 hover:border-green-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
                 <BarChart3 className="w-10 h-10 text-green-600 mb-4" />
@@ -351,7 +359,7 @@ export default function DocumentationPage() {
                 <p className="text-sm text-readable-muted dark:text-muted-foreground">Rapports d'activité et études</p>
               </div>
             </Link>
-            
+
             <Link href="/documentation/guides" className="group">
               <div className="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-niger-orange/30 hover:border-niger-orange transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
                 <BookOpen className="w-10 h-10 text-niger-orange mb-4" />
@@ -359,7 +367,7 @@ export default function DocumentationPage() {
                 <p className="text-sm text-readable-muted dark:text-muted-foreground">Guides pratiques et procédures</p>
               </div>
             </Link>
-            
+
             <Link href="/documentation/circulaires" className="group">
               <div className="bg-white dark:bg-secondary-800 rounded-2xl p-6 border border-blue-200 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl">
                 <Users className="w-10 h-10 text-blue-600 mb-4" />

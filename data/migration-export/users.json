@@ -1,0 +1,89 @@
+[
+  {
+    "_id": "676968a37219260e30a3e365",
+    "username": "admin",
+    "email": "admin@mesrit.ne",
+    "password": "$2a$12$lVQTMtNWV52DxR9r9/b3p.WetMVSQpPYIHOMl38xqmp4ohjLDUili",
+    "role": "super-admin",
+    "status": "active",
+    "isFirstLogin": false,
+    "createdAt": "2024-12-23T13:41:55.162Z",
+    "updatedAt": "2025-11-17T10:00:10.245Z",
+    "tokenVersion": null,
+    "lastLogin": "2025-11-17T10:00:10.243Z",
+    "lockUntil": null,
+    "loginAttempts": 0,
+    "loginCount": 56,
+    "__v": 1,
+    "assignedDomains": [
+      "news",
+      "documents",
+      "communications",
+      "establishments",
+      "services",
+      "directors"
+    ],
+    "assignedEstablishments": [],
+    "lastRoleChange": {
+      "previousRole": "system-admin",
+      "newRole": "super-admin",
+      "changedBy": null,
+      "changedAt": "2025-10-08T16:10:58.054Z"
+    },
+    "temporaryPermissions": [],
+    "twoFactorBackupCodes": []
+  },
+  {
+    "_id": "67ab6db74e9860fc02735179",
+    "username": "dsi",
+    "email": "dsi.mesrit@gamil.com",
+    "password": "$2a$12$UE.ubaeWV3z59SgAlF8UD.ha/vdrMWTkGvpcQJlGuKuPGAnffvnUa",
+    "role": "editor",
+    "status": "active",
+    "isFirstLogin": true,
+    "createdAt": "2025-02-11T15:33:11.777Z",
+    "updatedAt": "2025-10-08T16:10:27.996Z",
+    "__v": 1,
+    "assignedDomains": [
+      "news",
+      "documents"
+    ],
+    "assignedEstablishments": [],
+    "lastRoleChange": {
+      "previousRole": "editor",
+      "newRole": "editor",
+      "changedBy": null,
+      "changedAt": "2025-10-08T16:10:27.996Z"
+    },
+    "temporaryPermissions": [],
+    "twoFactorBackupCodes": []
+  },
+  {
+    "_id": "68e769d2efb23a69da74e56c",
+    "username": "comm",
+    "email": "comm@mesrit.ne",
+    "password": "$2a$10$cBEoSGcN9/.trdu67tpDfeWUuZ.O/R1BnywTYQvL/YBP90KQ956E2",
+    "role": "editor",
+    "status": "active",
+    "isFirstLogin": false,
+    "loginCount": 4,
+    "assignedDomains": [
+      "news",
+      "documents"
+    ],
+    "assignedEstablishments": [],
+    "lastRoleChange": {
+      "previousRole": null,
+      "newRole": "editor",
+      "changedBy": "676968a37219260e30a3e365",
+      "changedAt": "2025-10-09T07:52:50.134Z"
+    },
+    "twoFactorEnabled": false,
+    "twoFactorBackupCodes": [],
+    "temporaryPermissions": [],
+    "createdAt": "2025-10-09T07:52:50.136Z",
+    "updatedAt": "2025-10-09T16:39:19.435Z",
+    "__v": 0,
+    "lastLogin": "2025-10-09T16:39:19.435Z"
+  }
+]

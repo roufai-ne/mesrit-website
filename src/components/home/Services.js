@@ -4,10 +4,12 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import ServiceCard from './ServiceCard';
 
-import { secureApi, useApiAction } from '@/lib/secureApi';
 import { Button } from '@/components/ui/button';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapService } from '@/utils/strapiMapper';
 
 export default function Services() {
+  const { isDark } = useTheme();
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +17,8 @@ export default function Services() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showPopularOnly, setShowPopularOnly] = useState(false);
-  
-  const { isDark } = useTheme();
-  const { execute } = useApiAction();
+
+
 
   const categories = [
     { value: '', label: 'Toutes', color: 'bg-gray-500' },
@@ -35,15 +36,12 @@ export default function Services() {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      await execute(async () => {
-        const data = await secureApi.get('/api/services', false);
-        
-        if (data && data.services) {
-          setServices(data.services);
-        } else {
-          throw new Error('Format de données invalide');
-        }
+      const response = await fetchAPI(endpoints.services, {
+        sort: ['priority:desc', 'title:asc'],
+        pagination: { limit: 100 }
       });
+      const data = mapStrapiList(response, mapService);
+      setServices(data);
     } catch (error) {
       console.error('Erreur lors du chargement des services:', error);
       setError('Erreur lors du chargement des services');
@@ -54,22 +52,22 @@ export default function Services() {
 
   useEffect(() => {
     let filtered = services;
-    
+
     if (searchTerm) {
       filtered = filtered.filter(service =>
         service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         service.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (selectedCategory) {
       filtered = filtered.filter(service => service.category === selectedCategory);
     }
-    
+
     if (showPopularOnly) {
       filtered = filtered.filter(service => service.isPopular);
     }
-    
+
     setFilteredServices(filtered);
   }, [services, searchTerm, selectedCategory, showPopularOnly]);
 
@@ -94,8 +92,8 @@ export default function Services() {
     return (
       <section className={clsx(
         'py-20',
-        isDark 
-          ? 'bg-gradient-to-b from-niger-green-glass to-niger-orange-glass' 
+        isDark
+          ? 'bg-gradient-to-b from-niger-green-glass to-niger-orange-glass'
           : 'bg-gray-50'
       )}>
         <div className="container mx-auto px-4 lg:px-6 text-center">
@@ -293,9 +291,9 @@ export default function Services() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {filteredServices.map((service) => (
+            {filteredServices.map((service, index) => (
               <ServiceCard
-                key={service._id}
+                key={`service-${service.id || index}`}
                 service={service}
                 onClick={handleServiceClick}
               />

@@ -1,19 +1,20 @@
 // src/pages/etablissements/universites.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  GraduationCap, 
-  MapPin, 
-  Users, 
-  BookOpen, 
-  ChevronRight, 
+import {
+  GraduationCap,
+  MapPin,
+  Users,
+  BookOpen,
+  ChevronRight,
   Search,
   Calendar,
   Award,
   ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
 
 export default function UniversitesPage() {
   const [universites, setUniversites] = useState([]);
@@ -30,7 +31,11 @@ export default function UniversitesPage() {
   const fetchUniversites = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/establishments?type=Université', false);
+      const response = await fetchAPI(endpoints.establishments, {
+        filters: { type: 'Université' },
+        pagination: { limit: 100 }
+      });
+      const data = mapStrapiList(response, mapEstablishment);
       setUniversites(data);
     } catch (error) {
       console.error('Erreur:', error);
@@ -41,7 +46,7 @@ export default function UniversitesPage() {
 
   const filteredUniversites = universites.filter(univ => {
     const matchesSearch = univ.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         univ.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      univ.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRegion = selectedRegion === 'all' || univ.region === selectedRegion;
     return matchesSearch && matchesRegion;
   });
@@ -76,17 +81,17 @@ export default function UniversitesPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Universités</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <GraduationCap className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Nos Universités</h1>
           </div>
-          
+
           <p className="text-xl text-blue-100 max-w-3xl">
-            Découvrez notre réseau d'universités publiques réparties à travers le Niger, 
+            Découvrez notre réseau d'universités publiques réparties à travers le Niger,
             offrant une formation de qualité dans tous les domaines du savoir.
           </p>
-          
+
           <div className="mt-6 text-blue-100">
             {filteredUniversites.length} université{filteredUniversites.length > 1 ? 's' : ''} trouvée{filteredUniversites.length > 1 ? 's' : ''}
           </div>
@@ -160,7 +165,7 @@ export default function UniversitesPage() {
                       <div className="text-xl font-bold">{universite.sigle || universite.nom}</div>
                     </div>
                   </div>
-                  
+
                   <div className="md:w-2/3 p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>

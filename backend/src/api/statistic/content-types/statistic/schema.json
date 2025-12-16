@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "statistics",
+  "info": {
+    "singularName": "statistic",
+    "pluralName": "statistics",
+    "displayName": "Statistic",
+    "description": "Chiffres clés (Homepage)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "statKey": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "integer",
+      "required": true
+    },
+    "suffix": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Play, Newspaper, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { secureApi, useApiAction } from '@/lib/secureApi';
 import { useTheme } from '@/contexts/ThemeContext';
 import { formatDate } from '@/lib/utils';
 import VideoPlayer from '@/components/communication/VideoPlayer';
 import { clsx } from 'clsx';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapArticleToNews } from '@/utils/strapiMapper';
 
 export default function HeroNewsCarousel() {
   const [news, setNews] = useState([]);
@@ -14,7 +15,8 @@ export default function HeroNewsCarousel() {
   const [thumbnailMediaView, setThumbnailMediaView] = useState({}); // Track which view (photos/videos) for each thumbnail
   const [isCarouselPaused, setIsCarouselPaused] = useState(false); // Pause carousel on hover
   const [hoveredVideoIndex, setHoveredVideoIndex] = useState(null); // Track which video is hovered in mini-previews
-  const { execute, loading, error } = useApiAction();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { isDark } = useTheme();
 
   useEffect(() => {
@@ -24,30 +26,31 @@ export default function HeroNewsCarousel() {
   // Auto rotation pour le carrousel
   useEffect(() => {
     if (news.length === 0 || isCarouselPaused) return; // Don't auto-rotate if paused
-    
+
     const interval = setInterval(() => {
       setActiveIndex((current) => (current + 1) % Math.min(news.length, 8));
     }, 6000); // 6 secondes pour laisser le temps de lire
-    
+
     return () => clearInterval(interval);
   }, [news.length, isCarouselPaused]);
 
   const fetchNews = async () => {
     try {
-      await execute(async () => {
-        const data = await secureApi.get('/api/news', false);
-        if (!Array.isArray(data)) {
-          throw new Error('Format de données invalide');
-        }
-        const publishedNews = data
-          .filter(item => item.status === 'published')
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 8); // Récupérer 8 actualités pour le carrousel
-        setNews(publishedNews);
+      setLoading(true);
+      const response = await fetchAPI(endpoints.articles, {
+        sort: ['publishedAt:desc'],
+        pagination: { limit: 8 },
+        populate: ['cover']
       });
+      const publishedNews = mapStrapiList(response, mapArticleToNews);
+      setNews(publishedNews);
+      setError(null);
     } catch (error) {
       console.error('Erreur lors du chargement des actualités:', error);
+      setError('Impossible de charger les actualités');
       setNews([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,7 +61,7 @@ export default function HeroNewsCarousel() {
   // Helper: Get thumbnail image based on view preference and available media
   const getThumbnailImage = (article, articleId) => {
     const showVideos = thumbnailMediaView[articleId];
-    
+
     if (showVideos && article.videos?.length > 0) {
       // Show video thumbnail if available, fallback to image
       const mainVideo = article.videos.find(v => v.isMain);
@@ -132,7 +135,7 @@ export default function HeroNewsCarousel() {
           {(() => {
             const hasImages = currentNews?.images?.length > 0 || currentNews?.image;
             const hasVideos = currentNews?.mainVideo || currentNews?.videos?.length > 0;
-            
+
             // Priority: Show images first, videos only if no images
             if (hasImages) {
               return (
@@ -204,7 +207,7 @@ export default function HeroNewsCarousel() {
             const { imagesCount, videosCount } = getMediaCounts(currentNews);
             // Show media badge if there's more content than what's displayed
             const displayingImage = currentNews?.images?.length > 0 || currentNews?.image;
-            
+
             if (displayingImage && videosCount > 0) {
               // Displaying image but has videos
               return (
@@ -243,15 +246,15 @@ export default function HeroNewsCarousel() {
               <div className="mb-2 sm:mb-3 text-xs sm:text-sm text-white/80">
                 {formatDate(currentNews?.createdAt)}
               </div>
-              
+
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-3 sm:mb-4 leading-tight drop-shadow-lg">
                 {currentNews?.title}
               </h1>
-              
+
               <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg line-clamp-2 mb-4 sm:mb-6 max-w-3xl drop-shadow leading-relaxed">
                 {currentNews?.excerpt || currentNews?.summary}
               </p>
-              
+
               <div className="flex flex-wrap gap-2 sm:gap-3 md:gap-4">
                 <Link
                   href={`/actualites/${currentNews?._id}`}
@@ -261,7 +264,7 @@ export default function HeroNewsCarousel() {
                   <span className="xs:hidden">Lire</span>
                   <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Link>
-                
+
                 <Link
                   href="/actualites"
                   className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all duration-300 backdrop-blur-sm font-medium border border-white/20 text-xs sm:text-sm md:text-base"
@@ -277,7 +280,7 @@ export default function HeroNewsCarousel() {
 
         {/* Mini Previews des Vidéos - Empilées verticalement en haut à droite */}
         {currentNews?.videos && currentNews.videos.length > 0 && (
-          <div 
+          <div
             className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 flex flex-col gap-3"
             onMouseEnter={() => setIsCarouselPaused(true)}
             onMouseLeave={() => {
@@ -293,8 +296,8 @@ export default function HeroNewsCarousel() {
                 className={clsx(
                   'relative rounded-lg overflow-hidden shadow-xl transition-all duration-300 cursor-pointer',
                   'w-32 sm:w-40 md:w-48 aspect-video',
-                  hoveredVideoIndex === videoIdx 
-                    ? 'ring-3 ring-niger-orange scale-110 z-20 shadow-2xl shadow-niger-orange/50' 
+                  hoveredVideoIndex === videoIdx
+                    ? 'ring-3 ring-niger-orange scale-110 z-20 shadow-2xl shadow-niger-orange/50'
                     : 'hover:ring-2 hover:ring-white/70 hover:scale-105'
                 )}
               >
@@ -376,7 +379,7 @@ export default function HeroNewsCarousel() {
                 Cliquez sur une vignette pour voir l'article
               </p>
             </div>
-            
+
             {/* Liste responsive - Horizontal sur mobile, grille sur tablette+ */}
             <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-3 xl:grid-cols-5">
               {news.slice(0, 5).map((article, index) => (
@@ -452,13 +455,13 @@ export default function HeroNewsCarousel() {
                       }
                       return null;
                     })()}
-                    
+
                     {/* Overlay avec gradient */}
                     <div className={clsx(
                       'absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300',
                       index === activeIndex ? 'opacity-60' : 'opacity-0 group-hover:opacity-40'
                     )} />
-                    
+
                     {/* Badge catégorie si disponible */}
                     {article.category && (
                       <div className="absolute top-2 left-2">
@@ -467,7 +470,7 @@ export default function HeroNewsCarousel() {
                         </span>
                       </div>
                     )}
-                    
+
                     {/* Indicateur article actif */}
                     {index === activeIndex && (
                       <div className="absolute bottom-2 left-2">
@@ -475,7 +478,7 @@ export default function HeroNewsCarousel() {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Contenu de la vignette - Compact sur mobile, détaillé sur tablette+ */}
                   <div className="flex-1 p-3 md:p-4 flex flex-col justify-between">
                     <div>
@@ -512,7 +515,7 @@ export default function HeroNewsCarousel() {
                 </div>
               ))}
             </div>
-            
+
             {/* Navigation supplémentaire si plus de 6 articles */}
             {news.length > 6 && (
               <div className="text-center mt-8">

@@ -1,4 +1,3 @@
-
 'use client';
 import dynamic from 'next/dynamic';
 import Header from './Header';
@@ -40,18 +39,18 @@ export default function MainLayout({ children }) {
           animation: 'float 6s ease-in-out infinite'
         }}
       />
-    <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col">
 
-      <Header />
-      <main id="main-content" className="flex-grow" tabIndex={-1}>
-        {children}
-      </main>
-      <Footer />
+        <Header />
+        <main id="main-content" className="flex-grow" tabIndex={-1}>
+          {children}
+        </main>
+        <Footer />
 
-    </div>
+      </div>
 
-    {/* Chatbot flottant */}
-    <Chatbot />
+      {/* Chatbot flottant */}
+      <Chatbot />
     </div>
 
   );

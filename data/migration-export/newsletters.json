@@ -1,0 +1,31 @@
+[
+  {
+    "_id": "67c0a066baedfb310ba0978a",
+    "email": "roufay_amadou@yahoo.fr",
+    "subscribedAt": "2025-02-27T17:27:02.437Z",
+    "status": "active",
+    "__v": 0
+  },
+  {
+    "_id": "68f7aa2c9647c1eb0fbc515f",
+    "email": "roufai.amadou@gmail.com",
+    "subscribedAt": "2025-10-21T15:43:40.160Z",
+    "status": "pending",
+    "confirmationToken": "7e9a7ef741b696c9db654e92430e4be6331be824",
+    "confirmationTokenExpires": "2025-10-22T15:43:40.160Z",
+    "unsubscribeToken": "2f65390dcdbb380d97747718b21be18dee51a386",
+    "unsubscribeTokenExpires": "2025-11-20T15:43:40.160Z",
+    "__v": 0
+  },
+  {
+    "_id": "68f7aab49647c1eb0fbc5164",
+    "email": "dsi.mesri@gmail.com",
+    "subscribedAt": "2025-10-21T15:45:56.464Z",
+    "status": "pending",
+    "confirmationToken": "eaaed45459438475939d575e5b0f2b0d3c609c13",
+    "confirmationTokenExpires": "2025-10-22T15:45:56.464Z",
+    "unsubscribeToken": "5228841623c3be13745770da07be3050a5e9fc7a",
+    "unsubscribeTokenExpires": "2025-11-20T15:45:56.464Z",
+    "__v": 0
+  }
+]

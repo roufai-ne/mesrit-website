@@ -1,0 +1,24 @@
+[
+  {
+    "_id": "67742b4403d9b32c6118f1ab",
+    "question": "Quoi",
+    "answer": "ça",
+    "category": "test",
+    "order": 0,
+    "isActive": true,
+    "createdAt": "2024-12-31T17:35:00.900Z",
+    "updatedAt": "2024-12-31T17:35:00.900Z",
+    "__v": 0
+  },
+  {
+    "_id": "67742b6903d9b32c6118f1ae",
+    "question": "Quand",
+    "answer": "Maintenant",
+    "category": "test",
+    "order": 0,
+    "isActive": true,
+    "createdAt": "2024-12-31T17:35:37.146Z",
+    "updatedAt": "2024-12-31T17:35:37.146Z",
+    "__v": 0
+  }
+]

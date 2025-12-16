@@ -1,15 +1,13 @@
 // src/lib/autoNewsletterService.js
-import { connectDB } from '@/lib/mongodb';
-import Newsletter from '@/models/Newsletter';
-import Log from '@/models/Log';
+import { fetchAPI, endpoints, getStrapiURL } from '@/lib/strapi';
 import logger, { LOG_TYPES } from '@/lib/logger';
 import nodemailer from 'nodemailer';
 
 /**
- * Service d'envoi automatique de newsletter lors de publication d'actualités
+ * Service d'envoi automatique de newsletter lors de publication d'actualités (Version Strapi)
  */
 export class AutoNewsletterService {
-  
+
   /**
    * Envoyer automatiquement une newsletter pour une nouvelle actualité
    */
@@ -20,29 +18,34 @@ export class AutoNewsletterService {
     }
 
     try {
-      await connectDB();
-      
-      // Vérifier si l'envoi automatique est activé pour cette catégorie
-      const autoSendEnabled = await this.isAutoSendEnabled(article.category);
+      // 1. Vérifier la configuration
+      // TODO: Créer un Single Type 'NewsletterConfig' dans Strapi pour gérer ça dynamiquement
+      const autoSendEnabled = true; // Par défaut actif
+      // const excludedCategories = ['Communiqué']; 
+
       if (!autoSendEnabled) {
-        console.log(`Envoi automatique désactivé pour la catégorie: ${article.category}`);
-        return { success: false, reason: `Envoi automatique désactivé pour la catégorie: ${article.category}` };
+        return { success: false, reason: 'Envoi automatique désactivé' };
       }
 
-      // Récupérer les abonnés actifs
-      const subscribers = await Newsletter.find({ status: 'active' });
-      
+      // 2. Récupérer les abonnés actifs via Strapi
+      const subscribersData = await fetchAPI(endpoints.subscribers, {
+        filters: { status: 'active' },
+        pagination: { limit: -1 } // Tous les abonnés
+      });
+
+      const subscribers = subscribersData?.data || [];
+
       if (subscribers.length === 0) {
         console.log('Aucun abonné actif trouvé');
         return { success: false, reason: 'Aucun abonné actif' };
       }
 
-      // Générer le contenu de l'email
+      // 3. Générer le contenu de l'email
       const emailContent = this.generateEmailTemplate(article);
       const subject = `Nouvelle actualité MESRIT : ${article.title}`;
 
-      // Configurer le transporteur email
-      const transporter = nodemailer.createTransporter({
+      // 4. Configurer le transporteur email
+      const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
         secure: process.env.SMTP_SECURE === 'true',
@@ -56,14 +59,17 @@ export class AutoNewsletterService {
       let successCount = 0;
       let errorCount = 0;
 
-      // Envoyer à tous les abonnés
+      // 5. Envoyer à tous les abonnés
+      // Note: Pour une grosse liste, utiliser une queue (Redis/Bull) serait mieux
       for (const subscriber of subscribers) {
         try {
-          const unsubscribeLink = `${process.env.NEXT_PUBLIC_BASE_URL}/newsletter/unsubscribe?token=${subscriber.unsubscribeToken}`;
-          
+          const subAttrs = subscriber.attributes || subscriber;
+          const unsubscribeToken = subAttrs.unsubscribeToken || 'token-missing';
+          const unsubscribeLink = `${process.env.NEXT_PUBLIC_BASE_URL}/newsletter/unsubscribe?token=${unsubscribeToken}`;
+
           const info = await transporter.sendMail({
             from: `"MESRIT Niger" <${process.env.SMTP_USER}>`,
-            to: subscriber.email,
+            to: subAttrs.email,
             subject: subject,
             html: emailContent + `
               <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
@@ -74,45 +80,26 @@ export class AutoNewsletterService {
             `,
           });
 
-          // Logger le succès
-          await Log.create({
-            email: subscriber.email,
-            status: 'success',
-            message: 'Newsletter automatique envoyée avec succès',
-            content: `Actualité: ${article.title}`,
-            response: info.response,
-            timestamp: new Date(),
-          });
-
-          results.push({ email: subscriber.email, status: 'success' });
+          results.push({ email: subAttrs.email, status: 'success' });
           successCount++;
 
         } catch (error) {
-          // Logger l'erreur
-          await Log.create({
-            email: subscriber.email,
+          console.error(`Erreur envoi pour ${subscriber.email}:`, error.message);
+          results.push({
+            email: subscriber.email, // Might fail if subscriber is undefined, but loop protects it
             status: 'error',
-            message: 'Erreur envoi newsletter automatique',
-            content: `Actualité: ${article.title}`,
-            error: error.message,
-            timestamp: new Date(),
-          });
-
-          results.push({ 
-            email: subscriber.email, 
-            status: 'error', 
-            error: error.message 
+            error: error.message
           });
           errorCount++;
         }
       }
 
-      // Logger l'opération globale
+      // 6. Logger l'opération globale
       await logger.info(
         LOG_TYPES.CONTENT_PUBLISHED,
         `Newsletter automatique envoyée pour: ${article.title}`,
         {
-          articleId: article._id,
+          articleId: article.id,
           articleTitle: article.title,
           totalSubscribers: subscribers.length,
           successCount,
@@ -133,21 +120,20 @@ export class AutoNewsletterService {
 
     } catch (error) {
       console.error('Erreur envoi newsletter automatique:', error);
-      
+
       await logger.error(
         LOG_TYPES.SYSTEM_ERROR,
         'Erreur envoi newsletter automatique',
         {
-          articleId: article._id,
           articleTitle: article.title,
           error: error.message,
           publishedBy
         }
       );
 
-      return { 
-        success: false, 
-        error: error.message 
+      return {
+        success: false,
+        error: error.message
       };
     }
   }
@@ -156,15 +142,20 @@ export class AutoNewsletterService {
    * Générer le template HTML pour l'email automatique
    */
   static generateEmailTemplate(article) {
-    const articleUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/actualites/${article._id}`;
-    const imageUrl = article.image ? 
-      (article.image.startsWith('http') ? article.image : `${process.env.NEXT_PUBLIC_BASE_URL}${article.image}`) 
-      : null;
+    const articleUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/actualites/${article.slug}`;
+
+    // Gérer l'image (Strapi format)
+    let imageUrl = null;
+    if (article.cover?.data?.attributes?.url) {
+      imageUrl = getStrapiURL(article.cover.data.attributes.url);
+    } else if (article.image) {
+      // Fallback for mapped object
+      imageUrl = article.image.startsWith('http') ? article.image : getStrapiURL(article.image);
+    }
 
     // Extraire un extrait du contenu (200 premiers caractères)
-    const excerpt = article.content ? 
-      article.content.replace(/<[^>]*>/g, '').substring(0, 200) + '...' 
-      : 'Découvrez cette nouvelle actualité sur notre site.';
+    const contentText = article.content || article.summary || '';
+    const excerpt = contentText.replace(/<[^>]*>/g, '').substring(0, 200) + '...';
 
     return `
       <!DOCTYPE html>
@@ -213,7 +204,7 @@ export class AutoNewsletterService {
           ` : ''}
           
           <p style="font-size: 14px; color: #666;">
-            <strong>Publié le:</strong> ${new Date(article.date || article.createdAt).toLocaleDateString('fr-FR')}
+            <strong>Publié le:</strong> ${new Date(article.publishedAt || article.createdAt || Date.now()).toLocaleDateString('fr-FR')}
           </p>
         </div>
 
@@ -231,143 +222,10 @@ export class AutoNewsletterService {
     `;
   }
 
-  /**
-   * Vérifier si l'envoi automatique est activé
-   */
-  static async isAutoSendEnabled(category = null) {
-    try {
-      const NewsletterConfig = (await import('@/models/NewsletterConfig')).default;
-      
-      // Récupérer la configuration (créer une par défaut si n'existe pas)
-      let config = await NewsletterConfig.findOne();
-      
-      if (!config) {
-        config = await NewsletterConfig.create({
-          autoSendEnabled: true,
-          sendType: 'immediate',
-          lastModifiedBy: 'system'
-        });
-      }
-      
-      if (!config.autoSendEnabled) {
-        return false;
-      }
-      
-      // Vérifier les catégories incluses/exclues
-      if (category) {
-        if (config.excludedCategories.includes(category)) {
-          return false;
-        }
-        
-        if (config.includedCategories.length > 0 && !config.includedCategories.includes(category)) {
-          return false;
-        }
-      }
-      
-      return true;
-      
-    } catch (error) {
-      console.error('Erreur vérification config newsletter:', error);
-      // En cas d'erreur, désactiver par sécurité
-      return false;
-    }
-  }
-
-  /**
-   * Créer un digest des actualités récentes
-   */
-  static async createWeeklyDigest() {
-    try {
-      await connectDB();
-      
-      // Récupérer les actualités de la semaine
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      
-      const { default: News } = await import('@/models/News');
-      const recentNews = await News.find({
-        status: 'published',
-        date: { $gte: oneWeekAgo }
-      }).sort({ date: -1 }).limit(10);
-
-      if (recentNews.length === 0) {
-        console.log('Aucune actualité récente pour le digest');
-        return { success: false, reason: 'Aucune actualité récente' };
-      }
-
-      // Générer le template digest
-      const digestContent = this.generateDigestTemplate(recentNews);
-      
-      // Envoyer aux abonnés
-      const subscribers = await Newsletter.find({ status: 'active' });
-      
-      // TODO: Implémenter l'envoi du digest
-      console.log(`Digest prêt pour ${subscribers.length} abonnés`);
-      
-      return {
-        success: true,
-        articlesCount: recentNews.length,
-        subscribersCount: subscribers.length
-      };
-
-    } catch (error) {
-      console.error('Erreur création digest:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * Générer le template pour le digest hebdomadaire
-   */
-  static generateDigestTemplate(articles) {
-    const articlesHtml = articles.map(article => {
-      const articleUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/actualites/${article._id}`;
-      const excerpt = article.content ? 
-        article.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...' 
-        : '';
-
-      return `
-        <div style="margin-bottom: 25px; padding: 15px; border-left: 4px solid #2E8B57; background: #f9f9f9;">
-          <h3 style="margin: 0 0 10px 0; color: #2E8B57;">
-            <a href="${articleUrl}" style="color: #2E8B57; text-decoration: none;">
-              ${article.title}
-            </a>
-          </h3>
-          <p style="margin: 0 0 10px 0; color: #555; font-size: 14px;">
-            ${excerpt}
-          </p>
-          <p style="margin: 0; font-size: 12px; color: #666;">
-            ${article.category} • ${new Date(article.date).toLocaleDateString('fr-FR')}
-          </p>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Digest Hebdomadaire MESRIT</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #FF6B35, #2E8B57); color: white; border-radius: 8px;">
-          <h1 style="margin: 0;">MESRIT Niger</h1>
-          <p style="margin: 5px 0 0 0;">Actualités de la semaine</p>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-          <h2 style="color: #2E8B57;">Les actualités de cette semaine</h2>
-          ${articlesHtml}
-        </div>
-        
-        <div style="text-align: center; padding: 20px; color: #666; font-size: 14px; border-top: 1px solid #eee;">
-          <p>Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique</p>
-        </div>
-      </body>
-      </html>
-    `;
-  }
+  // Legacy methods kept but simplified or stubbed if not used
+  static async isAutoSendEnabled() { return true; }
+  static async createWeeklyDigest() { return { success: false, reason: 'Not implemented for Strapi yet' }; }
+  static generateDigestTemplate(articles) { return ''; }
 }
 
 export default AutoNewsletterService;

@@ -1,12 +1,12 @@
 // src/pages/etablissements/centres.js
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  GraduationCap, 
-  MapPin, 
-  Users, 
-  Clock, 
-  ChevronRight, 
+import {
+  GraduationCap,
+  MapPin,
+  Users,
+  Clock,
+  ChevronRight,
   Search,
   Award,
   BookOpen,
@@ -14,7 +14,8 @@ import {
   Target
 } from 'lucide-react';
 import Link from 'next/link';
-import { secureApi } from '@/lib/secureApi';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
 
 export default function CentresPage() {
   const [centres, setCentres] = useState([]);
@@ -31,7 +32,11 @@ export default function CentresPage() {
   const fetchCentres = async () => {
     try {
       setLoading(true);
-      const data = await secureApi.get('/api/establishments?type=Centre', false);
+      const response = await fetchAPI(endpoints.establishments, {
+        filters: { type: 'Centre' },
+        pagination: { limit: 100 }
+      });
+      const data = mapStrapiList(response, mapEstablishment);
       setCentres(data);
     } catch (error) {
       console.error('Erreur:', error);
@@ -42,7 +47,7 @@ export default function CentresPage() {
 
   const filteredCentres = centres.filter(centre => {
     const matchesSearch = centre.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         centre.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      centre.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || centre.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -97,17 +102,17 @@ export default function CentresPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span>Centres de Formation</span>
           </div>
-          
+
           <div className="flex items-center mb-6">
             <GraduationCap className="w-10 h-10 mr-4" />
             <h1 className="text-4xl font-bold">Centres de Formation Continue</h1>
           </div>
-          
+
           <p className="text-xl text-orange-100 max-w-3xl">
-            Des centres spécialisés dans la formation continue, le perfectionnement professionnel 
+            Des centres spécialisés dans la formation continue, le perfectionnement professionnel
             et la reconversion, accompagnant les professionnels tout au long de leur carrière.
           </p>
-          
+
           <div className="mt-6 text-orange-100">
             {filteredCentres.length} centre{filteredCentres.length > 1 ? 's' : ''} trouvé{filteredCentres.length > 1 ? 's' : ''}
           </div>
@@ -154,11 +159,10 @@ export default function CentresPage() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`p-4 rounded-xl transition-all text-center ${
-                    selectedCategory === category
+                  className={`p-4 rounded-xl transition-all text-center ${selectedCategory === category
                       ? 'bg-orange-600 text-white shadow-lg'
                       : 'bg-white hover:bg-orange-50 shadow'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-center mb-2">
                     {getCategoryIcon(category)}
@@ -193,7 +197,7 @@ export default function CentresPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{centre.nom}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-3">{centre.description}</p>
