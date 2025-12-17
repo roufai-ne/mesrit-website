@@ -1,5 +1,4 @@
 // src/pages/api/ministere/missions.js
-import { connectDB } from '@/lib/mongodb';
 import logger from '@/lib/logger';
 
 export default async function handler(req, res) {
@@ -8,9 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await connectDB();
-    
-    // Missions statiques pour l'instant - sera migré vers MongoDB plus tard
+    // Missions statiques pour l'instant - sera migré vers Strapi plus tard
     const missionsData = null;
 
     // Missions par défaut avec données réalistes

@@ -1,7 +1,7 @@
 // src/services/crawler.js
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { connectDB } from '../lib/mongodb.js';
+// import { connectDB } from '../lib/mongodb.js';
 import PageContent from '../models/PageContent.js';
 
 /**
@@ -160,9 +160,9 @@ class SiteCrawler {
 
       // Extraire le titre
       const title = pageInfo.title ||
-                    $('h1').first().text().trim() ||
-                    $('title').text().trim() ||
-                    'Sans titre';
+        $('h1').first().text().trim() ||
+        $('title').text().trim() ||
+        'Sans titre';
 
       // Extraire le contenu
       const content = this.extractContent($);
@@ -245,7 +245,8 @@ class SiteCrawler {
     console.log(`[Crawler] Base URL: ${this.baseUrl}`);
 
     // Connexion à MongoDB
-    await connectDB();
+    // await connectDB();
+    console.warn("MongoDB connection disabled in crawler.");
 
     const pages = SiteCrawler.getPagesToIndex();
     console.log(`[Crawler] ${pages.length} pages to crawl`);

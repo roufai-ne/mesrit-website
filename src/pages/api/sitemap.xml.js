@@ -1,6 +1,5 @@
 // src/pages/api/sitemap.xml.js
-import News from '@/models/News';
-import { connectDB } from '@/lib/mongodb';
+import { fetchAPI, endpoints } from '@/lib/strapi';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -8,19 +7,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    await connectDB();
-    
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne';
-    
-    // Récupérer tous les articles publiés avec slug
-      const articles = await News.find({
-        status: 'published',
-        slug: { $exists: true }
-    })
-    .select('slug updatedAt')
-    .sort({ updatedAt: -1 })
-    .lean();
-    
+
+    // Récupérer tous les articles publiés avec slug depuis Strapi
+    // On utilise fetchAPI qui gère déjà l'authentification et l'URL
+    const response = await fetchAPI(endpoints.news, {
+      fields: ['slug', 'updatedAt'],
+      sort: ['updatedAt:desc'],
+      pagination: { limit: 1000 } // Récupérer un grand nombre pour le sitemap
+    });
+
+    const articles = response.data || [];
+
     // Générer le XML du sitemap
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -91,23 +89,23 @@ export default async function handler(req, res) {
   
   <!-- Articles -->
 ${articles.map(article => `  <url>
-      <loc>${baseUrl}/actualites/${article.slug || article._id}</loc>
-      <lastmod>${new Date(article.updatedAt).toISOString()}</lastmod>
+      <loc>${baseUrl}/actualites/${article.attributes?.slug || article.id}</loc>
+      <lastmod>${article.attributes?.updatedAt ? new Date(article.attributes.updatedAt).toISOString() : new Date().toISOString()}</lastmod>
       <changefreq>weekly</changefreq>
-      <priority>${article.slug ? '0.8' : '0.6'}</priority>
+      <priority>${article.attributes?.slug ? '0.8' : '0.6'}</priority>
   </url>`).join('\n')}
 </urlset>`;
 
     // Définir les headers appropriés
     res.setHeader('Content-Type', 'application/xml');
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600'); // Cache 1 heure
-    
+
     res.status(200).send(sitemap);
-    
+
   } catch (error) {
     console.error('Erreur génération sitemap:', error);
-    res.status(500).json({ 
-      error: 'Erreur lors de la génération du sitemap' 
+    res.status(500).json({
+      error: 'Erreur lors de la génération du sitemap'
     });
   }
 }

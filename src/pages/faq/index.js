@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import Link from 'next/link';
 import {
   ChevronRight,
   ChevronDown,
@@ -15,14 +16,7 @@ import {
 } from 'lucide-react';
 import { sanitizeForReact } from '@/lib/sanitize';
 import { fetchAPI, endpoints } from '@/lib/strapi';
-import { mapStrapiList } from '@/utils/strapiMapper';
-
-const mapFAQ = (faq) => ({
-  _id: faq.id,
-  question: faq.attributes.question,
-  answer: faq.attributes.answer,
-  category: faq.attributes.category
-});
+import { mapStrapiList, mapFAQ } from '@/utils/strapiMapper';
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState([]);
@@ -41,7 +35,7 @@ export default function FAQPage() {
           sort: ['order:asc', 'publishedAt:desc'],
           pagination: { limit: 100 }
         });
-        const data = mapStrapiList(response, mapFAQ);
+        const data = mapStrapiList(response, mapFAQ).filter(item => item);
         setFaqs(data);
 
         // Initialiser l'état d'expansion (premier élément ouvert)
@@ -60,8 +54,9 @@ export default function FAQPage() {
 
   // Filtrage des FAQs en fonction de la recherche
   const filteredFaqs = faqs.filter(faq => {
-    const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!faq) return false;
+    const matchesSearch = faq.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      faq.answer?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
     return matchesSearch && matchesCategory;
   });

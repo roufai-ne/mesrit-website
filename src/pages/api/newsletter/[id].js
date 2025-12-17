@@ -1,14 +1,28 @@
-import { connectDB } from '@/lib/mongodb';
-import Newsletter from '@/models/Newsletter';
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+const STRAPI_TOKEN = process.env.STRAPI_ADMIN_TOKEN;
 
 export default async function handler(req, res) {
-  await connectDB();
   const { id } = req.query;
 
   try {
     switch (req.method) {
       case 'DELETE':
-        await Newsletter.findByIdAndDelete(id);
+        if (!STRAPI_TOKEN) {
+          return res.status(500).json({ error: 'Configuration serveur incomplète (Token manquant)' });
+        }
+
+        const deleteRes = await fetch(`${STRAPI_URL}/api/subscribers/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${STRAPI_TOKEN}`
+          }
+        });
+
+        if (!deleteRes.ok) {
+          // Strapi might return 404 if not found, or other error
+          return res.status(deleteRes.status).json({ error: 'Erreur lors de la suppression' });
+        }
+
         return res.status(200).json({ success: true });
 
       default:

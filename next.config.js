@@ -10,18 +10,26 @@ const nextConfig = {
   // Environment variables should be accessed directly in API routes
 
   // Image optimization configuration
+  // Image optimization configuration
   images: {
-    domains: ['localhost', 'site.mesrit.com', 'www.site.mesrit.com'],
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'https', hostname: 'site.mesrit.com' },
+      { protocol: 'https', hostname: 'www.site.mesrit.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      { protocol: 'https', hostname: 'mesrit.ma' },
+      { protocol: 'https', hostname: 'www.mesrit.ma' },
+    ],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
-  
+
   // Enable compression
   compress: true,
-  
+
   // PoweredBy header removal
   poweredByHeader: false,
-  
+
   // Webpack configuration
   webpack: (config, { dev, isServer }) => {
     // Fallback configuration
@@ -32,7 +40,7 @@ const nextConfig = {
       net: false,
       tls: false,
     };
-    
+
     // Production optimizations
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
@@ -46,10 +54,10 @@ const nextConfig = {
         },
       };
     }
-    
+
     return config;
   },
-  
+
   // Security headers - DISABLED in production (handled by Caddy)
   async headers() {
     // In production, Caddy handles ALL security headers including CSP
@@ -104,7 +112,7 @@ const nextConfig = {
       },
     ];
   },
-  
+
   // Redirects for security
   async redirects() {
     return [
