@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, TrendingUp } from 'lucide-react';
+import { Search, Filter, TrendingUp } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import ServiceCard from './ServiceCard';
@@ -9,6 +9,7 @@ import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapService } from '@/utils/strapiMapper';
 
 export default function Services() {
+  // Refactored with transparency and background pattern
   const { isDark } = useTheme();
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
@@ -16,17 +17,14 @@ export default function Services() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [showPopularOnly, setShowPopularOnly] = useState(false);
-
-
 
   const categories = [
-    { value: '', label: 'Toutes', color: 'bg-gray-500' },
-    { value: 'etudiants', label: 'Étudiants', color: 'bg-blue-500' },
-    { value: 'etablissements', label: 'Établissements', color: 'bg-green-500' },
-    { value: 'recherche', label: 'Recherche', color: 'bg-purple-500' },
-    { value: 'administration', label: 'Administration', color: 'bg-orange-500' },
-    { value: 'formation', label: 'Formation', color: 'bg-red-500' }
+    { value: '', label: 'Tous' },
+    { value: 'etudiants', label: 'Étudiants' },
+    { value: 'etablissements', label: 'Établissements' },
+    { value: 'recherche', label: 'Recherche' },
+    { value: 'administration', label: 'Administration' },
+    { value: 'formation', label: 'Formation' }
   ];
 
   useEffect(() => {
@@ -64,23 +62,13 @@ export default function Services() {
       filtered = filtered.filter(service => service.category === selectedCategory);
     }
 
-    if (showPopularOnly) {
-      filtered = filtered.filter(service => service.isPopular);
-    }
-
     setFilteredServices(filtered);
-  }, [services, searchTerm, selectedCategory, showPopularOnly]);
+  }, [services, searchTerm, selectedCategory]);
 
   const handleServiceClick = (service) => {
     if (service.url) {
       window.open(service.url, '_blank');
     }
-  };
-
-  const resetFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setShowPopularOnly(false);
   };
 
   const retry = () => {
@@ -90,236 +78,133 @@ export default function Services() {
 
   if (error) {
     return (
-      <section className={clsx(
-        'py-20',
-        isDark
-          ? 'bg-gradient-to-b from-niger-green-glass to-niger-orange-glass'
-          : 'bg-gray-50'
-      )}>
-        <div className="container mx-auto px-4 lg:px-6 text-center">
-          <div className="text-red-500 mb-4">
-            <TrendingUp className="w-16 h-16 mx-auto" />
-          </div>
-          <h3 className={clsx(
-            'text-xl font-semibold mb-2',
-            isDark ? 'text-white' : 'text-gray-900'
-          )}>Erreur de chargement</h3>
-          <p className={clsx(
-            'mb-4',
-            isDark ? 'text-white/90' : 'text-gray-600'
-          )}>{error}</p>
-          <Button onClick={retry} variant="outline">
-            Réessayer
-          </Button>
+      <section className="py-12 text-center">
+        <div className="container mx-auto px-4">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={retry} variant="outline">Réessayer</Button>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4 lg:px-6">
-        {/* En-tête de la section */}
-        <div className="text-center mb-12">
-          <h2 className={clsx(
-            'text-4xl font-bold mb-4',
-            isDark ? 'text-white' : 'text-gray-900'
-          )}>
-            Nos Services
-          </h2>
-          <p className={clsx(
-            'text-lg max-w-3xl mx-auto',
-            isDark ? 'text-white/90' : 'text-gray-600'
-          )}>
-            Découvrez tous les services mis à votre disposition par le ministère
-          </p>
-        </div>
-
-        {/* Filtres et recherche - Redesign moderne */}
-        <div className={clsx(
-          'mb-8 rounded-3xl border backdrop-blur-md overflow-hidden shadow-xl',
+    <section className="py-16 md:py-24 relative overflow-hidden">
+      {/* Arrière-plan avec gradient et motif (Inspiré de StatsSection) */}
+      {/* Arrière-plan avec gradient et motif (Inspiré de StatsSection) - Très transparent */}
+      <div
+        className={clsx(
+          'absolute inset-0',
           isDark
-            ? 'bg-gradient-to-br from-niger-white-glass/10 to-niger-white-glass/5 border-niger-orange/20'
-            : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200'
-        )}>
-          {/* Barre de recherche principale */}
-          <div className="p-5 border-b border-gray-200/50 dark:border-gray-700/50">
-            <div className="relative max-w-2xl mx-auto">
-              <Search className={clsx(
-                'absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5',
-                isDark ? 'text-niger-orange-light' : 'text-niger-orange'
-              )} />
-              <input
-                type="text"
-                placeholder="Rechercher un service par nom, description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={clsx(
-                  'w-full pl-12 pr-4 py-4 rounded-2xl border-2 transition-all duration-300 text-base',
-                  'focus:outline-none focus:ring-4 focus:ring-niger-orange/20',
-                  isDark
-                    ? 'bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 focus:border-niger-orange focus:bg-gray-800/70'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-niger-orange focus:bg-white shadow-sm'
-                )}
-              />
-            </div>
+            ? 'bg-gradient-to-br from-gray-900/80 via-gray-900/50 to-gray-900/80'
+            : 'bg-gradient-to-br from-blue-50/30 via-transparent to-orange-50/30'
+        )}
+      >
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f97316' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        ></div>
+      </div>
+
+      <div className="container mx-auto px-4 lg:px-6 relative z-10">
+        {/* Header Section - Centré */}
+        <div className="flex flex-col items-center text-center mb-12 gap-8">
+          <div className="max-w-3xl">
+            <h2 className={clsx(
+              'text-3xl md:text-5xl font-bold mb-4',
+              isDark ? 'text-white' : 'text-gray-900'
+            )}>
+              Nos Services
+            </h2>
+            <p className={clsx(
+              'text-lg md:text-xl',
+              isDark ? 'text-gray-400' : 'text-gray-600'
+            )}>
+              Accédez aux outils et services du ministère pour faciliter vos démarches.
+            </p>
           </div>
 
-          {/* Section des filtres */}
-          <div className="p-5 space-y-3">
-            {/* Titre de section */}
-            <div className="flex items-center justify-between mb-2">
-              <h4 className={clsx(
-                'text-sm font-semibold uppercase tracking-wide',
-                isDark ? 'text-gray-400' : 'text-gray-600'
-              )}>
-                <Filter className="w-4 h-4 inline mr-2" />
-                Filtrer par catégorie
-              </h4>
-              {(searchTerm || selectedCategory || showPopularOnly) && (
-                <button
-                  onClick={resetFilters}
-                  className={clsx(
-                    'text-xs font-medium px-3 py-1 rounded-full transition-all duration-300',
-                    isDark
-                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-                  )}
-                >
-                  Réinitialiser
-                </button>
-              )}
+          {/* Search Bar - Centered */}
+          <div className="relative w-full max-w-xl">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className={clsx(
+                'h-5 w-5',
+                isDark ? 'text-gray-500' : 'text-gray-400'
+              )} />
             </div>
+            <input
+              type="text"
+              className={clsx(
+                'block w-full pl-12 pr-4 py-3 rounded-full border-2 text-base focus:outline-none transition-all backdrop-blur-md shadow-lg',
+                isDark
+                  ? 'bg-gray-800/40 border-gray-700/50 text-white placeholder-gray-500 focus:border-niger-orange/50 focus:bg-gray-800/60'
+                  : 'bg-white/40 border-gray-200/50 text-gray-900 placeholder-gray-500 focus:border-niger-orange focus:bg-white/60'
+              )}
+              placeholder="Rechercher un service..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
 
-            {/* Filtres de catégorie - Layout mobile-first */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+        {/* Categories Tabs - Clean Horizontal Scroll - Centered */}
+        <div className="mb-12 flex justify-center">
+          <div className="overflow-x-auto pb-2 scrollbar-hide max-w-full">
+            <div className="flex space-x-2 px-4">
               {categories.map((category) => (
                 <button
                   key={category.value}
                   onClick={() => setSelectedCategory(category.value)}
                   className={clsx(
-                    'group relative px-3 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300',
-                    'border-2 flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap',
+                    'px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all backdrop-blur-sm',
                     selectedCategory === category.value
-                      ? 'bg-gradient-to-r from-niger-orange to-niger-orange-dark text-white border-niger-orange shadow-lg scale-105'
+                      ? 'bg-niger-orange text-white shadow-md'
                       : isDark
-                        ? 'bg-gray-800/40 border-gray-700 text-gray-300 hover:bg-gray-700/60 hover:border-niger-orange/50 hover:scale-105'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-niger-orange/40 hover:shadow-md hover:scale-105'
+                        ? 'bg-gray-800/60 text-gray-400 hover:bg-gray-700/80 hover:text-white border border-gray-700/50'
+                        : 'bg-white/60 text-gray-600 hover:bg-white/90 hover:text-gray-900 border border-gray-200/50'
                   )}
                 >
-                  <span className={clsx(
-                    'w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all flex-shrink-0',
-                    selectedCategory === category.value
-                      ? 'bg-white'
-                      : category.color
-                  )} />
-                  <span className="truncate">{category.label}</span>
+                  {category.label}
                 </button>
               ))}
-            </div>
-
-            {/* Bouton Populaires */}
-            <div className="pt-3 border-t border-gray-200/50 dark:border-gray-700/50 mt-1">
-              <button
-                onClick={() => setShowPopularOnly(!showPopularOnly)}
-                className={clsx(
-                  'group px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300',
-                  'border-2 flex items-center justify-center gap-2 w-full sm:w-auto',
-                  showPopularOnly
-                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-yellow-500 shadow-lg'
-                    : isDark
-                      ? 'bg-gray-800/40 border-gray-700 text-gray-300 hover:bg-gray-700/60 hover:border-yellow-500/50'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-yellow-50 hover:border-yellow-400 hover:shadow-md'
-                )}
-              >
-                <Star className={clsx(
-                  'w-4 h-4 transition-transform group-hover:rotate-12 flex-shrink-0',
-                  showPopularOnly && 'fill-current'
-                )} />
-                <span>Services populaires</span>
-                {showPopularOnly && filteredServices.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
-                    {filteredServices.length}
-                  </span>
-                )}
-              </button>
             </div>
           </div>
         </div>
 
-        {/* Grille des services */}
+        {/* Services Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="animate-pulse">
-                <div className={clsx(
-                  'rounded-3xl h-96 backdrop-blur-md border shadow-xl',
-                  isDark
-                    ? 'bg-gradient-to-br from-niger-white-glass/20 to-niger-white-glass/10 border-niger-orange/20'
-                    : 'bg-gradient-to-br from-gray-100 to-gray-50 border-gray-200'
-                )} />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className={clsx(
+                'h-64 rounded-2xl animate-pulse',
+                isDark ? 'bg-gray-800' : 'bg-gray-100'
+              )} />
             ))}
           </div>
-        ) : filteredServices.length === 0 ? (
-          <div className={clsx(
-            'text-center py-20 rounded-3xl border backdrop-blur-md',
-            isDark
-              ? 'bg-niger-white-glass/10 border-niger-orange/20'
-              : 'bg-gray-50 border-gray-200'
-          )}>
-            <div className={clsx(
-              'text-6xl mb-6',
-              isDark ? 'text-gray-600' : 'text-gray-300'
-            )}>🔍</div>
-            <h3 className={clsx(
-              'text-2xl font-bold mb-3',
-              isDark ? 'text-white' : 'text-gray-900'
-            )}>Aucun service trouvé</h3>
-            <p className={clsx(
-              'mb-6 text-lg max-w-md mx-auto',
-              isDark ? 'text-gray-300' : 'text-gray-600'
-            )}>
-              Essayez de modifier vos critères de recherche ou de réinitialiser les filtres
-            </p>
-            <Button
-              onClick={resetFilters}
-              className="bg-gradient-to-r from-niger-orange to-niger-green text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              Réinitialiser les filtres
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {filteredServices.map((service, index) => (
+        ) : filteredServices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredServices.map((service) => (
               <ServiceCard
-                key={`service-${service.id || index}`}
+                key={service.id}
                 service={service}
                 onClick={handleServiceClick}
               />
             ))}
           </div>
+        ) : (
+          <div className="text-center py-20">
+            <p className={clsx('text-lg', isDark ? 'text-gray-400' : 'text-gray-600')}>
+              Aucun service ne correspond à votre recherche.
+            </p>
+            <button
+              onClick={() => { setSearchTerm(''); setSelectedCategory(''); }}
+              className="mt-4 text-niger-orange font-medium hover:underline"
+            >
+              Effacer les filtres
+            </button>
+          </div>
         )}
-
-        {/* Call-to-action */}
-        <div className="text-center mt-16">
-          <p className={clsx(
-            'text-lg mb-6',
-            isDark ? 'text-white/80' : 'text-gray-600'
-          )}>
-            Vous ne trouvez pas le service que vous cherchez ?
-          </p>
-          <Button
-            onClick={() => window.location.href = '/contact'}
-            size="lg"
-            className="px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-            style={{
-              background: 'linear-gradient(135deg, #ff8c00 0%, #228b22 100%)'
-            }}
-          >
-            Contactez-nous
-          </Button>
-        </div>
       </div>
     </section>
   );

@@ -181,7 +181,7 @@ export default function Navigation() {
     >
       <div className="container mx-auto px-4 lg:px-6">
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center justify-between h-18 py-3">
+        <div className="hidden lg:flex items-center justify-between h-14 py-1">
           <div className="flex items-center space-x-2">
             {menuItems.map((item, index) => {
               const Icon = item.icon;
@@ -217,7 +217,7 @@ export default function Navigation() {
                         {/* Lien principal vers la page */}
                         <Link
                           href={item.path}
-                          className="flex items-center space-x-2 px-4 py-3 flex-1 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-l-xl"
+                          className="flex items-center space-x-2 px-3 py-1.5 flex-1 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-l-xl"
                           style={{
                             focusRingColor: `${item.color}40`
                           }}
@@ -240,7 +240,7 @@ export default function Navigation() {
                             toggleDropdown(index);
                           }}
                           onKeyDown={(e) => handleKeyDown(e, () => toggleDropdown(index))}
-                          className="px-2 py-3 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-r-xl"
+                          className="px-1.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-r-xl"
                           style={{
                             focusRingColor: `${item.color}40`
                           }}
@@ -353,7 +353,7 @@ export default function Navigation() {
                     <Link
                       href={item.path}
                       className={clsx(
-                        'group relative flex items-center space-x-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
+                        'group relative flex items-center space-x-2 px-3 py-1.5 rounded-xl font-semibold text-xs lg:text-sm transition-all duration-300 border-2',
                         'hover:scale-105 hover:shadow-lg transform focus:outline-none focus:ring-4',
                         isActive
                           ? 'text-white border-transparent shadow-lg'
@@ -456,7 +456,7 @@ export default function Navigation() {
                 <Link
                   href="/admin"
                   className={clsx(
-                    'hidden lg:flex items-center px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 border-2',
+                    'hidden lg:flex items-center px-4 py-1.5 rounded-xl font-semibold text-xs lg:text-sm transition-all duration-300 border-2',
                     'hover:scale-105 hover:shadow-lg transform focus:outline-none focus:ring-4',
                     isDark
                       ? 'border-green-600 text-green-500 hover:bg-green-600 hover:text-white'

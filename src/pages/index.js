@@ -38,6 +38,8 @@ const ExternalServices = dynamic(() => import('@/components/home/ExternalService
   ssr: false
 });
 
+const Partners = dynamic(() => import('@/components/home/Partners'), { ssr: false });
+
 const MinisterialAgenda = dynamic(() => import('@/components/home/MinisterialAgenda'), {
   loading: () => (
     <div className="animate-pulse space-y-4">
@@ -67,41 +69,43 @@ export default function Home() {
             <div className="w-full lg:w-[80%]">
               <HeroNewsCarousel />
             </div>
-            
+
             {/* Agenda Ministériel - 20% de largeur */}
             <div className="w-full lg:w-[20%]">
               <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 h-full">
-                <MinisterialAgenda compact={true} />
+                <MinisterialAgenda compact={true} title="Annonces" />
               </div>
             </div>
           </div>
         </div>
       </section>
-      
+
       {/* Section Statistiques */}
       <SectionContainer variant="light" showDivider={true}>
         <StatsSection />
       </SectionContainer>
-      
-      {/* Section Agenda Ministériel */}
-      <SectionContainer variant="dark" showDivider={true}>
-        <MinisterialAgenda />
-      </SectionContainer>
-      
+
+
+
       {/* Section Services */}
-      <SectionContainer variant="light" showDivider={true}>
+      <SectionContainer variant="transparent" showDivider={true}>
         <Services />
       </SectionContainer>
-      
+
       {/* Section Services Externes */}
       <SectionContainer variant="accent" showDivider={false}>
         <ExternalServices />
       </SectionContainer>
-      
+
+      {/* Section Partenaires */}
+      <SectionContainer variant="light" showDivider={true}>
+        <Partners />
+      </SectionContainer>
+
       {/* Pied de page avec séparateur élégant */}
       <PageFooter />
-      
-  {/* AuthDebug supprimé */}
+
+      {/* AuthDebug supprimé */}
     </MainLayout>
   );
 }

@@ -1,35 +1,18 @@
 import React from 'react';
-import { ExternalLink, ArrowRight, Star, Users, Clock } from 'lucide-react';
+import { ExternalLink, ArrowRight, User, Star } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 
-export default function ServiceCard({ service, onClick, showFeatures = false }) {
+export default function ServiceCard({ service, onClick }) {
   const { isDark } = useTheme();
-  
-  // Fonction pour obtenir l'icône dynamiquement
-  const getIcon = (iconName) => {
-    // Import dynamique des icônes Lucide
-    const iconMap = {
-      'Settings': '⚙️',
-      'GraduationCap': '🎓',
-      'Users': '👥',
-      'FileText': '📄',
-      'Search': '🔍',
-      'BookOpen': '📚',
-      'Award': '🏆',
-      'Calendar': '📅',
-      'Mail': '✉️',
-      'Phone': '📞',
-      'MapPin': '📍',
-      'Globe': '🌐',
-      'Database': '💾',
-      'Shield': '🛡️',
-      'TrendingUp': '📈',
-      'Lightbulb': '💡'
-    };
-    
-    return iconMap[iconName] || '🔧';
+
+  // Fonction pour obtenir l'icône dynamiquement (simplifiée)
+  // Note: Dans une vraie appli, passez le composant icône directement si possible ou utilisez une map complète
+  const renderIcon = (iconName) => {
+    // Fallback simple ou map partielle si nécessaire.
+    // Ici on suppose que le service contient peut-être déjà l'icône ou on affiche un placeholder
+    return <span className="text-2xl">🔧</span>;
   };
 
   const handleCardClick = () => {
@@ -40,203 +23,85 @@ export default function ServiceCard({ service, onClick, showFeatures = false }) 
     }
   };
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      etudiants: isDark ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-blue-50 text-blue-700 border-blue-200',
-      etablissements: isDark ? 'bg-green-500/20 text-green-300 border-green-500/30' : 'bg-green-50 text-green-700 border-green-200',
-      recherche: isDark ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'bg-purple-50 text-purple-700 border-purple-200',
-      administration: isDark ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' : 'bg-orange-50 text-orange-700 border-orange-200',
-      formation: isDark ? 'bg-red-500/20 text-red-300 border-red-500/30' : 'bg-red-50 text-red-700 border-red-200'
-    };
-    return colors[category] || colors.administration;
+  // Mapping des couleurs de catégorie (Style subtil)
+  const getCategoryStyle = (category) => {
+    switch (category) {
+      case 'etudiants': return isDark ? 'bg-blue-900/30 text-blue-300 border-blue-800' : 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'etablissements': return isDark ? 'bg-green-900/30 text-green-300 border-green-800' : 'bg-green-50 text-green-700 border-green-100';
+      case 'recherche': return isDark ? 'bg-purple-900/30 text-purple-300 border-purple-800' : 'bg-purple-50 text-purple-700 border-purple-100';
+      case 'administration': return isDark ? 'bg-orange-900/30 text-orange-300 border-orange-800' : 'bg-orange-50 text-orange-700 border-orange-100';
+      default: return isDark ? 'bg-gray-800 text-gray-300 border-gray-700' : 'bg-gray-50 text-gray-700 border-gray-100';
+    }
   };
 
   return (
     <div
-      className={clsx(
-        'group relative overflow-hidden rounded-3xl border transition-all duration-500 transform hover:-translate-y-2 cursor-pointer',
-        'backdrop-blur-md shadow-xl hover:shadow-2xl',
-        isDark
-          ? 'bg-gradient-to-br from-niger-white-glass/20 to-niger-white-glass/10 border-niger-orange/20 hover:border-niger-orange/50 hover:from-niger-white-glass/30 hover:to-niger-white-glass/20'
-          : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200 hover:border-niger-orange/40 hover:shadow-niger-orange/10'
-      )}
       onClick={handleCardClick}
+      className={clsx(
+        'group relative flex flex-col h-full rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden border backdrop-blur-md',
+        'hover:-translate-y-1 hover:shadow-xl',
+        isDark
+          ? 'bg-gray-800/60 border-gray-700/50 hover:border-gray-600 hover:bg-gray-800/80'
+          : 'bg-white/60 border-gray-200/60 hover:border-niger-orange/30 hover:bg-white/80'
+      )}
     >
-      {/* Badge de catégorie - Repositionné */}
+      {/* Badge de catégorie */}
       <div className={clsx(
-        'absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold border-2 backdrop-blur-sm z-10',
-        'shadow-lg',
-        getCategoryColor(service.category)
+        'absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold border z-10',
+        getCategoryStyle(service.category)
       )}>
-        {service.category.charAt(0).toUpperCase() + service.category.slice(1)}
+        {service.category ? service.category.charAt(0).toUpperCase() + service.category.slice(1) : 'Service'}
       </div>
 
-      {/* Badge populaire - Style amélioré */}
-      {service.isPopular && (
-        <div className="absolute top-4 left-4 z-10">
-          <div className="relative">
-            <Star className="w-6 h-6 text-yellow-500 fill-current animate-pulse" />
-            <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50 animate-pulse" />
-          </div>
-        </div>
-      )}
-
-      {/* Image du service */}
+      {/* Image (Optionnelle) */}
       {service.image && (
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-40 w-full overflow-hidden bg-gray-100 dark:bg-gray-900">
           <Image
             src={service.image}
             alt={service.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          <div className={clsx(
-            'absolute inset-0 bg-gradient-to-t',
-            isDark ? 'from-black/60 to-transparent' : 'from-black/40 to-transparent'
-          )} />
         </div>
       )}
 
-      {/* Contenu du service */}
-      <div className="p-6">
-        {/* Icône et titre */}
-        <div className="flex items-start space-x-4 mb-5">
-          <div className={clsx(
-            'flex-shrink-0 p-4 rounded-2xl text-3xl border-2 shadow-lg transition-all duration-300',
-            'group-hover:scale-110 group-hover:rotate-3',
-            isDark
-              ? 'bg-gradient-to-br from-niger-orange/20 to-niger-green/20 border-niger-orange/40'
-              : 'bg-gradient-to-br from-niger-orange/10 to-niger-green/10 border-niger-orange/30'
-          )}>
-            {getIcon(service.icon)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className={clsx(
-              'text-xl font-bold mb-2 line-clamp-2 group-hover:text-niger-orange transition-colors',
-              isDark ? 'text-white' : 'text-gray-900'
-            )}>
-              {service.title}
-            </h3>
-            <p className={clsx(
-              'text-sm leading-relaxed line-clamp-3',
-              isDark ? 'text-gray-300' : 'text-gray-600'
-            )}>
-              {service.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Statistiques */}
-        <div className={clsx(
-          'flex items-center justify-between mb-5 text-xs p-3 rounded-xl',
-          isDark ? 'bg-gray-800/30' : 'bg-gray-50'
+      <div className="flex flex-col flex-grow p-6">
+        {/* Titre */}
+        <h3 className={clsx(
+          'text-lg font-bold mb-2 line-clamp-2 group-hover:text-niger-orange transition-colors',
+          isDark ? 'text-white' : 'text-gray-900'
         )}>
-          <div className="flex items-center space-x-2">
-            <Users className={clsx(
-              'w-4 h-4',
+          {service.title}
+        </h3>
+
+        {/* Description */}
+        <p className={clsx(
+          'text-sm line-clamp-3 mb-4 flex-grow',
+          isDark ? 'text-gray-400' : 'text-gray-600'
+        )}>
+          {service.description}
+        </p>
+
+        {/* Footer de la carte : Utilisateurs + Bouton Action */}
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+            {service.isPopular && <Star className="w-3 h-3 mr-1 text-yellow-500 fill-yellow-500" />}
+            {service.usageCount ? `${service.usageCount} utilisateurs` : ''}
+          </div>
+
+          <div
+            className={clsx(
+              'flex items-center text-sm font-semibold transition-colors',
               isDark ? 'text-niger-orange-light' : 'text-niger-orange'
-            )} />
-            <span className={clsx(
-              'font-medium',
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            )}>
-              {service.usageCount || 0} utilisateurs
+            )}
+          >
+            <span className="mr-1 group-hover:underline">
+              {service.isExternal ? 'Accéder' : 'Détails'}
             </span>
-          </div>
-          {service.isExternal && (
-            <div className="flex items-center space-x-1">
-              <ExternalLink className={clsx(
-                'w-4 h-4',
-                isDark ? 'text-blue-400' : 'text-blue-600'
-              )} />
-              <span className={clsx(
-                'font-medium',
-                isDark ? 'text-blue-400' : 'text-blue-600'
-              )}>
-                Externe
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Features (si demandées) */}
-        {showFeatures && service.features && service.features.length > 0 && (
-          <div className="mb-4">
-            <h4 className={clsx(
-              'text-sm font-semibold mb-2',
-              isDark ? 'text-white' : 'text-gray-900'
-            )}>
-              Fonctionnalités :
-            </h4>
-            <div className="space-y-2">
-              {service.features.slice(0, 3).map((feature, index) => (
-                <div key={index} className="flex items-start space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-niger-orange mt-2 flex-shrink-0" />
-                  <div>
-                    <div className={clsx(
-                      'text-xs font-medium',
-                      isDark ? 'text-white' : 'text-gray-900'
-                    )}>
-                      {feature.title}
-                    </div>
-                    <div className={clsx(
-                      'text-xs',
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    )}>
-                      {feature.description}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Bouton d'action - Style moderne */}
-        <div className="relative">
-          <div className={clsx(
-            'flex items-center justify-between p-4 rounded-2xl transition-all duration-300',
-            'border-2 shadow-md group-hover:shadow-xl',
-            isDark
-              ? 'bg-gradient-to-r from-niger-orange/20 to-niger-green/20 border-niger-orange/40 group-hover:from-niger-orange/30 group-hover:to-niger-green/30 group-hover:border-niger-orange/60'
-              : 'bg-gradient-to-r from-niger-orange/10 to-niger-green/10 border-niger-orange/30 group-hover:from-niger-orange/20 group-hover:to-niger-green/20 group-hover:border-niger-orange/50'
-          )}>
-            <span className={clsx(
-              'text-sm font-bold',
-              isDark ? 'text-white' : 'text-gray-900'
-            )}>
-              {service.isExternal ? 'Accéder au service' : 'Voir les détails'}
-            </span>
-            <div className="flex items-center gap-2">
-              {service.isExternal && (
-                <ExternalLink className={clsx(
-                  'w-4 h-4',
-                  isDark ? 'text-niger-orange-light' : 'text-niger-orange'
-                )} />
-              )}
-              <ArrowRight className={clsx(
-                'w-5 h-5 transition-all duration-300',
-                isDark ? 'text-niger-orange-light' : 'text-niger-orange',
-                'group-hover:translate-x-2 group-hover:scale-110'
-              )} />
-            </div>
+            {service.isExternal ? <ExternalLink className="w-3 h-3" /> : <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />}
           </div>
         </div>
       </div>
-
-      {/* Effet de brillance au hover - Amélioré */}
-      <div className={clsx(
-        'absolute inset-0 opacity-0 transition-opacity duration-700 pointer-events-none',
-        'bg-gradient-to-r from-transparent via-white/20 to-transparent',
-        'group-hover:opacity-100 group-hover:animate-shimmer'
-      )} />
-
-      {/* Effet de bordure animée */}
-      <div className={clsx(
-        'absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500',
-        'bg-gradient-to-r from-niger-orange via-niger-green to-niger-orange bg-[length:200%_100%]',
-        'group-hover:opacity-20 group-hover:animate-gradient'
-      )} style={{ padding: '2px', margin: '-2px' }} />
     </div>
   );
 }

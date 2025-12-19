@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  Building2, 
-  Users, 
-  GraduationCap, 
-  School, 
-  FlaskConical, 
-  LayoutGrid, 
-  Network, 
-  Download, 
+import {
+  Building2,
+  Users,
+  GraduationCap,
+  School,
+  FlaskConical,
+  LayoutGrid,
+  Network,
+  Download,
   ChevronRight,
   Search,
   Eye,
@@ -22,7 +22,7 @@ const OrgSection = ({ title, icon: Icon, children, className = "", isExpandable 
 
   return (
     <div className={`bg-white dark:bg-secondary-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border border-niger-orange/10 ${className}`}>
-      <div 
+      <div
         className={`bg-gradient-to-r from-niger-orange/10 to-niger-green/10 dark:from-niger-orange/20 dark:to-niger-green/20 border-b border-niger-orange/20 px-6 py-4 flex items-center justify-between ${isExpandable ? 'cursor-pointer hover:from-niger-orange/20 hover:to-niger-green/20' : ''}`}
         onClick={isExpandable ? () => setIsExpanded(!isExpanded) : undefined}
       >
@@ -50,7 +50,7 @@ const OrgSection = ({ title, icon: Icon, children, className = "", isExpandable 
 };
 
 const DirectionList = ({ items, searchTerm = "" }) => {
-  const filteredItems = items.filter(item => 
+  const filteredItems = items.filter(item =>
     item.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -75,7 +75,98 @@ const DirectionList = ({ items, searchTerm = "" }) => {
 
 export default function OrganisationPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSection, setSelectedSection] = useState(null);
+
+  // 1. Define Fallback Structure (Extracting from original JSX)
+  const fallbackData = {
+    cabinet: [
+      "Conseillers Techniques", "Responsable de la communication", "Chef de Cabinet",
+      "Attaché de Protocole", "Secrétaire Particulier", "Inspection Générale des Services (IGS)"
+    ],
+    sg_direct: [
+      "Attachés académiques", "Cellule Santé Universitaire et des Grandes Ecoles",
+      "Cellule Genre", "Bureau d'Ordre", "Secrétariat"
+    ],
+    dge: [
+      "Direction de l'Enseignement Supérieur Privé (DESPRI)", "Direction de l'Enseignement Supérieur Public (DESP)",
+      "Direction des Sports et des Activités Culturelles Universitaires (DSAC/U/GE)", "Direction de l'Enseignement Supérieur Arabe (DESA)",
+      "Direction de l'Orientation et du Suivi du Cursus des Etudiants (DOSCE)"
+    ],
+    dgrit: [
+      "Direction de la Recherche (DR)", "Direction de l'Innovation Technologique (DIT)"
+    ],
+    centrales1: [
+      "Direction des Études et de la Programmation (DEP)", "Direction des Ressources Humaines (DRH)",
+      "Direction des Ressources Financières et Matérielles (DRFM)", "Direction des Marchés Publics et Delegation des Services (DMP/DSP)",
+      "Direction des Statistiques et de l'Informatique (DSI)"
+    ],
+    centrales2: [
+      "Direction de la Législation (DL)", "Direction des Archives, de l'Information et Relations Publiques (DAIDR/P)",
+      "Direction des Infrastructures et Equipements Universitaires (DI/EU)"
+    ],
+    rattaches: [
+      "Agence Nigérienne des Allocations et des Bourses (ANAB)", "Agence Nationale pour l'Assurance Qualité (ANAQ-Sup)",
+      "Centres Régionaux des Œuvres Universitaires (CROU)", "Office du Baccalauréat (OBEECS)"
+    ],
+    etablissements: [
+      "Université Abdou Moumouni de Niamey (UAM)", "Université Dan Dicko Dan Koulodo de Maradi (UDDM)",
+      "Université Djibo Hamani de Tahoua (UDH)", "Université André Salifou de Zinder (UAS)",
+      "Université Boubacar Bah de Tillabéry (UBBA)", "Université de Dosso (UDO)",
+      "Université d'Agadez (UAZ)", "Université de Diffa (UDA)",
+      "Université Islamique au Niger (UIN)", "École des Mines de l'Industrie et de la Géologie (EMIG)"
+    ]
+  };
+
+  const [orgData, setOrgData] = useState(fallbackData);
+  const [loading, setLoading] = useState(true);
+
+  // 2. Fetch Logic
+  React.useEffect(() => {
+    const loadOrgData = async () => {
+      try {
+        const { fetchAPI, endpoints } = require('@/lib/strapi');
+        const { mapStrapiList, mapOrgUnit } = require('@/utils/strapiMapper');
+
+        // Fetch flat list of units
+        const response = await fetchAPI(endpoints.organisation, {
+          pagination: { limit: 100 }
+        });
+
+        if (response?.data?.length > 0) {
+          const units = mapStrapiList(response, mapOrgUnit);
+
+          // Reduce flat list into structure based on 'type'
+          // Expected Types: 'cabinet', 'sg_direct', 'dge', 'dgrit', 'centrales', 'rattaches', 'etablissements'
+          const newOrgData = { ...fallbackData }; // Start with fallback to ensure keys exist
+
+          // Clear arrays if we have data for them, OR append? 
+          // Better to clear and rebuild IF we have data for that specific type.
+          // Actually, let's just group them.
+          const grouped = {};
+
+          units.forEach(unit => {
+            const type = unit.type || 'other';
+            if (!grouped[type]) grouped[type] = [];
+            grouped[type].push(unit.name);
+          });
+
+          // Update state only for keys that we found in API
+          // This allows mixing dynamic and static if needed, or full replacement
+          setOrgData(prev => ({
+            ...prev,
+            ...grouped,
+            // Special handling for split lists (centrales1/2) if API returns unified 'centrales'
+            centrales1: grouped['centrales'] ? grouped['centrales'].slice(0, Math.ceil(grouped['centrales'].length / 2)) : prev.centrales1,
+            centrales2: grouped['centrales'] ? grouped['centrales'].slice(Math.ceil(grouped['centrales'].length / 2)) : prev.centrales2,
+          }));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch organisation data, using fallback');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOrgData();
+  }, []);
 
   const handleExport = () => {
     // Export PDF sera implémenté avec react-pdf ou puppeteer
@@ -100,7 +191,7 @@ export default function OrganisationPage() {
             <ChevronRight className="w-4 h-4 mx-2" />
             <span className="text-niger-cream font-medium">Organisation</span>
           </div>
-          
+
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
             <div className="flex-1">
               <div className="flex items-center mb-6">
@@ -111,12 +202,12 @@ export default function OrganisationPage() {
                 </div>
               </div>
               <p className="text-xl text-niger-cream max-w-3xl leading-relaxed mb-6">
-                Découvrez la structure organisationnelle complète du Ministère de l'Enseignement Supérieur, 
+                Découvrez la structure organisationnelle complète du Ministère de l'Enseignement Supérieur,
                 de la Recherche et de l'Innovation Technologique avec ses différentes directions et services.
               </p>
             </div>
             <div className="flex flex-col gap-4">
-              <button 
+              <button
                 onClick={handleExport}
                 className="px-8 py-4 bg-niger-white/20 hover:bg-niger-white/30 backdrop-blur-sm rounded-xl transition-all duration-300 flex items-center gap-3 text-white font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
@@ -160,20 +251,13 @@ export default function OrganisationPage() {
                   Cabinet du Ministre
                 </h2>
                 <p className="text-readable-muted dark:text-muted-foreground">
-                  Ministre de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique (MES/R/IT)
+                  Ministre de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique (MESRIT)
                 </p>
               </div>
 
               {/* Entités directement rattachées au Ministre */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {[
-                  "Conseillers Techniques",
-                  "Responsable de la communication", 
-                  "Chef de Cabinet",
-                  "Attaché de Protocole",
-                  "Secrétaire Particulier",
-                  "Inspection Générale des Services (IGS)"
-                ].map((item, index) => (
+                {orgData.cabinet.map((item, index) => (
                   <div key={index} className="bg-gradient-to-r from-niger-orange/10 to-niger-green/10 dark:from-niger-orange/20 dark:to-niger-green/20 rounded-xl p-4 text-center border border-niger-orange/20 hover:shadow-md transition-all duration-300 group">
                     <div className="w-8 h-8 bg-niger-orange/20 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                       <Users className="w-4 h-4 text-niger-orange" />
@@ -185,8 +269,8 @@ export default function OrganisationPage() {
 
               {/* Secrétariat Général */}
               <div className="space-y-8">
-                <OrgSection 
-                  title="Secrétariat Général (SG/SGA)" 
+                <OrgSection
+                  title="Secrétariat Général (SG/SGA)"
                   icon={Building2}
                   className="border-2 border-niger-orange/30"
                 >
@@ -196,15 +280,9 @@ export default function OrganisationPage() {
                         <Users className="w-5 h-5 text-niger-orange" />
                         Services Directs
                       </h4>
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Attachés académiques",
-                          "Cellule Santé Universitaire et des Grandes Ecoles",
-                          "Cellule Genre",
-                          "Bureau d'Ordre",
-                          "Secrétariat"
-                        ]} 
+                        items={orgData.sg_direct}
                       />
                     </div>
                   </div>
@@ -214,103 +292,68 @@ export default function OrganisationPage() {
                 <div className="space-y-8">
                   {/* Directions Générales */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <OrgSection 
+                    <OrgSection
                       title="Direction Générale des Enseignements (DGE)"
                       icon={GraduationCap}
                       isExpandable={true}
                     >
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Direction de l'Enseignement Supérieur Privé (DESPRI)",
-                          "Direction de l'Enseignement Supérieur Public (DESP)",
-                          "Direction des Sports et des Activités Culturelles Universitaires (DSAC/U/GE)",
-                          "Direction de l'Enseignement Supérieur Arabe (DESA)",
-                          "Direction de l'Orientation et du Suivi du Cursus des Etudiants (DOSCE)"
-                        ]} 
+                        items={orgData.dge}
                       />
                     </OrgSection>
 
-                    <OrgSection 
+                    <OrgSection
                       title="Direction Générale de la Recherche et de l'Innovation Technologique (DGR/IT)"
                       icon={FlaskConical}
                       isExpandable={true}
                     >
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Direction de la Recherche (DR)",
-                          "Direction de l'Innovation Technologique (DIT)"
-                        ]} 
+                        items={orgData.dgrit}
                       />
                     </OrgSection>
                   </div>
 
                   {/* Directions Centrales */}
-                  <OrgSection 
-                    title="Directions Centrales" 
+                  <OrgSection
+                    title="Directions Centrales"
                     icon={LayoutGrid}
                     isExpandable={true}
                   >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Direction des Études et de la Programmation (DEP)",
-                          "Direction des Ressources Humaines (DRH)",
-                          "Direction des Ressources Financières et Matérielles (DRFM)",
-                          "Direction des Marchés Publics et Delegation des Services (DMP/DSP)",
-                          "Direction des Statistiques et de l'Informatique (DSI)"
-                        ]} 
+                        items={orgData.centrales1}
                       />
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Direction de la Législation (DL)",
-                          "Direction des Archives, de l'Information et Relations Publiques (DAIDR/P)",
-                          "Direction des Infrastructures et Equipements Universitaires (DI/EU)"
-                        ]} 
+                        items={orgData.centrales2}
                       />
                     </div>
                   </OrgSection>
 
                   {/* Services et Organismes Rattachés */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <OrgSection 
+                    <OrgSection
                       title="Services Rattachés"
                       icon={Network}
                       isExpandable={true}
                     >
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Agence Nigérienne des Allocations et des Bourses (ANAB)",
-                          "Agence Nationale pour l'Assurance Qualité (ANAQ-Sup)",
-                          "Centres Régionaux des Œuvres Universitaires (CROU)",
-                          "Office du Baccalauréat (OBEECS)"
-                        ]} 
+                        items={orgData.rattaches}
                       />
                     </OrgSection>
 
-                    <OrgSection 
+                    <OrgSection
                       title="Établissements Universitaires"
                       icon={School}
                       isExpandable={true}
                     >
-                      <DirectionList 
+                      <DirectionList
                         searchTerm={searchTerm}
-                        items={[
-                          "Université Abdou Moumouni de Niamey (UAM)",
-                          "Université Dan Dicko Dan Koulodo de Maradi (UDDM)",
-                          "Université Djibo Hamani de Tahoua (UDH)",
-                          "Université André Salifou de Zinder (UAS)",
-                          "Université Boubacar Bah de Tillabéry (UBBA)",
-                          "Université de Dosso (UDO)",
-                          "Université d'Agadez (UAZ)",
-                          "Université de Diffa (UDA)",
-                          "Université Islamique au Niger (UIN)",
-                          "École des Mines de l'Industrie et de la Géologie (EMIG)"
-                        ]} 
+                        items={orgData.etablissements}
                       />
                     </OrgSection>
                   </div>

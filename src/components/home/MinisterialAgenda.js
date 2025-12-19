@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapAlert, mapEvent } from '@/utils/strapiMapper';
 
-export default function MinisterialAgenda({ compact = false }) {
+export default function MinisterialAgenda({ compact = false, title = "Annonces" }) {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -200,7 +200,7 @@ export default function MinisterialAgenda({ compact = false }) {
           <h2 className={clsx(
             'text-base lg:text-lg font-bold',
             isDark ? 'text-white' : 'text-gray-900'
-          )}>Annonces</h2>
+          )}>{title}</h2>
           <p className={clsx(
             'text-sm',
             isDark ? 'text-white/70' : 'text-gray-600'

@@ -78,4 +78,7 @@ export const endpoints = {
   events: '/events',
   global: '/global',
   homepage: '/homepage',
+  externalServices: '/external-services',
+  history: '/history-milestones',
+  organisation: '/organizational-units',
 };

@@ -11,6 +11,16 @@ export default async function handler(req, res) {
   try {
     const { name, email, subject, message, turnstileToken } = req.body;
 
+    // 0. Rate Limiting (Defense in Depth)
+    const { rateLimiters } = require('@/middleware/securityMiddleware');
+    // Using 'api' limiter (60/min) or a stricter one if defined.
+    // Since contact form is "expensive" (email + DB), let's use the 'newsletter' one (3/min) or 'chat' (5/min) logic
+    // actually, let's use a custom check or re-use existing.
+    // Re-using 'newsletter' limiter (3 req/min) seems appropriate for contact form to prevent spam bursts.
+    if (!rateLimiters.newsletter.check(req, res)) {
+      return res.status(429).json({ error: 'Trop de tentatives. Veuillez patienter.' });
+    }
+
     // Validation
     const validationErrors = [];
 

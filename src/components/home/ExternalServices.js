@@ -8,13 +8,14 @@ export default function ExternalServices() {
   const { settings } = useSettings();
   const { isDark } = useTheme();
 
-  const services = [
+  // Hardcoded fallback data
+  const fallbackServices = [
     {
       title: "ANAB",
       description: "Agence Nationale des Allocations et Bourses",
       longDesc: "Gérez vos demandes de bourses et suivez leur état d'avancement",
       url: settings.external.anab,
-      icon: <Award className="w-8 h-8" />,
+      icon: "Award",
       color: "blue"
     },
     {
@@ -22,7 +23,7 @@ export default function ExternalServices() {
       description: "Office du Baccalauréat et des Examens et Concours du Supérieur",
       longDesc: "Consultez les résultats et informations sur le baccalauréat et le BTS",
       url: settings.external.bac,
-      icon: <GraduationCap className="w-8 h-8" />,
+      icon: "GraduationCap",
       color: "green"
     },
     {
@@ -30,10 +31,38 @@ export default function ExternalServices() {
       description: "Agence Nationale d'Assurance Qualité de l'Enseignement Supérieur",
       longDesc: "Evaluation et accréditation des établissements et des programmes",
       url: settings.external.bts,
-      icon: <FileCheck className="w-8 h-8" />,
+      icon: "FileCheck",
       color: "purple"
     }
   ];
+
+  const [services, setServices] = React.useState(fallbackServices);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const loadServices = async () => {
+      try {
+        // Dynamic import to avoid circular dependencies if any
+        const { fetchAPI, endpoints } = require('@/lib/strapi');
+        const { mapStrapiList, mapExternalService } = require('@/utils/strapiMapper');
+
+        const response = await fetchAPI(endpoints.externalServices, {
+          sort: ['order:asc'],
+          pagination: { limit: 6 }
+        });
+
+        if (response?.data?.length > 0) {
+          const data = mapStrapiList(response, mapExternalService);
+          setServices(data);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch external services, using fallback:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadServices();
+  }, []);
 
   const getColorClasses = (color) => {
     if (isDark) {
@@ -75,25 +104,32 @@ export default function ExternalServices() {
               key={index}
               className={clsx(
                 'group relative p-6 rounded-2xl border transition-all duration-300 transform hover:-translate-y-2 backdrop-blur-md',
-                isDark 
-                  ? 'bg-niger-white-glass/50 border-white/20 hover:border-white/40 hover:shadow-glass' 
+                isDark
+                  ? 'bg-niger-white-glass/50 border-white/20 hover:border-white/40 hover:shadow-glass'
                   : 'bg-white border-gray-200 hover:border-niger-orange/30 hover:shadow-lg shadow-md'
               )}
             >
               <div className={clsx(
                 'p-3 rounded-xl w-fit mb-4 border',
-                isDark 
-                  ? 'bg-niger-white-glass/50 border-white/20 shadow-glass' 
+                isDark
+                  ? 'bg-niger-white-glass/50 border-white/20 shadow-glass'
                   : 'bg-gray-50 border-gray-200 shadow-sm'
               )}>
-                {React.cloneElement(service.icon, {
-                  className: clsx(
-                    'w-8 h-8',
-                    isDark ? 'text-white' : 'text-niger-green'
-                  )
-                })}
+                {typeof service.icon === 'string' ? (
+                  service.icon === 'Award' ? <Award className={clsx('w-8 h-8', isDark ? 'text-white' : 'text-niger-green')} /> :
+                    service.icon === 'GraduationCap' ? <GraduationCap className={clsx('w-8 h-8', isDark ? 'text-white' : 'text-niger-green')} /> :
+                      service.icon === 'FileCheck' ? <FileCheck className={clsx('w-8 h-8', isDark ? 'text-white' : 'text-niger-green')} /> :
+                        <ExternalLink className={clsx('w-8 h-8', isDark ? 'text-white' : 'text-niger-green')} />
+                ) : (
+                  React.cloneElement(service.icon, {
+                    className: clsx(
+                      'w-8 h-8',
+                      isDark ? 'text-white' : 'text-niger-green'
+                    )
+                  })
+                )}
               </div>
-              
+
               <h3 className={clsx(
                 'text-xl font-bold mb-2',
                 isDark ? 'text-white' : 'text-gray-900'
@@ -106,25 +142,25 @@ export default function ExternalServices() {
                 'mb-6 flex-grow',
                 isDark ? 'text-white/90' : 'text-gray-700'
               )}>{service.longDesc}</p>
-              
+
               <div className="flex items-center justify-between">
                 <span className={clsx(
                   'text-xs px-2 py-1 rounded-full',
-                  isDark 
-                    ? 'text-white/60 bg-white/10' 
+                  isDark
+                    ? 'text-white/60 bg-white/10'
                     : 'text-gray-500 bg-gray-100'
                 )}>
                   Service
                 </span>
-                
+
                 <a
                   href={service.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={clsx(
                     'inline-flex items-center font-medium text-sm group-hover:underline',
-                    isDark 
-                      ? 'text-niger-orange hover:text-niger-orange-light' 
+                    isDark
+                      ? 'text-niger-orange hover:text-niger-orange-light'
                       : 'text-niger-orange hover:text-niger-orange-dark'
                   )}
                 >
