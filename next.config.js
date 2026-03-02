@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs');
 
 // Bundle Analyzer Configuration
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
@@ -40,6 +41,18 @@ const nextConfig = {
       net: false,
       tls: false,
     };
+
+    // Prevent watcher from watching .next/ logs and cache (causes Fast Refresh loops)
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          '**/node_modules/**',
+          '**/.next/**',
+          '**/backend/**',
+        ],
+      };
+    }
 
     // Production optimizations
     if (!dev && !isServer) {
@@ -125,4 +138,16 @@ const nextConfig = {
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+const sentryConfig = {
+  // GlitchTip ne nécessite pas d'upload de source maps côté Sentry
+  silent: true,
+  disableServerWebpackPlugin: true,
+  disableClientWebpackPlugin: true,
+};
+
+const baseConfig = withBundleAnalyzer(nextConfig);
+
+// Skip Sentry wrapper in development to avoid Fast Refresh loops
+module.exports = process.env.NODE_ENV === 'production'
+  ? withSentryConfig(baseConfig, sentryConfig)
+  : baseConfig;

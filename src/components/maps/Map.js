@@ -104,14 +104,14 @@ const EstablishmentMarker = React.memo(
               <div className="flex items-start space-x-3">
               <div className="w-12 h-12 bg-gray-50 rounded-lg p-2 flex-shrink-0">
                   <Image
-                    src={etab.logo || '/placeholder.png'}
+                    src={etab.logo || '/images/news-placeholder.jpg'}
                     alt={etab.nom}
                     width={40}  // 12 (w-12) - 2*2 (p-2) = 40px
                     height={40} // 12 (h-12) - 2*2 (p-2) = 40px
                     className="object-contain"
                     onError={(e) => {
                       e.target.srcset = ''; // Évite les erreurs de cache
-                      e.target.src = '/placeholder.png';
+                      e.target.src = '/images/news-placeholder.jpg';
                     }}
                   />
                 </div>

@@ -7,19 +7,22 @@
 const isDevelopment = process.env.NODE_ENV === "development";
 
 /**
- * Content Security Policy ALLÉGÉE - Compatible avec tous les navigateurs et extensions
+ * Content Security Policy — réduite pour limiter la surface d'attaque
+ * unsafe-inline conservé pour script-src (Next.js inline scripts requis)
+ * unsafe-eval retiré de default-src
  */
 function buildCSPString() {
-  // CSP très permissive pour site web public
   const directives = [
-    "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https: http:",
-    "style-src 'self' 'unsafe-inline' https: http:",
-    "font-src 'self' data: https: http:",
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https:",
+    "style-src 'self' 'unsafe-inline' https:",
+    "font-src 'self' data: https:",
     "img-src 'self' data: blob: https: http:",
-    "media-src 'self' data: blob: https: http:",
-    "connect-src 'self' https: http: ws: wss:",
-    "frame-src 'self' https: http:",
+    "media-src 'self' data: blob: https:",
+    isDevelopment
+      ? "connect-src 'self' https: wss: http://localhost:* ws://localhost:*"
+      : "connect-src 'self' https: wss:",
+    "frame-src 'self' https://challenges.cloudflare.com",
     "worker-src 'self' blob:",
   ];
 
@@ -37,10 +40,10 @@ function getSecurityHeaders() {
       value: buildCSPString(),
     },
 
-    // Pas de HSTS strict (permet HTTP pour test)
+    // HSTS activé en production, désactivé en dev pour permettre HTTP local
     {
       key: "Strict-Transport-Security",
-      value: "max-age=0",
+      value: isDevelopment ? "max-age=0" : "max-age=31536000; includeSubDomains",
     },
 
     // Frame options permissif
@@ -117,16 +120,17 @@ function withSecurityHeaders(handler, options = {}) {
       res.setHeader(key, value);
     });
 
-    // CORS très permissif
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    // CORS restreint à l'origine du site — credentials incompatible avec wildcard
+    const allowedOrigin = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+      "GET, POST, OPTIONS"
     );
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "*"
+      "Content-Type, Authorization"
     );
 
     // Gérer les requêtes OPTIONS (preflight)

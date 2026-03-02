@@ -141,7 +141,7 @@ export default function DirectionPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white dark:bg-secondary-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
         <div className="relative h-[500px]">
           <Image
-            src={ministre.photo || '/images/dir/default.jpg'}
+            src={ministre.photo || '/images/dir/default.jpeg'}
             alt={ministre.nom}
             fill
             className="object-cover object-top brightness-110"
@@ -208,7 +208,7 @@ export default function DirectionPage() {
         <div className="flex items-center">
           <div className="relative w-32 h-32">
             <Image
-              src={data.photo || '/images/dir/default.jpg'}
+              src={data.photo || '/images/dir/default.jpeg'}
               alt={data.nom}
               fill
               className="rounded-full object-cover border-4 border-niger-orange/20"
@@ -291,7 +291,7 @@ export default function DirectionPage() {
         <div className="flex items-center">
           <div className="relative w-20 h-20">
             <Image
-              src={data.photo || '/images/dir/default.jpg'}
+              src={data.photo || '/images/dir/default.jpeg'}
               alt={data.nom}
               fill
               className="rounded-full object-cover border-2 border-niger-green/30"

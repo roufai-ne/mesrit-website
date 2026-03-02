@@ -8,8 +8,7 @@ export default function ExternalServices() {
   const { settings } = useSettings();
   const { isDark } = useTheme();
 
-  // Hardcoded fallback data
-  const fallbackServices = [
+  const services = [
     {
       title: "ANAB",
       description: "Agence Nationale des Allocations et Bourses",
@@ -35,34 +34,6 @@ export default function ExternalServices() {
       color: "purple"
     }
   ];
-
-  const [services, setServices] = React.useState(fallbackServices);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const loadServices = async () => {
-      try {
-        // Dynamic import to avoid circular dependencies if any
-        const { fetchAPI, endpoints } = require('@/lib/strapi');
-        const { mapStrapiList, mapExternalService } = require('@/utils/strapiMapper');
-
-        const response = await fetchAPI(endpoints.externalServices, {
-          sort: ['order:asc'],
-          pagination: { limit: 6 }
-        });
-
-        if (response?.data?.length > 0) {
-          const data = mapStrapiList(response, mapExternalService);
-          setServices(data);
-        }
-      } catch (err) {
-        console.warn('Failed to fetch external services, using fallback:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadServices();
-  }, []);
 
   const getColorClasses = (color) => {
     if (isDark) {

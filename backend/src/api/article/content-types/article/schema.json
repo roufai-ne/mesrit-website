@@ -29,24 +29,31 @@
     },
     "category": {
       "type": "enumeration",
+      "default": "actualite",
       "enum": [
         "actualite",
         "evenement",
         "communique",
         "autre"
-      ],
-      "default": "actualite"
-    },
-    "publishedAt": {
-      "type": "datetime"
+      ]
     },
     "cover": {
       "type": "media",
-      "multiple": false,
+      "multiple": true,
+      "required": false,
       "allowedTypes": [
         "images"
-      ],
-      "required": false
+      ]
+    },
+    "videos": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }

@@ -1,61 +1,68 @@
 import { fetchAPI } from '@/lib/strapi';
+import { rateLimiters } from '@/middleware/securityMiddleware';
+
+const MAX_QUERY_LENGTH = 200;
+const MAX_LIMIT = 20;
+const DEFAULT_LIMIT = 5;
 
 export default async function handler(req, res) {
-    if (req.method !== 'GET') {
-        return res.status(405).json({ message: 'Method not allowed' });
-    }
+  if (req.method !== 'GET') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
-    const { q, type, limit = 5 } = req.query;
+  // Rate limit partagé API générale (60 req/min)
+  if (!rateLimiters.api.check(req, res)) {
+    return res.status(429).json({ message: 'Trop de requêtes. Veuillez patienter.' });
+  }
 
-    if (!q) {
-        return res.status(400).json({ message: 'Search query required' });
-    }
+  const { q, limit } = req.query;
 
-    try {
-        // Determine which content types to search based on 'type'
-        // For now, we search 'news' as a primary source.
-        // You can expand this to search pages, documents, etc.
+  if (!q || typeof q !== 'string' || q.trim().length === 0) {
+    return res.status(400).json({ message: 'Paramètre de recherche requis' });
+  }
 
-        const searchLimit = parseInt(limit, 10);
+  if (q.length > MAX_QUERY_LENGTH) {
+    return res.status(400).json({ message: `Recherche limitée à ${MAX_QUERY_LENGTH} caractères` });
+  }
 
-        // Search News (Articles)
-        const newsResponse = await fetchAPI('/news', {
-            filters: {
-                $or: [
-                    { title: { $containsi: q } },
-                    { content: { $containsi: q } },
-                ],
-            },
-            pagination: {
-                limit: searchLimit,
-            },
-            populate: ['cover'],
+  const searchQuery = q.trim();
+  const searchLimit = Math.min(
+    Math.max(1, parseInt(limit, 10) || DEFAULT_LIMIT),
+    MAX_LIMIT
+  );
+
+  try {
+    const newsResponse = await fetchAPI('/news', {
+      filters: {
+        $or: [
+          { title: { $containsi: searchQuery } },
+          { content: { $containsi: searchQuery } },
+        ],
+      },
+      pagination: { limit: searchLimit },
+      populate: ['cover'],
+    });
+
+    const results = [];
+
+    if (newsResponse?.data) {
+      newsResponse.data.forEach((item) => {
+        const attrs = item.attributes || item;
+        results.push({
+          id: item.id,
+          title: attrs.title,
+          type: 'news',
+          category: attrs.category || 'Actualités',
+          url: `/actualites/${attrs.slug}`,
+          description: attrs.summary || (attrs.content?.substring(0, 150) + '...'),
         });
-
-        // Determine results format
-        const results = [];
-
-        if (newsResponse?.data) {
-            newsResponse.data.forEach((item) => {
-                results.push({
-                    _id: item.id,
-                    title: item.attributes.title,
-                    type: 'news', // Frontend icon type
-                    category: item.attributes.category || 'Actualités',
-                    url: `/actualites/${item.attributes.slug}`,
-                    description: item.attributes.summary || item.attributes.content?.substring(0, 100) + '...',
-                    // Add other fields as needed
-                });
-            });
-        }
-
-        // You can add parallel fetches for other content types here if needed
-        // const documentsResponse = ...
-
-        res.status(200).json({ results });
-
-    } catch (error) {
-        console.error('Search API Error:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+      });
     }
+
+    return res.status(200).json({ results });
+
+  } catch (error) {
+    console.error('Search API Error:', error);
+    return res.status(500).json({ message: 'Erreur serveur' });
+  }
 }

@@ -1,26 +1,13 @@
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import Services from '@/components/home/Services';
-import Head from 'next/head';
+import SeoHead from '@/components/seo/SeoHead';
 import Link from 'next/link';
 import { Users, ChevronRight } from 'lucide-react';
 
 export default function ServicesPage() {
   return (
-    <>
-      <Head>
-        <title>Services - MESRIT Niger</title>
-        <meta 
-          name="description" 
-          content="Découvrez tous les services en ligne du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger. Inscription, bourses, résultats, accréditation et plus encore." 
-        />
-        <meta 
-          name="keywords" 
-          content="services, enseignement supérieur, Niger, inscription, bourses, résultats, accréditation, recherche, formation" 
-        />
-      </Head>
-      
-      <MainLayout>
+    <MainLayout>
         {/* Hero Section */}
         <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
           <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
@@ -58,8 +45,12 @@ export default function ServicesPage() {
             <Services />
           </div>
         </div>
-      </MainLayout>
-    </>
+      <SeoHead
+        title="Services"
+        description="Découvrez tous les services en ligne du MESRIT Niger : inscription, bourses, résultats, accréditation, recherche et formation."
+        url="/services"
+      />
+    </MainLayout>
   );
 }
 

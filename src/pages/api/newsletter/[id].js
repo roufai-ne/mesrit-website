@@ -1,36 +1,38 @@
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-const STRAPI_TOKEN = process.env.STRAPI_ADMIN_TOKEN;
+import { deleteSubscriber } from '@/lib/strapiAdmin';
+
+// Valider que l'id est un entier positif (Strapi utilise des IDs numériques)
+const ID_REGEX = /^\d+$/;
+
+// Vérification minimale du token admin en header
+function isAdmin(req) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const token = authHeader.slice(7);
+  return token === process.env.STRAPI_ADMIN_TOKEN;
+}
 
 export default async function handler(req, res) {
+  if (req.method !== 'DELETE') {
+    res.setHeader('Allow', ['DELETE']);
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  }
+
+  // Auth requise — seul un admin peut supprimer un subscriber
+  if (!isAdmin(req)) {
+    return res.status(401).json({ error: 'Non autorisé' });
+  }
+
   const { id } = req.query;
 
+  if (!id || !ID_REGEX.test(id)) {
+    return res.status(400).json({ error: 'ID invalide' });
+  }
+
   try {
-    switch (req.method) {
-      case 'DELETE':
-        if (!STRAPI_TOKEN) {
-          return res.status(500).json({ error: 'Configuration serveur incomplète (Token manquant)' });
-        }
-
-        const deleteRes = await fetch(`${STRAPI_URL}/api/subscribers/${id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${STRAPI_TOKEN}`
-          }
-        });
-
-        if (!deleteRes.ok) {
-          // Strapi might return 404 if not found, or other error
-          return res.status(deleteRes.status).json({ error: 'Erreur lors de la suppression' });
-        }
-
-        return res.status(200).json({ success: true });
-
-      default:
-        res.setHeader('Allow', ['DELETE']);
-        return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
-    }
+    await deleteSubscriber(id);
+    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error(error);
+    console.error('Delete subscriber error:', error);
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 }

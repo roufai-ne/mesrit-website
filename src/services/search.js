@@ -68,7 +68,7 @@ class SearchService {
           ]
         },
         pagination: { limit },
-        populate: ['file', 'category']
+        populate: ['file'] // 'category' est un enum, pas une relation
       });
 
       if (!data?.data) return [];

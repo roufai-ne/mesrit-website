@@ -49,26 +49,48 @@ export default function ActualiteDetail() {
         // LE PROBLEME: Les URLs partagées utilisent peut-être des Slugs. Le slug est conservé.
         // Donc la recherche par Slug est la plus fiable.
 
-        const isSlug = typeof id === 'string' && isNaN(id);
+        // Stratégie de détection de l'identifiant dans l'URL :
+        //  - slug humain    : "mon-article-2024"    → isNaN=true, contient tirets
+        //  - documentId S5  : "abc123def456ghi789"  → isNaN=true, 20+ chars alphanum sans tirets
+        //  - ID numérique   : "10"                  → isNaN=false
+        const isNumericId = !isNaN(id);
+        const isDocumentId = !isNumericId && /^[a-z0-9]{20,}$/i.test(id) && !id.includes('-');
+        const isSlug = !isNumericId && !isDocumentId;
 
         if (isSlug) {
+          // Cas le plus courant après la migration — le mapper renvoie maintenant le slug comme _id
           const response = await fetchAPI(endpoints.articles, {
             filters: { slug: id },
-            populate: ['cover', 'tags'] // Add video/images populates if needed
+            populate: ['cover', 'videos']
           });
           if (response.data && response.data.length > 0) {
             strapiArticle = response.data[0];
           }
-        } else {
-          // Fetch by ID (Numeric Strapi ID)
+        } else if (isDocumentId) {
+          // Strapi 5 documentId — fetch direct par chemin
           try {
             const response = await fetchAPI(`${endpoints.articles}/${id}`, {
-              populate: ['cover', 'tags']
+              populate: ['cover', 'videos']
+            });
+            strapiArticle = response.data;
+          } catch (_) { /* introuvable */ }
+        } else {
+          // ID numérique — tentative directe puis fallback slug
+          try {
+            const response = await fetchAPI(`${endpoints.articles}/${id}`, {
+              populate: ['cover', 'videos']
             });
             strapiArticle = response.data;
           } catch (e) {
-            // Fallback pour slug numérique ?
-            // Rare.
+            try {
+              const fallback = await fetchAPI(endpoints.articles, {
+                filters: { slug: id },
+                populate: ['cover', 'videos']
+              });
+              if (fallback.data && fallback.data.length > 0) {
+                strapiArticle = fallback.data[0];
+              }
+            } catch (_) { /* introuvable */ }
           }
         }
 
@@ -256,8 +278,21 @@ export default function ActualiteDetail() {
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        {/* Image de couverture en arrière-plan */}
+        {actualite.image && (
+          <Image
+            src={actualite.image}
+            alt={actualite.title}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        )}
+        {/* Overlay dégradé renforcé si image présente */}
+        <div className={`absolute inset-0 ${actualite.image ? 'bg-gradient-to-br from-niger-orange/80 via-niger-orange-dark/85 to-niger-green/80' : 'bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green'}`} />
+        <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="container mx-auto px-6 relative">
           <div className="flex items-center text-sm mb-4">
             <Link href="/" className="hover:text-niger-cream transition-colors">
@@ -293,6 +328,20 @@ export default function ActualiteDetail() {
                       <span className="bg-niger-white/20 backdrop-blur-sm text-niger-cream px-3 py-1 rounded-full text-sm border border-niger-white/20">
                         {actualite.category}
                       </span>
+                    </>
+                  )}
+
+                  {/* Badge vidéo disponible */}
+                  {actualite.mainVideo && (
+                    <>
+                      <span className="w-1.5 h-1.5 bg-niger-cream/60 rounded-full"></span>
+                      <a
+                        href="#media-principal"
+                        className="inline-flex items-center gap-1.5 bg-black/30 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm border border-white/20 hover:bg-black/50 transition-colors"
+                      >
+                        <Play className="w-3 h-3 fill-white" />
+                        Vidéo disponible
+                      </a>
                     </>
                   )}
 
@@ -365,7 +414,7 @@ export default function ActualiteDetail() {
 
 
             {/* Média principal (vidéo ou image) */}
-            <div className="mb-8">
+            <div className="mb-8" id="media-principal">
               <div className="aspect-video relative rounded-2xl overflow-hidden shadow-xl border border-niger-orange/10">
                 {actualite.mainVideo ? (
                   <VideoPlayer
@@ -379,7 +428,7 @@ export default function ActualiteDetail() {
                   />
                 ) : actualite.image ? (
                   <Image
-                    src={actualite.image || '/images/placeholder.jpg'}
+                    src={actualite.image || '/images/news-placeholder.jpg'}
                     alt={actualite.title}
                     fill
                     sizes="100vw"

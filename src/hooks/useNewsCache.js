@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapArticleToNews, mapStrapiList } from '@/utils/strapiMapper';
 
-const CACHE_KEY = 'news_cache';
+const CACHE_KEY = 'news_cache_v4'; // v4 : populate videos
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useNewsCache = () => {
@@ -62,7 +62,7 @@ export const useNewsCache = () => {
           pageSize: 6
         },
         sort: ['publishedAt:desc'],
-        populate: ['cover'], // On a besoin de l'image de couverture
+        populate: ['cover', 'videos'], // image de couverture et vidéos
       };
 
       // Filtre Recherche

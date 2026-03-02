@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import dynamic from "next/dynamic";
 import MainLayout from "@/components/layout/MainLayout";
+import SeoHead from "@/components/seo/SeoHead";
 import {
   Users,
   Building,
@@ -116,6 +117,11 @@ export default function MinisterePage() {
 
   return (
     <MainLayout>
+      <SeoHead
+        title="Le Ministère"
+        description="Découvrez le Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger : sa mission, son organisation, ses directions et son histoire."
+        url="/ministere"
+      />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />

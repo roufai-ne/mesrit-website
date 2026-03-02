@@ -41,7 +41,7 @@ export default function Footer() {
   const { isDark } = useTheme();
 
   return (
-    <footer className="bg-white dark:bg-secondary-900 border-t border-niger-orange/20 dark:border-niger-orange/30">
+    <footer suppressHydrationWarning className="bg-white dark:bg-gray-900 border-t border-niger-orange/20 dark:border-niger-orange/30">
       {/* Section Newsletter - Client-side only */}
       <FooterNewsletter isDark={isDark} />
 

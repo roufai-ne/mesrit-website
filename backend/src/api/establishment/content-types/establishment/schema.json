@@ -10,6 +10,7 @@
   "options": {
     "draftAndPublish": true
   },
+  "pluginOptions": {},
   "attributes": {
     "name": {
       "type": "string",
@@ -17,15 +18,15 @@
     },
     "type": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "Université",
         "Institut",
         "École",
         "Centre"
-      ],
-      "required": true
+      ]
     },
-    "status": {
+    "status_ets": {
       "type": "enumeration",
       "enum": [
         "public",

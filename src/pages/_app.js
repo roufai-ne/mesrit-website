@@ -1,7 +1,7 @@
 // ============================================
 // pages/_app.js - OPTIMISÉ
 // ============================================
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import '@/styles/globals.css';
 import 'leaflet/dist/leaflet.css';
@@ -11,7 +11,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/components/ui/toast';
 import { Toaster } from 'react-hot-toast';
-import { GoogleAnalytics, pageview } from '@/lib/analytics';
+import { pageview, GoogleAnalytics } from '@/lib/analytics.js';
 import Head from 'next/head';
 
 const inter = Inter({
@@ -23,7 +23,6 @@ const inter = Inter({
 export default function App({ Component, pageProps }) {
   const router = useRouter();
 
-  // Track page views on route change
   useEffect(() => {
     const handleRouteChange = (url) => {
       pageview(url);
@@ -34,12 +33,11 @@ export default function App({ Component, pageProps }) {
     };
   }, [router.events]);
 
-  const content = (
+  return (
     <ThemeProvider defaultTheme="system">
       <AuthProvider>
         <ToastProvider>
           <SettingsProvider>
-            {/* Global SEO Fallback */}
             <Head>
               <meta name="viewport" content="width=device-width, initial-scale=1" />
               <link rel="icon" href="/favicon.ico" />
@@ -69,17 +67,4 @@ export default function App({ Component, pageProps }) {
       </AuthProvider>
     </ThemeProvider>
   );
-
-  // ✅ Désactiver StrictMode sur le réseau local pour éviter le double tracking
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-
-    // StrictMode seulement sur localhost, pas sur l'IP réseau
-    if (isLocalhost && process.env.NODE_ENV === 'development') {
-      return <React.StrictMode>{content}</React.StrictMode>;
-    }
-  }
-
-  return content;
 }

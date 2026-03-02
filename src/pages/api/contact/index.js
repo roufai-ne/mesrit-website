@@ -1,8 +1,8 @@
 // pages/api/contact/index.js
-import nodemailer from 'nodemailer';
-import axios from 'axios';
+import { rateLimiters } from '@/middleware/securityMiddleware';
+import { createMessage } from '@/lib/strapiAdmin';
+import { sendContactNotification } from '@/lib/emailService';
 
-// Standalone handler without legacy middleware
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -11,23 +11,17 @@ export default async function handler(req, res) {
   try {
     const { name, email, subject, message, turnstileToken } = req.body;
 
-    // 0. Rate Limiting (Defense in Depth)
-    const { rateLimiters } = require('@/middleware/securityMiddleware');
-    // Using 'api' limiter (60/min) or a stricter one if defined.
-    // Since contact form is "expensive" (email + DB), let's use the 'newsletter' one (3/min) or 'chat' (5/min) logic
-    // actually, let's use a custom check or re-use existing.
-    // Re-using 'newsletter' limiter (3 req/min) seems appropriate for contact form to prevent spam bursts.
-    if (!rateLimiters.newsletter.check(req, res)) {
+    // Rate Limiting — limiter dédié contact (3 req/min)
+    if (!rateLimiters.contact.check(req, res)) {
       return res.status(429).json({ error: 'Trop de tentatives. Veuillez patienter.' });
     }
 
     // Validation
     const validationErrors = [];
 
-    // Turnstile Check (Keep existing logic)
+    // Turnstile — obligatoire
     if (!turnstileToken) {
-      // Allow skipping token in dev if needed, or enforce. Keeping strict for safety.
-      // validationErrors.push('Vérification de sécurité requise'); 
+      validationErrors.push('Vérification de sécurité requise');
     } else {
       const turnstileSecret = process.env.CLOUDFLARE_SECRET_KEY;
       if (turnstileSecret) {
@@ -42,7 +36,8 @@ export default async function handler(req, res) {
             validationErrors.push('Échec de la vérification de sécurité');
           }
         } catch (e) {
-          console.error(e);
+          console.error('Turnstile verify error:', e.message);
+          validationErrors.push('Erreur de vérification de sécurité');
         }
       }
     }
@@ -55,47 +50,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Validation échouée', validationErrors });
     }
 
-    // 1. Send Email (Nodemailer) - Preserving existing SMTP config usage
+    // Envoyer l'email de notification (non-bloquant si SMTP absent)
     if (process.env.SMTP_HOST) {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
-        },
-      });
-
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM_EMAIL || 'noreply@example.com',
-        to: process.env.CONTACT_EMAIL || process.env.SMTP_USER,
-        replyTo: email,
-        subject: `Contact MESRIT: ${subject}`,
-        html: `<h2>Nouveau message</h2><p><strong>De:</strong> ${name} (${email})</p><p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>`
-      });
+      await sendContactNotification({ name, email, subject, message });
     }
 
-    // 2. Save into Strapi (New Feature)
+    // Sauvegarder dans Strapi (non-bloquant si Strapi indisponible)
     try {
-      const strapiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-      const strapiToken = process.env.STRAPI_ADMIN_TOKEN; // Ideally use a specific token
-      if (strapiToken) {
-        await axios.post(`${strapiUrl}/api/messages`, {
-          data: {
-            name,
-            email,
-            subject,
-            message,
-            status: 'new'
-          }
-        }, {
-          headers: { Authorization: `Bearer ${strapiToken}` }
-        });
-      }
+      await createMessage({ name, email, subject, message, status: 'new' });
     } catch (strapiError) {
       console.error('Failed to save message to Strapi:', strapiError.message);
-      // Do not fail the request if Strapi save fails, as email might have gone through
     }
 
     return res.status(200).json({ success: true, message: 'Message envoyé' });

@@ -88,12 +88,18 @@ export default async function handler(req, res) {
   </url>
   
   <!-- Articles -->
-${articles.map(article => `  <url>
-      <loc>${baseUrl}/actualites/${article.attributes?.slug || article.id}</loc>
-      <lastmod>${article.attributes?.updatedAt ? new Date(article.attributes.updatedAt).toISOString() : new Date().toISOString()}</lastmod>
+${articles.map(article => {
+  // Compatible Strapi 5 (flat) et v4 (attributes wrapper)
+  const attrs = article.attributes || article;
+  const slug = attrs.slug || article.documentId || article.id;
+  const updatedAt = attrs.updatedAt;
+  return `  <url>
+      <loc>${baseUrl}/actualites/${slug}</loc>
+      <lastmod>${updatedAt ? new Date(updatedAt).toISOString() : new Date().toISOString()}</lastmod>
       <changefreq>weekly</changefreq>
-      <priority>${article.attributes?.slug ? '0.8' : '0.6'}</priority>
-  </url>`).join('\n')}
+      <priority>${attrs.slug ? '0.8' : '0.6'}</priority>
+  </url>`;
+}).join('\n')}
 </urlset>`;
 
     // Définir les headers appropriés

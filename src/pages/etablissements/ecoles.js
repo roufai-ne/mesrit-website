@@ -31,12 +31,24 @@ export default function EcolesPage() {
   const fetchEcoles = async () => {
     try {
       setLoading(true);
-      const response = await fetchAPI(endpoints.establishments, {
-        filters: { type: 'École' },
-        pagination: { limit: 100 }
-      });
-      const data = mapStrapiList(response, mapEstablishment);
-      setEcoles(data);
+      let allData = [];
+      let page = 1;
+      const pageSize = 200;
+      while (true) {
+        // eslint-disable-next-line no-await-in-loop
+        const response = await fetchAPI(endpoints.establishments, {
+          filters: { type: 'École' },
+          pagination: { page, pageSize },
+          populate: ['logo'],
+          sort: ['name:asc'],
+        });
+        const chunk = mapStrapiList(response, mapEstablishment);
+        allData = allData.concat(chunk);
+        const total = response.meta?.pagination?.total ?? chunk.length;
+        if (allData.length >= total || chunk.length < pageSize) break;
+        page++;
+      }
+      setEcoles(allData);
     } catch (error) {
       console.error('Erreur:', error);
     } finally {

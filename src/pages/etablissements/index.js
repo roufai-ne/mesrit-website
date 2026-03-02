@@ -76,11 +76,24 @@ const Etablissements = ({ initialEstablishments = [] }) => {
   const fetchEstablishments = async () => {
     try {
       setLoading(true);
-      const response = await fetchAPI(endpoints.establishments, {
-        pagination: { limit: 500 }
-      });
-      const data = mapStrapiList(response, mapEstablishment);
-      setEstablishments(data);
+      // Récupérer toutes les pages pour ne manquer aucun établissement
+      let allData = [];
+      let page = 1;
+      const pageSize = 200;
+      while (true) {
+        // eslint-disable-next-line no-await-in-loop
+        const response = await fetchAPI(endpoints.establishments, {
+          pagination: { page, pageSize },
+          populate: ['logo'],
+          sort: ['name:asc'],
+        });
+        const chunk = mapStrapiList(response, mapEstablishment);
+        allData = allData.concat(chunk);
+        const total = response.meta?.pagination?.total ?? chunk.length;
+        if (allData.length >= total || chunk.length < pageSize) break;
+        page++;
+      }
+      setEstablishments(allData);
     } catch (err) {
       displayToast('Erreur lors du chargement des établissements');
       setError('Erreur lors du chargement');

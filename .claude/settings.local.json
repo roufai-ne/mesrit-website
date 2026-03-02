@@ -11,7 +11,11 @@
       "Bash(echo:*)",
       "Bash(npm run build:*)",
       "Bash(taskkill:*)",
-      "Bash(killall:*)"
+      "Bash(killall:*)",
+      "Bash(npm install daisyui)",
+      "Bash(npm install @sentry/nextjs)",
+      "Bash(node -e \":*)",
+      "Bash(node scripts/import-images-direct.mjs)"
     ],
     "deny": [],
     "ask": []

@@ -52,10 +52,12 @@ class SimpleRateLimit {
 }
 
 // Export pre-configured limiters
+// NOTE: in-memory uniquement — reset au redémarrage du serveur, non distribué
 export const rateLimiters = {
-    chat: new SimpleRateLimit(60 * 1000, 5), // 5 requests per minute per IP for chat
-    newsletter: new SimpleRateLimit(60 * 1000, 3), // 3 subscriptions per minute per IP
-    api: new SimpleRateLimit(60 * 1000, 60) // 60 requests per minute general
+    chat: new SimpleRateLimit(60 * 1000, 5),       // 5 req/min par IP — chatbot
+    newsletter: new SimpleRateLimit(60 * 1000, 3),  // 3 req/min par IP — inscription newsletter
+    contact: new SimpleRateLimit(60 * 1000, 3),     // 3 req/min par IP — formulaire contact
+    api: new SimpleRateLimit(60 * 1000, 60)         // 60 req/min par IP — général
 };
 
 /**

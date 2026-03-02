@@ -515,7 +515,7 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.DefaultTo<'actualite'>;
     content: Schema.Attribute.RichText;
-    cover: Schema.Attribute.Media<'images'>;
+    cover: Schema.Attribute.Media<'images', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -532,6 +532,10 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    videos: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
   };
 }
 
@@ -645,7 +649,7 @@ export interface ApiEstablishmentEstablishment
     programCount: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
     region: Schema.Attribute.String;
-    status: Schema.Attribute.Enumeration<['public', 'priv\u00E9']> &
+    status_ets: Schema.Attribute.Enumeration<['public', 'priv\u00E9']> &
       Schema.Attribute.DefaultTo<'public'>;
     studentCount: Schema.Attribute.Integer;
     type: Schema.Attribute.Enumeration<

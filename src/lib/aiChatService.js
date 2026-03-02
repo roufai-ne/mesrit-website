@@ -82,9 +82,8 @@ export class AIChatService {
       return {
         siteInfo,
         relevantContent: [],
-        relevantContent: [],
         degradedMode: true,
-        error: error.message // DEBUG: Exposed error
+        ...(process.env.NODE_ENV === 'development' && { error: error.message })
       };
     }
   }

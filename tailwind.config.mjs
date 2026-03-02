@@ -1,5 +1,8 @@
-// tailwind.config.js
-module.exports = {
+// tailwind.config.mjs
+import daisyui from 'daisyui';
+
+/** @type {import('tailwindcss').Config} */
+export default {
   content: [
    './src/**/*.{js,ts,jsx,tsx,mdx}'
   ],
@@ -26,7 +29,7 @@ module.exports = {
         '8xl': ['6rem', { lineHeight: '1' }],
         '9xl': ['8rem', { lineHeight: '1' }],
       },
-      
+
       // Unified Color System
       colors: {
         // Niger-inspired colors
@@ -38,7 +41,7 @@ module.exports = {
         'niger-green-dark': '#006400',
         'niger-white': '#ffffff',
         'niger-cream': '#faf8f5',
-        
+
         // Primary brand colors
         primary: {
           50: '#f0f9ff',
@@ -53,7 +56,7 @@ module.exports = {
           900: '#0c4a6e',
           950: '#082f49',
         },
-        
+
         // Secondary colors
         secondary: {
           50: '#f8fafc',
@@ -68,7 +71,7 @@ module.exports = {
           900: '#0f172a',
           950: '#020617',
         },
-        
+
         // Semantic colors
         success: {
           50: '#f0fdf4',
@@ -123,7 +126,7 @@ module.exports = {
           950: '#082f49',
         },
       },
-      
+
       // Spacing system (8px grid)
       spacing: {
         '0.5': '0.125rem',   // 2px
@@ -137,13 +140,13 @@ module.exports = {
         '112': '28rem',      // 448px
         '128': '32rem',      // 512px
       },
-      
+
       // Border radius system
       borderRadius: {
         '4xl': '2rem',
         '5xl': '2.5rem',
       },
-      
+
       // Box shadow system
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
@@ -155,10 +158,9 @@ module.exports = {
         'neumorph-dark': '8px 8px 16px rgba(0, 0, 0, 0.3), -8px -8px 16px rgba(255, 255, 255, 0.05)',
         'glass': '0 8px 32px rgba(0, 0, 0, 0.1)',
       },
-      
+
       // Enhanced animations
       keyframes: {
-        // Existing animations
         "fade-in": {
           "0%": { opacity: 0 },
           "100%": { opacity: 1 },
@@ -189,7 +191,6 @@ module.exports = {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' }
         },
-        // New animations
         'slide-up': {
           '0%': { transform: 'translateY(100%)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' }
@@ -208,8 +209,6 @@ module.exports = {
         },
       },
       animation: {
-        // Existing animations
-        'fade-in': 'fadeIn 0.3s ease-out forwards',
         "fade-in": "fade-in 0.3s ease-in-out",
         "fade-out": "fade-out 0.3s ease-in-out",
         "slide-in-from-top": "slide-in-from-top 0.3s ease-out",
@@ -217,13 +216,12 @@ module.exports = {
         'subtle-ring': 'subtle-ring 3s ease-in-out infinite',
         'subtle-fade': 'subtle-fade 3s ease-in-out infinite',
         'fade-in-down': 'fade-in-down 0.2s ease-out',
-        // New animations
         'slide-up': 'slide-up 0.3s ease-out',
         'scale-in': 'scale-in 0.2s ease-out',
         'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
         'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
       },
-      
+
       // Z-index system
       zIndex: {
         'dropdown': '1000',
@@ -238,6 +236,7 @@ module.exports = {
     },
   },
   plugins: [
+    daisyui,
     // Custom plugin for design system utilities
     function({ addUtilities, theme }) {
       const newUtilities = {
@@ -254,7 +253,7 @@ module.exports = {
           '-webkit-text-fill-color': 'transparent',
           'background-clip': 'text',
         },
-        
+
         // Hover effects
         '.hover-lift': {
           'transition': 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -269,7 +268,7 @@ module.exports = {
             'transform': 'scale(1.02)',
           },
         },
-        
+
         // Focus styles for accessibility
         '.focus-ring': {
           '&:focus': {
@@ -278,7 +277,7 @@ module.exports = {
           },
         },
       };
-      
+
       addUtilities(newUtilities);
     },
   ],

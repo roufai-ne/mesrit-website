@@ -40,8 +40,9 @@ export default function MinisterialAgenda({ compact = false, title = "Annonces" 
       });
 
       const data = mapStrapiList(response, mapAlert);
-      // Filter out expired alerts if strapi doesn't do it
-      const activeData = data.filter(item => item.status === 'active' || new Date(item.endDate) >= new Date());
+      // Strapi retourne uniquement les entrées publiées — on affiche tout ce qu'il renvoie
+      // On exclut uniquement les entrées explicitement inactives (champ status Strapi v4 éventuellement présent)
+      const activeData = data.filter(item => item.status !== 'inactive');
 
       setAnnouncements(activeData);
     } catch (error) {

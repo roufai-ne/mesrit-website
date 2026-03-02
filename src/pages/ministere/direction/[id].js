@@ -60,7 +60,7 @@ const DirectorProfile = ({ director }) => {
           {/* Photo */}
           <div className="relative h-[400px] lg:h-[500px]">
             <Image
-              src={director.photo || '/images/dir/default.jpg'}
+              src={director.photo || '/images/dir/default.jpeg'}
               alt={director.nom}
               fill
               className="object-cover"
@@ -322,7 +322,7 @@ export default function DirectorPage() {
                     <div className="flex items-center gap-4">
                       <div className="relative w-16 h-16">
                         <Image
-                          src={relatedDirector.photo || '/images/dir/default.jpg'}
+                          src={relatedDirector.photo || '/images/dir/default.jpeg'}
                           alt={relatedDirector.nom}
                           fill
                           className="rounded-full object-cover border-2 border-niger-orange/20"

@@ -1,55 +1,47 @@
-// Configuration
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
-const STRAPI_TOKEN = process.env.STRAPI_ADMIN_TOKEN;
+import { rateLimiters } from '@/middleware/securityMiddleware';
+import { findSubscriberByToken, updateSubscriber } from '@/lib/strapiAdmin';
+import { sendUnsubscribeConfirmation } from '@/lib/emailService';
+
+const TOKEN_REGEX = /^[a-f0-9]{40}$/;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Rate limit — protège contre l'énumération de tokens
+  if (!rateLimiters.api.check(req, res)) {
+    return res.status(429).json({ error: 'Trop de tentatives. Veuillez patienter.' });
+  }
+
   try {
     const { token } = req.body;
 
-    if (!token) {
-      return res.status(400).json({ error: 'Token requis' });
+    if (!token || typeof token !== 'string' || !TOKEN_REGEX.test(token)) {
+      return res.status(400).json({ error: 'Token invalide' });
     }
 
-    // 1. Find subscriber by token
-    const query = new URLSearchParams({
-      'filters[unsubscribeToken][$eq]': token,
-      'filters[unsubscribeTokenExpires][$gt]': new Date().toISOString()
-    });
-
-    const searchRes = await fetch(`${STRAPI_URL}/api/subscribers?${query}`, {
-      headers: { Authorization: `Bearer ${STRAPI_TOKEN}` }
-    });
-
-    if (!searchRes.ok) throw new Error('Erreur Strapi fetch');
-
-    const searchData = await searchRes.json();
+    const searchData = await findSubscriberByToken('unsubscribeToken', token);
     const subscriber = searchData.data?.[0];
 
     if (!subscriber) {
       return res.status(400).json({ error: 'Token invalide ou expiré' });
     }
 
-    // 2. Update subscriber
-    const updateRes = await fetch(`${STRAPI_URL}/api/subscribers/${subscriber.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${STRAPI_TOKEN}`
-      },
-      body: JSON.stringify({
-        data: {
-          status: 'unsubscribed',
-          unsubscribeToken: null,
-          unsubscribeTokenExpires: null
-        }
-      })
+    const email = subscriber.attributes?.email;
+
+    await updateSubscriber(subscriber.id, {
+      status: 'unsubscribed',
+      unsubscribeToken: null,
+      unsubscribeTokenExpires: null,
     });
 
-    if (!updateRes.ok) throw new Error('Erreur Strapi update');
+    // Email de confirmation de désinscription (non-bloquant)
+    if (email && process.env.SMTP_HOST) {
+      sendUnsubscribeConfirmation(email).catch((err) =>
+        console.warn('Erreur email désinscription:', err.message)
+      );
+    }
 
     return res.status(200).json({ message: 'Désinscription réussie' });
   } catch (error) {

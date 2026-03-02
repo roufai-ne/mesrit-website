@@ -15,6 +15,7 @@ export default function HeroNewsCarousel() {
   const [thumbnailMediaView, setThumbnailMediaView] = useState({}); // Track which view (photos/videos) for each thumbnail
   const [isCarouselPaused, setIsCarouselPaused] = useState(false); // Pause carousel on hover
   const [hoveredVideoIndex, setHoveredVideoIndex] = useState(null); // Track which video is hovered in mini-previews
+  const [isPlayingHeroVideo, setIsPlayingHeroVideo] = useState(false); // Play video inline in hero
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { isDark } = useTheme();
@@ -22,6 +23,11 @@ export default function HeroNewsCarousel() {
   useEffect(() => {
     fetchNews();
   }, []);
+
+  // Réinitialiser la lecture vidéo hero au changement d'article
+  useEffect(() => {
+    setIsPlayingHeroVideo(false);
+  }, [activeIndex]);
 
   // Auto rotation pour le carrousel
   useEffect(() => {
@@ -40,7 +46,7 @@ export default function HeroNewsCarousel() {
       const response = await fetchAPI(endpoints.articles, {
         sort: ['publishedAt:desc'],
         pagination: { limit: 8 },
-        populate: ['cover']
+        populate: ['cover', 'videos']
       });
       const publishedNews = mapStrapiList(response, mapArticleToNews);
       setNews(publishedNews);
@@ -132,11 +138,22 @@ export default function HeroNewsCarousel() {
       <div className="hero-news-carousel relative h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] xl:h-[600px] overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl">
         {/* Image/Vidéo Principale */}
         <div className="absolute inset-0">
-          {(() => {
+          {isPlayingHeroVideo && currentNews?.mainVideo ? (
+            /* Lecture vidéo inline dans le hero */
+            <VideoPlayer
+              src={currentNews.mainVideo}
+              poster={currentNews.videos?.find(v => v.isMain)?.thumbnail || currentNews.images?.[0]?.url || currentNews.image || '/images/news-placeholder.svg'}
+              title={currentNews.title}
+              newsId={currentNews._id}
+              className="w-full h-full object-cover"
+              controls={true}
+              autoPlay={true}
+              muted={false}
+            />
+          ) : (() => {
             const hasImages = currentNews?.images?.length > 0 || currentNews?.image;
-            const hasVideos = currentNews?.mainVideo || currentNews?.videos?.length > 0;
 
-            // Priority: Show images first, videos only if no images
+            // Priorité : images → vidéo principale → première vidéo → placeholder
             if (hasImages) {
               return (
                 <Image
@@ -264,6 +281,34 @@ export default function HeroNewsCarousel() {
                   <span className="xs:hidden">Lire</span>
                   <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Link>
+
+                {/* Bouton lecture vidéo dans le hero */}
+                {currentNews?.mainVideo && (
+                  isPlayingHeroVideo ? (
+                    <button
+                      onClick={() => {
+                        setIsPlayingHeroVideo(false);
+                        setIsCarouselPaused(false);
+                      }}
+                      className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-niger-orange/90 text-white rounded-lg hover:bg-niger-orange transition-all duration-300 font-medium border border-niger-orange/50 text-xs sm:text-sm md:text-base"
+                    >
+                      <span className="hidden sm:inline">Fermer la vidéo</span>
+                      <span className="sm:hidden">✕</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setIsPlayingHeroVideo(true);
+                        setIsCarouselPaused(true);
+                      }}
+                      className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all duration-300 backdrop-blur-sm font-medium border border-white/20 text-xs sm:text-sm md:text-base"
+                    >
+                      <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-white" />
+                      <span className="hidden sm:inline">Regarder la vidéo</span>
+                      <span className="sm:hidden">▶</span>
+                    </button>
+                  )
+                )}
 
                 <Link
                   href="/actualites"

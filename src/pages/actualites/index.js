@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import SeoHead from '@/components/seo/SeoHead';
 import { Calendar, ArrowRight, Copy, X, ChevronRight, AlertCircle, Play, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -206,6 +207,11 @@ export default function Actualites() {
   // Mécanisme discret pour afficher archives/corbeille dans la barre de recherche
   return (
     <MainLayout>
+      <SeoHead
+        title="Actualités"
+        description="Retrouvez toutes les actualités, communiqués et événements du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger."
+        url="/actualites"
+      />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
@@ -327,7 +333,7 @@ export default function Actualites() {
                   ) : (
                     <>
                       <Image
-                        src={actu.image || '/images/placeholder.jpg'}
+                        src={actu.image || '/images/news-placeholder.jpg'}
                         alt={actu.title}
                         fill
                         sizes="(max-width: 768px) 128px, (max-width: 1200px) 50vw, 33vw"

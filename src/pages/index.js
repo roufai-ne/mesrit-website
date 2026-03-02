@@ -1,6 +1,7 @@
 // pages/index.js
 import dynamic from 'next/dynamic';
 import MainLayout from '@/components/layout/MainLayout';
+import SeoHead from '@/components/seo/SeoHead';
 import HeroNewsCarousel from '@/components/home/HeroNewsCarousel';
 import SectionContainer from '@/components/home/SectionContainer';
 import SectionDivider from '@/components/home/SectionDivider';
@@ -61,6 +62,11 @@ export default function Home() {
 
   return (
     <MainLayout>
+      <SeoHead
+        title="Accueil"
+        description="Site officiel du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger. Formations, services aux étudiants, actualités et documents officiels."
+        url="/"
+      />
       {/* Section Hero + Agenda - Layout en colonnes 80%/20% */}
       <section className="relative py-6 sm:py-8 md:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
