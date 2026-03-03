@@ -6,50 +6,13 @@ import Link from 'next/link';
 import SeoHead from '@/components/seo/SeoHead';
 
 export default function HistoriquePage() {
-  // Fallback data
   const fallbackMilestones = [
-    {
-      year: "1962",
-      title: "Création du Ministère de l'Éducation Nationale",
-      content: "Après l'indépendance du Niger, création du premier ministère en charge de l'éducation.",
-      icon: "Building",
-      color: "bg-blue-500"
-    },
-    {
-      year: "1975",
-      title: "Création de l'Université de Niamey",
-      content: "Fondation de la première université du Niger, qui deviendra plus tard l'Université Abdou Moumouni.",
-      icon: "Award",
-      color: "bg-green-500"
-    },
-    {
-      year: "1992",
-      title: "Réorganisation du système éducatif",
-      content: "Restructuration majeure avec la séparation entre l'enseignement de base et l'enseignement supérieur.",
-      icon: "Building",
-      color: "bg-purple-500"
-    },
-    {
-      year: "2000",
-      title: "Expansion universitaire",
-      content: "Lancement du programme d'expansion avec la création de nouvelles universités régionales.",
-      icon: "Award",
-      color: "bg-orange-500"
-    },
-    {
-      year: "2010",
-      title: "Modernisation technologique",
-      content: "Introduction des TIC dans l'enseignement supérieur et développement de l'e-learning.",
-      icon: "Building",
-      color: "bg-cyan-500"
-    },
-    {
-      year: "2020",
-      title: "Création du MESRIT",
-      content: "Formation du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique.",
-      icon: "Award",
-      color: "bg-red-500"
-    }
+    { year: "1962", title: "Création du Ministère de l'Éducation Nationale", content: "Après l'indépendance du Niger, création du premier ministère en charge de l'éducation.", icon: "Building" },
+    { year: "1975", title: "Création de l'Université de Niamey", content: "Fondation de la première université du Niger, qui deviendra plus tard l'Université Abdou Moumouni.", icon: "Award" },
+    { year: "1992", title: "Réorganisation du système éducatif", content: "Restructuration majeure avec la séparation entre l'enseignement de base et l'enseignement supérieur.", icon: "Building" },
+    { year: "2000", title: "Expansion universitaire", content: "Lancement du programme d'expansion avec la création de nouvelles universités régionales.", icon: "Award" },
+    { year: "2010", title: "Modernisation technologique", content: "Introduction des TIC dans l'enseignement supérieur et développement de l'e-learning.", icon: "Building" },
+    { year: "2020", title: "Création du MESRIT", content: "Formation du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique.", icon: "Award" }
   ];
 
   const [milestones, setMilestones] = React.useState(fallbackMilestones);
@@ -59,15 +22,8 @@ export default function HistoriquePage() {
       try {
         const { fetchAPI, endpoints } = require('@/lib/strapi');
         const { mapStrapiList, mapHistoryMilestone } = require('@/utils/strapiMapper');
-
-        const response = await fetchAPI(endpoints.history, {
-          sort: ['order:asc', 'year:asc'],
-          pagination: { limit: 50 }
-        });
-
-        if (response?.data?.length > 0) {
-          setMilestones(mapStrapiList(response, mapHistoryMilestone));
-        }
+        const response = await fetchAPI(endpoints.history, { sort: ['order:asc', 'year:asc'], pagination: { limit: 50 } });
+        if (response?.data?.length > 0) setMilestones(mapStrapiList(response, mapHistoryMilestone));
       } catch (err) {
         console.warn('Failed to fetch history, using fallback');
       }
@@ -76,46 +32,42 @@ export default function HistoriquePage() {
   }, []);
 
   const achievements = [
-    {
-      title: "60 ans d'excellence",
-      description: "Plus de six décennies au service de l'éducation nationale",
-      stats: "1962-2024"
-    },
-    {
-      title: "10 universités",
-      description: "Un réseau national d'établissements d'enseignement supérieur",
-      stats: "Toutes les régions"
-    },
-    {
-      title: "100,000+ diplômés",
-      description: "Générations de cadres formés pour le développement du Niger",
-      stats: "Depuis 1975"
-    }
+    { title: "60 ans d'excellence", description: "Plus de six décennies au service de l'éducation nationale", stats: "1962-2024" },
+    { title: "10 universités", description: "Un réseau national d'établissements d'enseignement supérieur", stats: "Toutes les régions" },
+    { title: "100 000+ diplômés", description: "Générations de cadres formés pour le développement du Niger", stats: "Depuis 1975" }
   ];
 
   return (
     <MainLayout>
       <SeoHead title="Historique" description="L'histoire et l'évolution du Ministère de l'Enseignement Supérieur du Niger depuis sa création." url="/ministere/historique" />
-      <div className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          {/* Fil d'Ariane */}
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <Link href="/" className="hover:text-blue-600">Accueil</Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
-            <Link href="/ministere" className="hover:text-blue-600">Le Ministère</Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
-            <span>Historique</span>
-          </div>
 
-          {/* En-tête */}
-          <div className="flex items-center mb-8">
-            <Clock className="w-8 h-8 text-blue-600 mr-3" />
-            <h1 className="text-3xl font-bold">Notre Historique</h1>
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-14 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="container mx-auto px-6 relative">
+          <div className="flex items-center text-sm mb-3 opacity-80">
+            <Link href="/" className="hover:opacity-100 transition-opacity">Accueil</Link>
+            <ChevronRight className="w-4 h-4 mx-1.5" />
+            <Link href="/ministere" className="hover:opacity-100 transition-opacity">Le Ministère</Link>
+            <ChevronRight className="w-4 h-4 mx-1.5" />
+            <span className="font-medium">Historique</span>
           </div>
+          <div className="flex items-center gap-4">
+            <Clock className="w-10 h-10 flex-shrink-0" />
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold">Notre Historique</h1>
+              <p className="text-white/80 mt-1">Plus de 60 ans au service de l'enseignement supérieur nigérien</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="py-12 bg-gray-50 dark:bg-secondary-900">
+        <div className="container mx-auto px-4 sm:px-6">
 
           {/* Introduction */}
-          <div className="bg-white rounded-lg shadow p-6 mb-12">
-            <p className="text-lg text-gray-700 leading-relaxed">
+          <div className="bg-white dark:bg-secondary-800 rounded-2xl border border-gray-100 dark:border-secondary-700 p-6 mb-12">
+            <p className="text-readable dark:text-foreground leading-relaxed">
               Depuis l'indépendance du Niger, notre ministère a évolué pour devenir un acteur majeur
               du développement de l'enseignement supérieur et de la recherche. Découvrez les étapes
               marquantes de notre parcours et les réalisations qui ont façonné l'éducation supérieure nigérienne.
@@ -124,20 +76,19 @@ export default function HistoriquePage() {
 
           {/* Timeline */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-8 text-center">Chronologie</h2>
+            <h2 className="text-xl font-semibold text-niger-green dark:text-niger-green-light mb-8 text-center">Chronologie</h2>
             <div className="relative">
               {/* Ligne verticale */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-300"></div>
+              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-niger-orange/30 dark:bg-niger-orange/20"></div>
 
-              <div className="space-y-12">
+              <div className="space-y-10">
                 {milestones.map((milestone, index) => {
-                  // Handle icon: string name (API) or component (Fallback)
                   let Icon = Building;
                   if (typeof milestone.icon === 'string') {
                     if (milestone.icon === 'Award') Icon = Award;
                     else if (milestone.icon === 'Building') Icon = Building;
                   } else {
-                    Icon = milestone.icon;
+                    Icon = milestone.icon || Building;
                   }
 
                   const isEven = index % 2 === 0;
@@ -145,20 +96,20 @@ export default function HistoriquePage() {
                   return (
                     <div key={index} className={`flex items-center ${isEven ? 'flex-row' : 'flex-row-reverse'}`}>
                       <div className={`w-1/2 ${isEven ? 'pr-8 text-right' : 'pl-8'}`}>
-                        <div className="bg-white rounded-lg shadow-lg p-6">
-                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium mb-3 ${milestone.color}`}>
-                            <Calendar className="w-4 h-4 mr-2" />
+                        <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-md border border-gray-100 dark:border-secondary-700 p-5">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-niger-orange text-white text-xs font-medium mb-3">
+                            <Calendar className="w-3 h-3" />
                             {milestone.year}
                           </div>
-                          <h3 className="text-xl font-bold mb-3">{milestone.title}</h3>
-                          <p className="text-gray-600">{milestone.content}</p>
+                          <h3 className="font-semibold text-niger-green dark:text-niger-green-light mb-2">{milestone.title}</h3>
+                          <p className="text-readable-muted dark:text-muted-foreground text-sm">{milestone.content}</p>
                         </div>
                       </div>
 
                       {/* Point central */}
                       <div className="relative z-10">
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white ${milestone.color}`}>
-                          <Icon className="w-6 h-6" />
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center bg-niger-orange text-white shadow-lg">
+                          <Icon className="w-5 h-5" />
                         </div>
                       </div>
 
@@ -170,33 +121,33 @@ export default function HistoriquePage() {
             </div>
           </div>
 
-          {/* Réalisations clés */}
-          <div className="bg-white rounded-lg shadow p-8">
-            <h2 className="text-2xl font-bold mb-8 text-center">Nos Réalisations</h2>
+          {/* Réalisations */}
+          <div className="bg-white dark:bg-secondary-800 rounded-2xl border border-gray-100 dark:border-secondary-700 p-8">
+            <h2 className="text-xl font-semibold text-niger-green dark:text-niger-green-light mb-6 text-center">Nos Réalisations</h2>
             <div className="grid md:grid-cols-3 gap-6">
               {achievements.map((achievement, index) => (
-                <div key={index} className="text-center p-6 bg-blue-50 rounded-lg">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">{achievement.stats}</div>
-                  <h3 className="text-xl font-bold mb-3">{achievement.title}</h3>
-                  <p className="text-gray-600">{achievement.description}</p>
+                <div key={index} className="text-center p-6 bg-niger-orange/10 dark:bg-niger-orange/20 rounded-xl border border-niger-orange/20">
+                  <div className="text-2xl font-bold text-niger-orange mb-2">{achievement.stats}</div>
+                  <h3 className="font-semibold text-niger-green dark:text-niger-green-light mb-2">{achievement.title}</h3>
+                  <p className="text-readable-muted dark:text-muted-foreground text-sm">{achievement.description}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Vision d'avenir */}
-          <div className="mt-12 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg p-8 text-center">
+          <div className="mt-10 bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold mb-4">Vers l'Avenir</h2>
-            <p className="text-lg mb-6">
+            <p className="text-white/90 mb-6 max-w-2xl mx-auto">
               Fort de notre riche histoire, nous continuons à innover et à nous adapter aux défis
               de l'enseignement supérieur moderne pour former les leaders de demain.
             </p>
             <Link
               href="/ministere/missions"
-              className="inline-flex items-center px-6 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-niger-orange font-semibold rounded-xl hover:bg-niger-cream transition-colors shadow-lg"
             >
               Découvrir nos missions
-              <ChevronRight className="w-5 h-5 ml-2" />
+              <ChevronRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -205,9 +156,6 @@ export default function HistoriquePage() {
   );
 }
 
-// Forcer SSR pour éviter les erreurs durant le SSG
 export async function getStaticProps() {
-  return {
-    props: {}, revalidate: 3600
-  };
+  return { props: {}, revalidate: 3600 };
 }

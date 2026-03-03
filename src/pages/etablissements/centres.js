@@ -2,21 +2,31 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import {
-  GraduationCap,
-  MapPin,
-  Users,
-  Clock,
-  ChevronRight,
-  Search,
-  Award,
-  BookOpen,
-  Briefcase,
-  Target
+  GraduationCap, MapPin, Users, Clock,
+  ChevronRight, Search, Award, BookOpen, Briefcase, Target, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
 import SeoHead from '@/components/seo/SeoHead';
+
+const CATEGORIES = ['all', 'Formation Continue', 'Perfectionnement', 'Reconversion', 'Certification'];
+const CAT_BADGE = {
+  'Formation Continue': 'bg-blue-100 text-blue-800',
+  'Perfectionnement': 'bg-green-100 text-green-800',
+  'Reconversion': 'bg-orange-100 text-orange-800',
+  'Certification': 'bg-purple-100 text-purple-800',
+};
+
+const getCatIcon = (cat) => {
+  switch (cat) {
+    case 'Formation Continue': return BookOpen;
+    case 'Perfectionnement': return Target;
+    case 'Reconversion': return Briefcase;
+    case 'Certification': return Award;
+    default: return GraduationCap;
+  }
+};
 
 export default function CentresPage() {
   const [centres, setCentres] = useState([]);
@@ -24,11 +34,7 @@ export default function CentresPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const categories = ['all', 'Formation Continue', 'Perfectionnement', 'Reconversion', 'Certification'];
-
-  useEffect(() => {
-    fetchCentres();
-  }, []);
+  useEffect(() => { fetchCentres(); }, []);
 
   const fetchCentres = async () => {
     try {
@@ -37,293 +43,177 @@ export default function CentresPage() {
         filters: { type: 'Centre' },
         pagination: { limit: 100 }
       });
-      const data = mapStrapiList(response, mapEstablishment);
-      setCentres(data);
+      setCentres(mapStrapiList(response, mapEstablishment));
     } catch (error) {
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredCentres = centres.filter(centre => {
-    const matchesSearch = centre.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      centre.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || centre.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+  const filteredCentres = centres.filter(c => {
+    const q = searchTerm.toLowerCase();
+    return (!q || c.nom?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)) &&
+      (selectedCategory === 'all' || c.category === selectedCategory);
   });
-
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'Formation Continue': return 'bg-blue-100 text-blue-800';
-      case 'Perfectionnement': return 'bg-green-100 text-green-800';
-      case 'Reconversion': return 'bg-orange-100 text-orange-800';
-      case 'Certification': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'Formation Continue': return <BookOpen className="w-4 h-4" />;
-      case 'Perfectionnement': return <Target className="w-4 h-4" />;
-      case 'Reconversion': return <Briefcase className="w-4 h-4" />;
-      case 'Certification': return <Award className="w-4 h-4" />;
-      default: return <GraduationCap className="w-4 h-4" />;
-    }
-  };
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-gray-200 h-48 rounded-lg"></div>
-            ))}
+        <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green py-14">
+          <div className="container mx-auto px-6">
+            <div className="h-5 bg-white/20 rounded w-56 mb-3 animate-pulse" />
+            <div className="h-10 bg-white/20 rounded w-72 animate-pulse" />
           </div>
+        </div>
+        <div className="container mx-auto px-4 sm:px-6 py-8 space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-4 animate-pulse flex gap-4">
+              <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
+              <div className="flex-1"><div className="h-4 bg-gray-200 rounded w-3/4 mb-2" /><div className="h-3 bg-gray-200 rounded w-1/2" /></div>
+              <div className="w-10 h-10 bg-gray-200 rounded-lg flex-shrink-0" />
+            </div>
+          ))}
         </div>
       </MainLayout>
     );
   }
 
+  const hasFilter = searchTerm || selectedCategory !== 'all';
+
   return (
     <MainLayout>
       <SeoHead title="Centres de recherche" description="Centres de recherche et d'innovation au Niger placés sous la tutelle du MESRIT." url="/etablissements/centres" />
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-orange-900 to-orange-800 text-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center text-sm mb-4">
-            <Link href="/" className="hover:text-orange-200 transition-colors">
-              Accueil
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
-            <Link href="/etablissements" className="hover:text-orange-200 transition-colors">
-              Établissements
-            </Link>
-            <ChevronRight className="w-4 h-4 mx-2" />
-            <span>Centres de Formation</span>
+
+      <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-14 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="container mx-auto px-6 relative">
+          <div className="flex items-center text-sm mb-3 opacity-80">
+            <Link href="/" className="hover:opacity-100 transition-opacity">Accueil</Link>
+            <ChevronRight className="w-4 h-4 mx-1.5" />
+            <Link href="/etablissements" className="hover:opacity-100 transition-opacity">Établissements</Link>
+            <ChevronRight className="w-4 h-4 mx-1.5" />
+            <span className="font-medium">Centres de Formation</span>
           </div>
-
-          <div className="flex items-center mb-6">
-            <GraduationCap className="w-10 h-10 mr-4" />
-            <h1 className="text-4xl font-bold">Centres de Formation Continue</h1>
-          </div>
-
-          <p className="text-xl text-orange-100 max-w-3xl">
-            Des centres spécialisés dans la formation continue, le perfectionnement professionnel
-            et la reconversion, accompagnant les professionnels tout au long de leur carrière.
-          </p>
-
-          <div className="mt-6 text-orange-100">
-            {filteredCentres.length} centre{filteredCentres.length > 1 ? 's' : ''} trouvé{filteredCentres.length > 1 ? 's' : ''}
+          <div className="flex items-center gap-4">
+            <GraduationCap className="w-10 h-10 flex-shrink-0" />
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold">Centres de Formation Continue</h1>
+              <p className="text-white/80 mt-1">{centres.length} centre{centres.length !== 1 ? 's' : ''} référencé{centres.length !== 1 ? 's' : ''}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="py-12 bg-gray-50">
-        <div className="container mx-auto px-6">
-          {/* Filtres et recherche */}
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Rechercher un centre de formation..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="md:w-64">
-                <select
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="all">Toutes les catégories</option>
-                  {categories.slice(1).map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+      <div className="container mx-auto px-4 sm:px-6 py-8">
 
-          {/* Catégories de formation */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {categories.slice(1).map(category => {
-              const count = centres.filter(centre => centre.category === category).length;
+        {/* Catégories */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          {CATEGORIES.map(cat => {
+            const count = cat === 'all' ? centres.length : centres.filter(c => c.category === cat).length;
+            return (
+              <button key={cat} onClick={() => setSelectedCategory(cat)}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                  selectedCategory === cat
+                    ? 'bg-niger-orange text-white border-niger-orange'
+                    : 'bg-white dark:bg-secondary-800 text-readable dark:text-foreground border-gray-200 dark:border-secondary-700 hover:border-niger-orange/50'
+                }`}>
+                {cat === 'all' ? 'Tous' : cat}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCategory === cat ? 'bg-white/25' : 'bg-gray-100 dark:bg-secondary-700'}`}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Recherche */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-niger-orange" />
+            <input type="search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Rechercher un centre..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-secondary-700 focus:ring-2 focus:ring-niger-orange focus:border-niger-orange bg-white dark:bg-secondary-800 text-readable dark:text-foreground text-sm" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-readable-muted dark:text-muted-foreground">
+            <span className="font-semibold text-niger-green dark:text-niger-green-light">{filteredCentres.length}</span>
+            {' '}centre{filteredCentres.length !== 1 ? 's' : ''} trouvé{filteredCentres.length !== 1 ? 's' : ''}
+          </p>
+          {hasFilter && (
+            <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}
+              className="flex items-center gap-1.5 text-xs text-readable-muted hover:text-niger-orange transition-colors">
+              <X className="w-3.5 h-3.5" /> Réinitialiser
+            </button>
+          )}
+        </div>
+
+        {filteredCentres.length === 0 ? (
+          <div className="text-center py-16 bg-white dark:bg-secondary-800 rounded-2xl border border-gray-100 dark:border-secondary-700">
+            <GraduationCap className="w-14 h-14 text-niger-orange/40 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-niger-green dark:text-niger-green-light mb-2">Aucun centre trouvé</h3>
+            <p className="text-sm text-readable-muted dark:text-muted-foreground mb-4">
+              {hasFilter ? 'Essayez de modifier vos critères.' : 'Les centres sont en cours de référencement.'}
+            </p>
+            {hasFilter && (
+              <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}
+                className="px-5 py-2 bg-niger-orange text-white rounded-xl text-sm hover:bg-niger-orange-dark transition-colors">
+                Réinitialiser
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-secondary-800 rounded-2xl border border-gray-100 dark:border-secondary-700 overflow-hidden divide-y divide-gray-100 dark:divide-secondary-700">
+            {filteredCentres.map(centre => {
+              const CatIcon = getCatIcon(centre.category);
               return (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`p-4 rounded-xl transition-all text-center ${selectedCategory === category
-                      ? 'bg-orange-600 text-white shadow-lg'
-                      : 'bg-white hover:bg-orange-50 shadow'
-                    }`}
-                >
-                  <div className="flex justify-center mb-2">
-                    {getCategoryIcon(category)}
+                <div key={centre._id} className="flex items-center gap-4 px-4 py-4 hover:bg-niger-orange/5 dark:hover:bg-niger-orange/10 transition-colors group">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-niger-orange/10 border border-niger-orange/20">
+                    <CatIcon className="w-5 h-5 text-niger-orange" />
                   </div>
-                  <div className="font-medium text-sm mb-1">{category}</div>
-                  <div className="text-xs opacity-75">{count} centre{count > 1 ? 's' : ''}</div>
-                </button>
+                  <div className="flex-1 min-w-0">
+                    {centre.category && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium mr-2 ${CAT_BADGE[centre.category] || 'bg-gray-100 text-gray-700'}`}>{centre.category}</span>
+                    )}
+                    <h3 className="font-medium text-niger-green dark:text-niger-green-light group-hover:text-niger-orange transition-colors text-sm sm:text-base truncate">
+                      {centre.nom}
+                    </h3>
+                    {centre.description && (
+                      <p className="text-xs text-readable-muted dark:text-muted-foreground truncate hidden sm:block">{centre.description}</p>
+                    )}
+                  </div>
+                  <div className="hidden md:flex flex-col items-end gap-0.5 flex-shrink-0 text-xs text-readable-muted dark:text-muted-foreground">
+                    {centre.region && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{centre.region}</span>}
+                    {centre.trainees && <span className="flex items-center gap-1"><Users className="w-3 h-3" />{centre.trainees.toLocaleString()} stagiaires/an</span>}
+                  </div>
+                  <Link href={`/etablissements/${centre._id}`}
+                    className="flex-shrink-0 p-2.5 rounded-xl transition-all text-niger-orange hover:bg-niger-orange hover:text-white border border-niger-orange/30 hover:border-niger-orange hover:shadow-md"
+                    title="En savoir plus">
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               );
             })}
           </div>
+        )}
 
-          {/* Liste des centres */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {filteredCentres.map((centre) => (
-              <div key={centre._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
-                <div className="h-32 bg-gradient-to-br from-orange-500 to-orange-700 relative">
-                  <div className="absolute inset-0 bg-black/20"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="flex justify-between items-end">
-                      <div className="text-white">
-                        <div className="flex items-center text-sm mb-1 opacity-90">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {centre.region}
-                        </div>
-                        <div className="font-bold">{centre.sigle || centre.nom}</div>
-                      </div>
-                      {centre.category && (
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(centre.category)}`}>
-                          {centre.category}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+        {/* Section info */}
+        <div className="mt-12 bg-white dark:bg-secondary-800 rounded-2xl border border-gray-100 dark:border-secondary-700 p-8">
+          <h2 className="text-lg font-semibold text-niger-green dark:text-niger-green-light mb-6">Pourquoi choisir la formation continue ?</h2>
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { Icon: BookOpen, label: 'Apprentissage Continu', txt: 'Restez à jour avec les dernières innovations' },
+              { Icon: Target, label: 'Perfectionnement', txt: 'Développez vos compétences professionnelles' },
+              { Icon: Briefcase, label: 'Reconversion', txt: 'Changez de carrière avec une formation adaptée' },
+              { Icon: Award, label: 'Certification', txt: 'Obtenez des certifications reconnues' },
+            ].map(({ Icon, label, txt }) => (
+              <div key={label} className="text-center">
+                <div className="w-12 h-12 bg-niger-orange/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Icon className="w-6 h-6 text-niger-orange" />
                 </div>
-
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{centre.nom}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-3">{centre.description}</p>
-
-                  <div className="space-y-3 mb-4">
-                    {centre.formations && centre.formations.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Formations proposées:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {centre.formations.slice(0, 3).map((formation, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-sm"
-                            >
-                              {formation}
-                            </span>
-                          ))}
-                          {centre.formations.length > 3 && (
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-sm">
-                              +{centre.formations.length - 3} autres
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                      {centre.trainees && (
-                        <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-2 text-orange-500" />
-                          <span>{centre.trainees.toLocaleString()} stagiaires/an</span>
-                        </div>
-                      )}
-                      {centre.duration && (
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-2 text-orange-500" />
-                          <span>{centre.duration}</span>
-                        </div>
-                      )}
-                      {centre.schedule && (
-                        <div className="flex items-center">
-                          <BookOpen className="w-4 h-4 mr-2 text-orange-500" />
-                          <span>{centre.schedule}</span>
-                        </div>
-                      )}
-                      {centre.successRate && (
-                        <div className="flex items-center">
-                          <Target className="w-4 h-4 mr-2 text-orange-500" />
-                          <span>{centre.successRate}% réussite</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Award className="w-4 h-4 mr-1" />
-                      Centre de formation
-                    </div>
-                    <Link
-                      href={`/etablissements/${centre._id}`}
-                      className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                    >
-                      En savoir plus
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </div>
-                </div>
+                <p className="font-medium text-niger-green dark:text-niger-green-light text-sm mb-1">{label}</p>
+                <p className="text-xs text-readable-muted dark:text-muted-foreground">{txt}</p>
               </div>
             ))}
-          </div>
-
-          {filteredCentres.length === 0 && (
-            <div className="text-center py-12">
-              <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-600 mb-2">
-                Aucun centre trouvé
-              </h3>
-              <p className="text-gray-500">
-                Essayez de modifier vos critères de recherche.
-              </p>
-            </div>
-          )}
-
-          {/* Section informative */}
-          <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-center mb-6">Pourquoi choisir la formation continue ?</h2>
-            <div className="grid md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="font-bold mb-2">Apprentissage Continu</h3>
-                <p className="text-gray-600">
-                  Restez à jour avec les dernières innovations de votre secteur
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="font-bold mb-2">Perfectionnement</h3>
-                <p className="text-gray-600">
-                  Développez vos compétences pour évoluer professionnellement
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Briefcase className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="font-bold mb-2">Reconversion</h3>
-                <p className="text-gray-600">
-                  Changez de carrière avec une formation adaptée à vos objectifs
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="w-8 h-8 text-orange-600" />
-                </div>
-                <h3 className="font-bold mb-2">Certification</h3>
-                <p className="text-gray-600">
-                  Obtenez des certifications reconnues par les employeurs
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -331,9 +221,6 @@ export default function CentresPage() {
   );
 }
 
-// Forcer SSR pour éviter les erreurs durant le SSG
 export async function getStaticProps() {
-  return {
-    props: {}, revalidate: 3600
-  };
+  return { props: {}, revalidate: 3600 };
 }
