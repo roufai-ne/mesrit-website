@@ -1,0 +1,41 @@
+{
+  "name": "MESRIT Niger",
+  "short_name": "MESRIT",
+  "description": "Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff8c00",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["government", "education"],
+  "icons": [
+    {
+      "src": "/images/logos/logo-mesrit.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/logo-mesrit.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/logo-mesrit.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/hero/Slide4.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "label": "MESRIT Niger — Accueil"
+    }
+  ]
+}

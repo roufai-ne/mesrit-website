@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function EcolesPage() {
   const [ecoles, setEcoles] = useState([]);
@@ -50,7 +51,6 @@ export default function EcolesPage() {
       }
       setEcoles(allData);
     } catch (error) {
-      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
@@ -89,6 +89,7 @@ export default function EcolesPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Grandes écoles" description="Liste des grandes écoles reconnues par le MESRIT Niger — formations et informations pratiques." url="/etablissements/ecoles" />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-green-900 to-green-800 text-white py-16">
         <div className="container mx-auto px-6">
@@ -320,8 +321,8 @@ export default function EcolesPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

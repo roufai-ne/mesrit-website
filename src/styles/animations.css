@@ -12,3 +12,27 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
 }
+
+@keyframes float {
+  0%, 100% {
+    transform: perspective(1000px) rotateX(5deg) rotateY(2deg) translateY(0);
+  }
+  50% {
+    transform: perspective(1000px) rotateX(5deg) rotateY(2deg) translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float {
+    animation: none;
+  }
+  .animate-fade-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

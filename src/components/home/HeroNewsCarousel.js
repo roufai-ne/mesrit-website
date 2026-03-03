@@ -9,19 +9,22 @@ import { clsx } from 'clsx';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapArticleToNews } from '@/utils/strapiMapper';
 
-export default function HeroNewsCarousel() {
-  const [news, setNews] = useState([]);
+export default function HeroNewsCarousel({ initialNews = [] }) {
+  const [news, setNews] = useState(initialNews);
   const [activeIndex, setActiveIndex] = useState(0);
   const [thumbnailMediaView, setThumbnailMediaView] = useState({}); // Track which view (photos/videos) for each thumbnail
   const [isCarouselPaused, setIsCarouselPaused] = useState(false); // Pause carousel on hover
   const [hoveredVideoIndex, setHoveredVideoIndex] = useState(null); // Track which video is hovered in mini-previews
   const [isPlayingHeroVideo, setIsPlayingHeroVideo] = useState(false); // Play video inline in hero
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialNews.length === 0);
   const [error, setError] = useState(null);
   const { isDark } = useTheme();
 
   useEffect(() => {
-    fetchNews();
+    // Si des données initiales SSR sont disponibles, pas besoin de refetch immédiatement
+    if (initialNews.length === 0) {
+      fetchNews();
+    }
   }, []);
 
   // Réinitialiser la lecture vidéo hero au changement d'article
@@ -31,7 +34,11 @@ export default function HeroNewsCarousel() {
 
   // Auto rotation pour le carrousel
   useEffect(() => {
-    if (news.length === 0 || isCarouselPaused) return; // Don't auto-rotate if paused
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (news.length === 0 || isCarouselPaused || prefersReducedMotion) return;
 
     const interval = setInterval(() => {
       setActiveIndex((current) => (current + 1) % Math.min(news.length, 8));
@@ -52,7 +59,7 @@ export default function HeroNewsCarousel() {
       setNews(publishedNews);
       setError(null);
     } catch (error) {
-      console.error('Erreur lors du chargement des actualités:', error);
+      console.warn('Strapi indisponible — actualités:', error.message);
       setError('Impossible de charger les actualités');
       setNews([]);
     } finally {
@@ -264,11 +271,11 @@ export default function HeroNewsCarousel() {
                 {formatDate(currentNews?.createdAt)}
               </div>
 
-              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-3 sm:mb-4 leading-tight drop-shadow-lg">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-white mb-3 sm:mb-4 leading-tight drop-shadow-lg text-shadow-lg">
                 {currentNews?.title}
               </h1>
 
-              <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg line-clamp-2 mb-4 sm:mb-6 max-w-3xl drop-shadow leading-relaxed">
+              <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg line-clamp-2 mb-4 sm:mb-6 max-w-3xl drop-shadow text-shadow leading-relaxed">
                 {currentNews?.excerpt || currentNews?.summary}
               </p>
 

@@ -3,6 +3,7 @@ import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Clock, ChevronRight, Calendar, Award, Building } from 'lucide-react';
 import Link from 'next/link';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function HistoriquePage() {
   // Fallback data
@@ -94,6 +95,7 @@ export default function HistoriquePage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Historique" description="L'histoire et l'évolution du Ministère de l'Enseignement Supérieur du Niger depuis sa création." url="/ministere/historique" />
       <div className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           {/* Fil d'Ariane */}
@@ -204,8 +206,8 @@ export default function HistoriquePage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

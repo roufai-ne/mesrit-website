@@ -322,9 +322,6 @@ export default function MinisterePage() {
 }
 
 
-// Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
+export async function getStaticProps() {
+  return { props: {}, revalidate: 1800 };
 }

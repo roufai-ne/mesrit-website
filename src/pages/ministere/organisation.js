@@ -16,6 +16,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import Link from 'next/link';
+import SeoHead from '@/components/seo/SeoHead';
 
 const OrgSection = ({ title, icon: Icon, children, className = "", isExpandable = false }) => {
   const [isExpanded, setIsExpanded] = useState(!isExpandable);
@@ -175,6 +176,7 @@ export default function OrganisationPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Organisation du ministère" description="Structure organisationnelle et organigramme du MESRIT Niger." url="/ministere/organisation" />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
@@ -428,8 +430,8 @@ export default function OrganisationPage() {
 }
 
 // Forcer SSR pour éviter les erreurs de contexte durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

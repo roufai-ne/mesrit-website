@@ -30,6 +30,19 @@ export default async function handler(req, res) {
     if (contentLength) res.setHeader('Content-Length', contentLength);
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 
+    // Forcer le téléchargement pour les documents (pas les images)
+    const isDocument = contentType && (
+      contentType.includes('pdf') ||
+      contentType.includes('msword') ||
+      contentType.includes('officedocument') ||
+      contentType.includes('opendocument') ||
+      contentType.includes('application/octet-stream')
+    );
+    if (isDocument) {
+      const filename = filePath.split('/').pop();
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    }
+
     const buffer = await upstream.arrayBuffer();
     return res.send(Buffer.from(buffer));
   } catch (error) {

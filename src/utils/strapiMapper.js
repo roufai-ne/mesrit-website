@@ -91,15 +91,20 @@ export const mapDocument = (doc) => {
         'guide': 'Guide'
     };
 
+    const sizeKB = fileItem?.size;
+    const sizeStr = sizeKB
+        ? (sizeKB >= 1024 ? `${(sizeKB / 1024).toFixed(1)} Mo` : `${Math.round(sizeKB)} Ko`)
+        : null;
+
     return {
         _id: id,
-        title: attrs.title,
-        description: attrs.description,
+        title: attrs.title || 'Document sans titre',
+        description: attrs.description || '',
         category: attrs.category,
         subType: subTypeMap[attrs.category] || attrs.category,
-        type: fileItem?.ext?.replace('.', '').toUpperCase() || 'PDF',
+        type: fileItem?.ext?.replace('.', '').toUpperCase() || null,
         url: getStrapiMedia(attrs.file),
-        size: (fileItem?.size || 0) + ' KB',
+        size: sizeStr,
         publicationDate: attrs.publicationDate || attrs.createdAt,
         createdAt: attrs.createdAt,
         status: 'published'

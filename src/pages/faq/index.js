@@ -17,6 +17,7 @@ import {
 import { sanitizeForReact } from '@/lib/sanitize';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapFAQ } from '@/utils/strapiMapper';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function FAQPage() {
   const [faqs, setFaqs] = useState([]);
@@ -102,6 +103,7 @@ export default function FAQPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Foire aux questions" description="Réponses aux questions fréquemment posées sur les services du MESRIT et l'enseignement supérieur au Niger." url="/faq" />
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-blue-900 to-blue-800 text-white py-20">
         <div className="container mx-auto px-6">
@@ -297,8 +299,8 @@ export default function FAQPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 86400
   };
 }

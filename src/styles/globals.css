@@ -163,15 +163,16 @@
     border-color: var(--niger-green);
   }
   
-  /* Smooth color transitions for theme changes */
-  * {
+  /* Smooth color transitions for theme changes — scoped to layout containers only */
+  /* Previously applied to *, which caused CLS during hydration and blocked GPU compositing */
+  .theme-aware {
     transition-property: background-color, border-color, color, fill, stroke;
     transition-duration: 0.2s;
     transition-timing-function: ease-in-out;
   }
-  
+
   /* Disable transitions during theme changes to prevent flashing */
-  .theme-transitioning * {
+  .theme-transitioning .theme-aware {
     transition: none !important;
   }
 }
@@ -934,17 +935,6 @@
     animation: fadeInRight 0.6s ease-out forwards;
   }
   
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
   @keyframes fadeInDown {
     from {
       opacity: 0;
@@ -976,5 +966,138 @@
       opacity: 1;
       transform: translateX(0);
     }
+  }
+}
+
+/* ============================================================
+   TOKENS TYPOGRAPHIQUES — design system sémantique
+   ============================================================ */
+@layer components {
+  .heading-display {
+    @apply text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1];
+  }
+  .heading-1 {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight leading-tight;
+  }
+  .heading-2 {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight leading-snug;
+  }
+  .heading-3 {
+    @apply text-xl sm:text-2xl font-semibold leading-snug;
+  }
+  .heading-4 {
+    @apply text-lg font-semibold leading-normal;
+  }
+  .body-large {
+    @apply text-lg leading-relaxed;
+  }
+  .body-base {
+    @apply text-base leading-relaxed;
+  }
+  .body-small {
+    @apply text-sm leading-normal;
+  }
+  .caption {
+    @apply text-xs font-medium tracking-wide uppercase text-gray-500 dark:text-gray-400;
+  }
+  .label {
+    @apply text-sm font-medium;
+  }
+  .prose-content {
+    @apply text-base leading-loose text-gray-700 dark:text-gray-300;
+  }
+}
+
+/* ============================================================
+   TEXT-SHADOW — contraste carousel sur images claires
+   ============================================================ */
+@layer utilities {
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.75);
+  }
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+  }
+
+  /* Tailles d'icônes standardisées */
+  .icon-xs { width: 0.875rem; height: 0.875rem; }
+  .icon-sm { width: 1rem;     height: 1rem; }
+  .icon-md { width: 1.25rem;  height: 1.25rem; }
+  .icon-lg { width: 1.5rem;   height: 1.5rem; }
+  .icon-xl { width: 2rem;     height: 2rem; }
+  .icon-2xl { width: 3rem;    height: 3rem; }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  /* Masquer les éléments interactifs et décoratifs */
+  header,
+  footer,
+  nav,
+  .chatbot,
+  [data-print="hide"],
+  .fixed:not([data-print="show"]),
+  button:not([data-print="show"]),
+  .btn {
+    display: none !important;
+  }
+
+  /* Fond blanc, texte noir */
+  body,
+  main {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Stopper toutes les animations */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Typographie d'impression */
+  .prose-content,
+  article p,
+  article li {
+    font-size: 12pt;
+    line-height: 1.6;
+    color: black;
+  }
+
+  h1, h2, h3, h4 {
+    color: black;
+    page-break-after: avoid;
+  }
+
+  /* Images */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Liens : afficher l'URL */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #555;
+    word-break: break-all;
+  }
+
+  /* En-tête d'impression */
+  main::before {
+    content: "MESRIT Niger — Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique";
+    display: block;
+    font-weight: bold;
+    font-size: 13pt;
+    margin-bottom: 16pt;
+    padding-bottom: 8pt;
+    border-bottom: 2pt solid #ff8c00;
   }
 }

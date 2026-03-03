@@ -48,7 +48,11 @@ export async function fetchAPI(path, urlParamsObject = {}, options = {}) {
     }
     return data;
   } catch (error) {
-    console.error(`Error fetching Strapi API from ${requestUrl}:`, error.message);
+    if (error.status === 404) {
+      console.warn(`Strapi 404 — ressource non trouvée : ${requestUrl}`);
+    } else {
+      console.warn(`Strapi indisponible — ${requestUrl}: ${error.message}`);
+    }
     throw error;
   }
 }

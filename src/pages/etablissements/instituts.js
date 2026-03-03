@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function InstitutsPage() {
   const [instituts, setInstituts] = useState([]);
@@ -50,7 +51,6 @@ export default function InstitutsPage() {
       }
       setInstituts(allData);
     } catch (error) {
-      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
@@ -98,6 +98,7 @@ export default function InstitutsPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Instituts de recherche" description="Instituts d'enseignement supérieur et de recherche au Niger agréés par le MESRIT." url="/etablissements/instituts" />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-900 to-purple-800 text-white py-16">
         <div className="container mx-auto px-6">
@@ -320,8 +321,8 @@ export default function InstitutsPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

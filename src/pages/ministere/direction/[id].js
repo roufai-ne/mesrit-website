@@ -200,7 +200,6 @@ export default function DirectorPage() {
         
         toast.success('Profil chargé avec succès');
       } catch (error) {
-        console.error('Erreur:', error);
         setError(error.message || 'Erreur lors du chargement du profil');
         toast.error('Erreur lors du chargement du profil');
       } finally {
@@ -350,9 +349,10 @@ export default function DirectorPage() {
   );
 }
 
-// Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
+export async function getStaticPaths() {
+  return { paths: [], fallback: 'blocking' };
+}
+
+export async function getStaticProps() {
+  return { props: {}, revalidate: 3600 };
 }

@@ -25,6 +25,7 @@ import {
 import Link from 'next/link';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
+import SeoHead from '@/components/seo/SeoHead';
 
 const REGIONS_NIGER = [
   'Agadez', 'Diffa', 'Dosso', 'Maradi', 'Niamey', 'Tahoua', 'Tillabéri', 'Zinder'
@@ -205,6 +206,7 @@ const Etablissements = ({ initialEstablishments = [] }) => {
 
   return (
     <MainLayout>
+      <SeoHead title="Établissements d'enseignement supérieur" description="Répertoire complet des universités, grandes écoles, instituts et centres de recherche du Niger." url="/etablissements" />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
@@ -532,14 +534,8 @@ const Etablissements = ({ initialEstablishments = [] }) => {
   );
 }
 
-// SSR - Les données seront chargées côté client via useEffect
-// Ceci évite les erreurs ECONNREFUSED durant le build
-export async function getServerSideProps() {
-  return {
-    props: {
-      initialEstablishments: []
-    }
-  };
+export async function getStaticProps() {
+  return { props: { initialEstablishments: [] }, revalidate: 3600 };
 }
 
 export default Etablissements;

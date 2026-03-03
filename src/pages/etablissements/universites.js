@@ -15,6 +15,7 @@ import {
 import Link from 'next/link';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapEstablishment } from '@/utils/strapiMapper';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function UniversitesPage() {
   const [universites, setUniversites] = useState([]);
@@ -50,7 +51,6 @@ export default function UniversitesPage() {
       }
       setUniversites(allData);
     } catch (error) {
-      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
@@ -79,6 +79,7 @@ export default function UniversitesPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Universités" description="Universités publiques et privées du Niger reconnues par le Ministère de l'Enseignement Supérieur." url="/etablissements/universites" />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-16">
         <div className="container mx-auto px-6">
@@ -275,8 +276,8 @@ export default function UniversitesPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

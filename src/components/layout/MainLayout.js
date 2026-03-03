@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Header from './Header';
 import Footer from './Footer';
@@ -9,11 +10,27 @@ const Chatbot = dynamic(() => import('@/components/Chatbot'), {
   loading: () => null
 });
 
+const BackToTop = dynamic(() => import('@/components/ui/BackToTop'), { ssr: false });
+const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette'), { ssr: false });
+
 export default function MainLayout({ children }) {
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+
+  // Ouvrir la Command Palette avec Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   return (
 
-    <div className="min-h-screen flex flex-col relative">
+    <div className="min-h-screen flex flex-col relative theme-aware">
       {/* Skip Link pour l'accessibilité */}
       <a
         href="#main-content"
@@ -51,6 +68,12 @@ export default function MainLayout({ children }) {
 
       {/* Chatbot flottant */}
       <Chatbot />
+
+      {/* Bouton retour en haut */}
+      <BackToTop />
+
+      {/* Command Palette Ctrl+K */}
+      <CommandPalette isOpen={isCommandOpen} onClose={() => setIsCommandOpen(false)} />
     </div>
 
   );

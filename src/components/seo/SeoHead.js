@@ -9,26 +9,47 @@ const TWITTER_HANDLE = '@mesrit_niger';
 
 /**
  * @param {object} props
- * @param {string} props.title         — Titre de la page (sans le nom du site)
- * @param {string} [props.description] — Description (160 chars max)
- * @param {string} [props.url]         — URL canonique de la page (chemin relatif ou absolu)
- * @param {string} [props.image]       — URL absolue de l'image OG
- * @param {'website'|'article'} [props.type] — Type OG (défaut: website)
- * @param {object} [props.article]     — Métadonnées article (publishedTime, modifiedTime, author)
- * @param {object} [props.jsonLd]      — JSON-LD custom à ajouter en plus de l'Organization
+ * @param {string} props.title             — Titre de la page (sans le nom du site)
+ * @param {string} [props.description]     — Description (160 chars max)
+ * @param {string} [props.url]             — URL canonique de la page (chemin relatif ou absolu)
+ * @param {string} [props.image]           — URL image OG (relative ou absolue)
+ * @param {string} [props.ogImage]         — Alias de image (rétrocompatibilité)
+ * @param {'website'|'article'} [props.type]    — Type OG (défaut: website)
+ * @param {'website'|'article'} [props.ogType]  — Alias de type (rétrocompatibilité)
+ * @param {object} [props.article]         — Métadonnées article { publishedTime, modifiedTime, author }
+ * @param {string} [props.publishedTime]   — Alias raccourci pour article.publishedTime
+ * @param {string} [props.modifiedTime]    — Alias raccourci pour article.modifiedTime
+ * @param {object|object[]} [props.jsonLd] — JSON-LD custom (objet ou tableau d'objets)
  */
 export default function SeoHead({
   title,
   description = "Site officiel du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger.",
   url = '/',
-  image = DEFAULT_IMAGE,
-  type = 'website',
+  image,
+  ogImage,
+  type,
+  ogType,
   article = null,
+  publishedTime = null,
+  modifiedTime = null,
   jsonLd = null,
 }) {
+  // Résoudre les aliases pour rétrocompatibilité
+  const resolvedImage = image || ogImage || DEFAULT_IMAGE;
+  const resolvedType = type || ogType || 'website';
   const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
   const canonicalUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
-  const absoluteImage = image.startsWith('http') ? image : `${BASE_URL}${image}`;
+  const absoluteImage = resolvedImage.startsWith('http') ? resolvedImage : `${BASE_URL}${resolvedImage}`;
+
+  // Fusionner publishedTime/modifiedTime directs dans l'objet article
+  const resolvedArticle = (publishedTime || modifiedTime)
+    ? { publishedTime, modifiedTime, ...article }
+    : article;
+
+  // jsonLd accepte un objet ou un tableau
+  const jsonLdSchemas = jsonLd
+    ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd])
+    : [];
 
   // JSON-LD Organisation (toujours présent)
   const organizationSchema = {
@@ -57,21 +78,21 @@ export default function SeoHead({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonicalUrl} />
-      <meta property="og:type" content={type} />
+      <meta property="og:type" content={resolvedType} />
       <meta property="og:image" content={absoluteImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:locale" content="fr_FR" />
 
       {/* Article */}
-      {type === 'article' && article?.publishedTime && (
-        <meta property="article:published_time" content={article.publishedTime} />
+      {resolvedType === 'article' && resolvedArticle?.publishedTime && (
+        <meta property="article:published_time" content={resolvedArticle.publishedTime} />
       )}
-      {type === 'article' && article?.modifiedTime && (
-        <meta property="article:modified_time" content={article.modifiedTime} />
+      {resolvedType === 'article' && resolvedArticle?.modifiedTime && (
+        <meta property="article:modified_time" content={resolvedArticle.modifiedTime} />
       )}
-      {type === 'article' && article?.author && (
-        <meta property="article:author" content={article.author} />
+      {resolvedType === 'article' && resolvedArticle?.author && (
+        <meta property="article:author" content={resolvedArticle.author} />
       )}
 
       {/* Twitter Card */}
@@ -87,13 +108,14 @@ export default function SeoHead({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
-      {/* JSON-LD custom (article, breadcrumb, etc.) */}
-      {jsonLd && (
+      {/* JSON-LD custom (article, breadcrumb, event, etc.) — supporte tableau */}
+      {jsonLdSchemas.map((schema, i) => (
         <script
+          key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
-      )}
+      ))}
     </Head>
   );
 }

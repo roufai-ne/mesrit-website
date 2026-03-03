@@ -60,8 +60,8 @@ export default function ConfirmEmail() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 86400
   };
 }

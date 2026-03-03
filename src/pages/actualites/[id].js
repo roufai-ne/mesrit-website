@@ -2,23 +2,24 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import MainLayout from '@/components/layout/MainLayout';
+import SeoHead from '@/components/seo/SeoHead';
 import { Calendar, ArrowLeft, ArrowRight, Tag, ImageIcon, ChevronRight, Play, Video, Share2, Facebook, Twitter, Linkedin, Copy } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Head from 'next/head';
-// import { secureApi } from '@/lib/secureApi'; // REMOVED
 import { fetchAPI, endpoints } from '@/lib/strapi';
-import { mapArticleToNews } from '@/utils/strapiMapper';
+import { mapArticleToNews, mapStrapiList } from '@/utils/strapiMapper';
 import { toast } from 'react-hot-toast';
 
 import ImageSlideshow from '@/components/ImageSlideshow';
 import VideoPlayer from '@/components/communication/VideoPlayer';
 
-export default function ActualiteDetail() {
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne';
+
+export default function ActualiteDetail({ actualite: initialActualite = null }) {
   const router = useRouter();
   const { id } = router.query;
-  const [actualite, setActualite] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [actualite, setActualite] = useState(initialActualite);
+  const [loading, setLoading] = useState(!initialActualite);
   const [error, setError] = useState(null);
   const [navigation, setNavigation] = useState({
     previous: null,
@@ -103,7 +104,6 @@ export default function ActualiteDetail() {
           throw new Error('Article non trouvé');
         }
       } catch (error) {
-        console.error('Erreur:', error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -196,85 +196,53 @@ export default function ActualiteDetail() {
     );
   }
 
+  const articleUrl = `${BASE_URL}/actualites/${actualite.slug || actualite._id}`;
+  const newsArticleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: actualite.title,
+    description: actualite.metaDescription || actualite.summary || '',
+    datePublished: actualite.publishedAt || actualite.createdAt,
+    dateModified: actualite.updatedAt || actualite.publishedAt,
+    author: {
+      '@type': 'Organization',
+      name: "Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger",
+      url: BASE_URL,
+    },
+    publisher: {
+      '@type': 'GovernmentOrganization',
+      name: 'MESRIT Niger',
+      logo: { '@type': 'ImageObject', url: `${BASE_URL}/images/logos/logo-mesrit.png` },
+    },
+    ...(actualite.image && { image: actualite.image.startsWith('http') ? actualite.image : `${BASE_URL}${actualite.image}` }),
+    url: articleUrl,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+    ...(actualite.category && { articleSection: actualite.category }),
+    ...(actualite.tags?.length > 0 && { keywords: actualite.tags.join(', ') }),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: BASE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Actualités', item: `${BASE_URL}/actualites` },
+      { '@type': 'ListItem', position: 3, name: actualite.title, item: articleUrl },
+    ],
+  };
+
   return (
     <MainLayout>
-      <Head>
-        <title>{actualite.metaTitle || actualite.title} | MESRIT</title>
-        <meta name="description" content={actualite.metaDescription || actualite.summary || ''} />
-        <meta property="og:locale" content="fr_FR" />
-        {actualite.status === 'draft' && (
-          <meta name="robots" content="noindex, nofollow" />
-        )}
-
-        {/* Open Graph */}
-        <meta property="og:title" content={actualite.metaTitle || actualite.title} />
-        <meta property="og:description" content={actualite.metaDescription || actualite.summary || ''} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}/actualites/${actualite.slug || actualite._id}`} />
-        {actualite.image && <meta property="og:image" content={actualite.image} />}
-        <meta property="og:site_name" content="MESRI Niger" />
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={actualite.metaTitle || actualite.title} />
-        <meta name="twitter:description" content={actualite.metaDescription || actualite.summary || ''} />
-        {actualite.image && <meta name="twitter:image" content={actualite.image} />}
-
-        {/* Article meta */}
-        <meta property="article:published_time" content={(actualite.publishedAt || actualite.createdAt)} />
-        <meta property="article:modified_time" content={actualite.updatedAt} />
-        <meta property="article:section" content={actualite.category} />
-        {actualite.tags && actualite.tags.map((tag, index) => (
-          <meta key={index} property="article:tag" content={tag} />
-        ))}
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}/actualites/${actualite.slug || actualite._id}`} />
-        {navigation?.previous?.slug && (
-          <link rel="prev" href={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}/actualites/${navigation.previous.slug}`} />
-        )}
-        {navigation?.next?.slug && (
-          <link rel="next" href={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}/actualites/${navigation.next.slug}`} />
-        )}
-
-        {/* Données structurées */}
-        {actualite && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "NewsArticle",
-                "headline": actualite.title,
-                "description": actualite.metaDescription || actualite.summary,
-                "datePublished": (actualite.publishedAt || actualite.createdAt),
-                "dateModified": actualite.updatedAt,
-                "author": {
-                  "@type": "Organization",
-                  "name": "Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation du Niger"
-                },
-                "publisher": {
-                  "@type": "Organization",
-                  "name": "MESRI Niger",
-                  "logo": {
-                    "@type": "ImageObject",
-                    "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}/images/logo-mesri.png`
-                  }
-                },
-                ...(actualite.image && {
-                  "image": {
-                    "@type": "ImageObject",
-                    "url": actualite.image.startsWith('http') ? actualite.image : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}${actualite.image}`
-                  }
-                }),
-                "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://mesri.ne'}/actualites/${actualite.slug || actualite._id}`,
-                ...(actualite.category && { "articleSection": actualite.category }),
-                ...(actualite.tags && actualite.tags.length > 0 && { "keywords": actualite.tags.join(', ') })
-              })
-            }}
-          />
-        )}
-      </Head>
+      <SeoHead
+        title={actualite.metaTitle || actualite.title}
+        description={actualite.metaDescription || actualite.summary || ''}
+        url={`/actualites/${actualite.slug || actualite._id}`}
+        ogType="article"
+        ogImage={actualite.image}
+        publishedTime={actualite.publishedAt || actualite.createdAt}
+        modifiedTime={actualite.updatedAt}
+        jsonLd={[newsArticleSchema, breadcrumbSchema]}
+      />
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
@@ -609,9 +577,73 @@ export default function ActualiteDetail() {
   );
 }
 
-// Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
+export async function getStaticPaths() {
+  try {
+    const response = await fetchAPI(endpoints.articles, {
+      sort: ['publishedAt:desc'],
+      pagination: { limit: 50 },
+      fields: ['slug'],
+    });
+    const paths = (response.data || [])
+      .filter((article) => article.slug)
+      .map((article) => ({ params: { id: article.slug } }));
+    return { paths, fallback: 'blocking' };
+  } catch {
+    return { paths: [], fallback: 'blocking' };
+  }
+}
+
+export async function getStaticProps({ params }) {
+  const { id } = params;
+
+  try {
+    // Stratégie de détection de l'identifiant dans l'URL :
+    //  - slug humain    : "mon-article-2024"    → isNaN=true, contient tirets
+    //  - documentId S5  : "abc123def456ghi789"  → isNaN=true, 20+ chars alphanum sans tirets
+    //  - ID numérique   : "10"                  → isNaN=false
+    const isNumericId = !isNaN(id);
+    const isDocumentId = !isNumericId && /^[a-z0-9]{20,}$/i.test(id) && !id.includes('-');
+    const isSlug = !isNumericId && !isDocumentId;
+
+    let strapiArticle = null;
+
+    if (isSlug) {
+      const response = await fetchAPI(endpoints.articles, {
+        filters: { slug: id },
+        populate: ['cover', 'videos'],
+      });
+      if (response.data && response.data.length > 0) {
+        strapiArticle = response.data[0];
+      }
+    } else if (isDocumentId) {
+      const response = await fetchAPI(`${endpoints.articles}/${id}`, {
+        populate: ['cover', 'videos'],
+      });
+      strapiArticle = response.data;
+    } else {
+      try {
+        const response = await fetchAPI(`${endpoints.articles}/${id}`, {
+          populate: ['cover', 'videos'],
+        });
+        strapiArticle = response.data;
+      } catch {
+        const fallback = await fetchAPI(endpoints.articles, {
+          filters: { slug: id },
+          populate: ['cover', 'videos'],
+        });
+        if (fallback.data && fallback.data.length > 0) {
+          strapiArticle = fallback.data[0];
+        }
+      }
+    }
+
+    if (!strapiArticle) {
+      return { notFound: true };
+    }
+
+    const actualite = mapArticleToNews(strapiArticle);
+    return { props: { actualite }, revalidate: 600 };
+  } catch {
+    return { notFound: true };
+  }
 }

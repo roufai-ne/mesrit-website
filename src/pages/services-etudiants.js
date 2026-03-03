@@ -18,6 +18,7 @@ import {
   Mail
 } from 'lucide-react';
 import Link from 'next/link';
+import SeoHead from '@/components/seo/SeoHead';
 
 // Fonction utilitaire pour les couleurs
 const getColorClasses = (color, variant = 'default') => {
@@ -201,6 +202,7 @@ export default function ServicesEtudiantsPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Services aux étudiants" description="Services dédiés aux étudiants : bourses, logements, transports, équivalences et accompagnement académique." url="/services-etudiants" />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
@@ -478,8 +480,8 @@ export default function ServicesEtudiantsPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

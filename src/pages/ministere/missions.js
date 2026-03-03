@@ -4,6 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Target, ChevronRight, CheckCircle, TrendingUp, Users, BookOpen, Award, Eye, RefreshCw, Clock, Loader } from 'lucide-react';
 import Link from 'next/link';
 import { useMinisterMissions } from '@/hooks/useMinisterContent';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function MissionsPage() {
   const [selectedMission, setSelectedMission] = useState(0);
@@ -117,6 +118,7 @@ export default function MissionsPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Missions du ministère" description="Découvrez les missions et attributions du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique du Niger." url="/ministere/missions" />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-niger-orange via-niger-orange-dark to-niger-green text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-niger-white/[0.05] bg-[size:20px_20px] opacity-30" />
@@ -405,8 +407,8 @@ export default function MissionsPage() {
 
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

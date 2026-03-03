@@ -15,7 +15,9 @@
       "Bash(npm install daisyui)",
       "Bash(npm install @sentry/nextjs)",
       "Bash(node -e \":*)",
-      "Bash(node scripts/import-images-direct.mjs)"
+      "Bash(node scripts/import-images-direct.mjs)",
+      "Bash(xargs grep -l \"getServerSideProps\")",
+      "Bash(grep -A5 \"getServerSideProps\" src/pages/etablissements/ecoles.js src/pages/etablissements/instituts.js src/pages/etablissements/universites.js src/pages/etablissements/centres.js src/pages/etablissements/[id].js src/pages/documentation/index.js src/pages/ministere/missions.js)"
     ],
     "deny": [],
     "ask": []

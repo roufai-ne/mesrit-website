@@ -7,6 +7,8 @@ import SectionContainer from '@/components/home/SectionContainer';
 import SectionDivider from '@/components/home/SectionDivider';
 import PageFooter from '@/components/home/PageFooter';
 import StatsSection from '@/components/home/StatsSection';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapArticleToNews } from '@/utils/strapiMapper';
 
 // Lazy loading des composants pour améliorer les performances
 // News section supprimée - intégrée dans HeroNewsCarousel
@@ -55,10 +57,10 @@ const MinisterialAgenda = dynamic(() => import('@/components/home/MinisterialAge
 
 // StatsSection importé directement ci-dessus pour débugger
 
-export default function Home() {
+export default function Home({ initialNews = [] }) {
   // Les alertes sont affichées dans le panneau latéral (MinisterialAgenda compact)
   // Les événements sont affichés dans la section dédiée (MinisterialAgenda normal)
-  // Données chargées dynamiquement via les APIs /api/alerts et /api/events
+  // Données chargées via ISR (revalidate 300s) puis mises à jour côté client
 
   return (
     <MainLayout>
@@ -73,7 +75,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
             {/* Hero News Carousel - 80% de largeur */}
             <div className="w-full lg:w-[80%]">
-              <HeroNewsCarousel />
+              <HeroNewsCarousel initialNews={initialNews} />
             </div>
 
             {/* Agenda Ministériel - 20% de largeur */}
@@ -117,9 +119,16 @@ export default function Home() {
 }
 
 
-// Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
+export async function getStaticProps() {
+  try {
+    const response = await fetchAPI(endpoints.articles, {
+      sort: ['publishedAt:desc'],
+      pagination: { limit: 8 },
+      populate: ['cover', 'videos'],
+    });
+    const initialNews = mapStrapiList(response, mapArticleToNews);
+    return { props: { initialNews }, revalidate: 300 };
+  } catch {
+    return { props: { initialNews: [] }, revalidate: 60 };
+  }
 }

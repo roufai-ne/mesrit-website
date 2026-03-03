@@ -15,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import SeoHead from '@/components/seo/SeoHead';
 
 export default function SupportPage() {
   const [selectedCategory, setSelectedCategory] = useState('general');
@@ -148,6 +149,7 @@ export default function SupportPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Support" description="Centre d'aide et de support du site officiel du MESRIT Niger." url="/support" />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-niger-green to-niger-orange text-white py-16">
         <div className="container mx-auto px-6">
@@ -316,8 +318,8 @@ export default function SupportPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 86400
   };
 }

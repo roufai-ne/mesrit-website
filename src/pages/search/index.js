@@ -102,7 +102,6 @@ export default function SearchResultsPage() {
       setTotalPages(totalPagesCalc);
       setSuggestions([]); // No suggestions engine in this simple version
     } catch (err) {
-      console.error("Search error:", err);
       setError(`Une erreur est survenue lors de la recherche: ${err.message}`);
       setSearchResults([]);
     } finally {
@@ -601,8 +600,8 @@ export default function SearchResultsPage() {
 
 // Désactiver le SSG pour cette page car elle dépend des query params
 // La page sera rendue côté client uniquement
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 86400
   };
 }

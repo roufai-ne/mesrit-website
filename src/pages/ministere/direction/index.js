@@ -23,6 +23,7 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapDirector } from '@/utils/strapiMapper';
+import SeoHead from '@/components/seo/SeoHead';
 
 
 export default function DirectionPage() {
@@ -83,7 +84,6 @@ export default function DirectionPage() {
         toast.error('Erreur de format des données');
       }
     } catch (error) {
-      console.error('Erreur:', error);
       setError(error.message || 'Erreur lors du chargement des données');
       toast.error('Erreur lors du chargement des données');
     } finally {
@@ -593,6 +593,7 @@ export default function DirectionPage() {
 
   return (
     <MainLayout>
+      <SeoHead title="Direction et encadrement" description="Présentation de la direction et des cadres du Ministère de l'Enseignement Supérieur du Niger." url="/ministere/direction" />
       <div className="py-12 bg-gradient-to-b from-niger-cream to-white dark:from-secondary-900 dark:to-secondary-800 min-h-screen transition-colors duration-300">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
@@ -664,8 +665,8 @@ export default function DirectionPage() {
 }
 
 // Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
+export async function getStaticProps() {
   return {
-    props: {}
+    props: {}, revalidate: 3600
   };
 }

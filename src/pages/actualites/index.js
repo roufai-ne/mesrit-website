@@ -8,6 +8,8 @@ import VideoPlayer from '@/components/communication/VideoPlayer';
 import { useNewsCache } from '@/hooks/useNewsCache';
 import NewsSearchBar from '@/components/search/NewsSearchBar';
 import NewsFilters from '@/components/search/NewsFilters';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapArticleToNews } from '@/utils/strapiMapper';
 
 const Toast = ({ message }) => (
   <div className="fixed bottom-4 right-4 bg-gradient-to-r from-niger-orange to-niger-green text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500 ease-in-out animate-slide-in z-50">
@@ -15,10 +17,10 @@ const Toast = ({ message }) => (
   </div>
 );
 
-export default function Actualites() {
+export default function Actualites({ initialActualites = [] }) {
   const { fetchNews, getCachedData, loading } = useNewsCache();
 
-  const [actualites, setActualites] = useState([]);
+  const [actualites, setActualites] = useState(initialActualites);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState('all');
@@ -505,9 +507,17 @@ export default function Actualites() {
   );
 }
 
-// Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
+export async function getStaticProps() {
+  try {
+    const response = await fetchAPI(endpoints.articles, {
+      sort: ['publishedAt:desc'],
+      pagination: { limit: 12 },
+      populate: ['cover', 'videos'],
+      filters: { publishedAt: { $notNull: true } },
+    });
+    const initialActualites = mapStrapiList(response, mapArticleToNews);
+    return { props: { initialActualites }, revalidate: 120 };
+  } catch {
+    return { props: { initialActualites: [] }, revalidate: 60 };
+  }
 }

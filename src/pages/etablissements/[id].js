@@ -51,7 +51,6 @@ const EstablishmentDetail = () => {
       setEstablishment(mapped);
     } catch (err) {
       setError('Établissement non trouvé');
-      console.error('Erreur:', err);
     } finally {
       setLoading(false);
     }
@@ -453,9 +452,10 @@ const EstablishmentDetail = () => {
 
 export default EstablishmentDetail;
 
-// Forcer SSR pour éviter les erreurs durant le SSG
-export async function getServerSideProps() {
-  return {
-    props: {}
-  };
+export async function getStaticPaths() {
+  return { paths: [], fallback: 'blocking' };
+}
+
+export async function getStaticProps() {
+  return { props: {}, revalidate: 3600 };
 }
