@@ -12,28 +12,43 @@ export function getStrapiURL(path = '') {
 
 /**
  * Helper to make GET requests to Strapi API endpoints.
- * Toujours via le proxy Next.js /api/strapi/[...path] :
- * - depuis le navigateur : évite le CORS et n'expose pas Strapi directement
- * - depuis le serveur (SSR/getServerSideProps) : appel interne via NEXT_PUBLIC_BASE_URL
+ * - Navigateur  : passe par le proxy Next.js /api/strapi/[...path] (évite CORS, cache le token)
+ * - Serveur (getStaticProps, ISR, SSR) : appel direct à Strapi avec STRAPI_API_TOKEN
+ *   → pas de dépendance au serveur Next.js (résout le bug "ministre absent en production")
  */
 export async function fetchAPI(path, urlParamsObject = {}, options = {}) {
   const queryString = qs.stringify(urlParamsObject, { encodeValuesOnly: true });
   const suffix = queryString ? `?${queryString}` : '';
 
   const isServer = typeof window === 'undefined';
-  const base = isServer
-    ? (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000')
-    : '';
 
-  const requestUrl = `${base}/api/strapi${path}${suffix}`;
+  let requestUrl;
+  let mergedOptions;
 
-  const mergedOptions = {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  };
+  if (isServer) {
+    // Appel direct à Strapi — valable pendant `npm run build` ET pendant ISR
+    const strapiBase = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337';
+    requestUrl = `${strapiBase}/api${path}${suffix}`;
+    const token = process.env.STRAPI_API_TOKEN;
+    mergedOptions = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    };
+  } else {
+    // Proxy Next.js côté navigateur (évite CORS + ne jamais exposer le token au client)
+    requestUrl = `/api/strapi${path}${suffix}`;
+    mergedOptions = {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    };
+  }
 
   try {
     const response = await fetch(requestUrl, mergedOptions);

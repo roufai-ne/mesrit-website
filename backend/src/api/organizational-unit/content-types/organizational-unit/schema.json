@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "organizational_units",
+  "info": {
+    "singularName": "organizational-unit",
+    "pluralName": "organizational-units",
+    "displayName": "Unité Organisationnelle",
+    "description": "Structure organisationnelle du ministère (cabinet, directions, établissements…)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "cabinet",
+        "sg_direct",
+        "dge",
+        "dgrit",
+        "centrales",
+        "rattaches",
+        "etablissements"
+      ],
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

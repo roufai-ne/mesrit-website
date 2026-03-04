@@ -693,6 +693,55 @@ export interface ApiEventEvent extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiExternalServiceExternalService
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'external_services';
+  info: {
+    description: 'Plateformes et services externes li\u00E9s au minist\u00E8re (ANAB, OBEECS, ANAQ-SUP\u2026)';
+    displayName: 'Service Externe';
+    pluralName: 'external-services';
+    singularName: 'external-service';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    color: Schema.Attribute.Enumeration<
+      ['blue', 'green', 'purple', 'orange', 'red']
+    > &
+      Schema.Attribute.DefaultTo<'blue'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.String;
+    icon: Schema.Attribute.Enumeration<
+      [
+        'Award',
+        'GraduationCap',
+        'FileCheck',
+        'ExternalLink',
+        'Globe',
+        'Building2',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'ExternalLink'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::external-service.external-service'
+    > &
+      Schema.Attribute.Private;
+    longDesc: Schema.Attribute.Text;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    url: Schema.Attribute.String;
+  };
+}
+
 export interface ApiFaqFaq extends Struct.CollectionTypeSchema {
   collectionName: 'faqs';
   info: {
@@ -719,6 +768,41 @@ export interface ApiFaqFaq extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiHistoryMilestoneHistoryMilestone
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'history_milestones';
+  info: {
+    description: "Jalons et moments cl\u00E9s de l'histoire du minist\u00E8re";
+    displayName: 'Jalon Historique';
+    pluralName: 'history-milestones';
+    singularName: 'history-milestone';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    color: Schema.Attribute.String;
+    content: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    icon: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::history-milestone.history-milestone'
+    > &
+      Schema.Attribute.Private;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    year: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
 
@@ -750,6 +834,84 @@ export interface ApiMessageMessage extends Struct.CollectionTypeSchema {
     status: Schema.Attribute.Enumeration<['new', 'read', 'replied']> &
       Schema.Attribute.DefaultTo<'new'>;
     subject: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiMinistryPageMinistryPage extends Struct.SingleTypeSchema {
+  collectionName: 'ministry_page';
+  info: {
+    description: 'Contenu \u00E9ditorial de la page principale du minist\u00E8re';
+    displayName: 'Page Minist\u00E8re';
+    pluralName: 'ministry-pages';
+    singularName: 'ministry-page';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    directionContent: Schema.Attribute.Text;
+    heroDescription: Schema.Attribute.Text;
+    heroSubtitle: Schema.Attribute.String;
+    heroTitle: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ministry-page.ministry-page'
+    > &
+      Schema.Attribute.Private;
+    missionContent: Schema.Attribute.Text;
+    organisationContent: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiOrganizationalUnitOrganizationalUnit
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'organizational_units';
+  info: {
+    description: 'Structure organisationnelle du minist\u00E8re (cabinet, directions, \u00E9tablissements\u2026)';
+    displayName: 'Unit\u00E9 Organisationnelle';
+    pluralName: 'organizational-units';
+    singularName: 'organizational-unit';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::organizational-unit.organizational-unit'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    type: Schema.Attribute.Enumeration<
+      [
+        'cabinet',
+        'sg_direct',
+        'dge',
+        'dgrit',
+        'centrales',
+        'rattaches',
+        'etablissements',
+      ]
+    > &
+      Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -817,10 +979,14 @@ export interface ApiServiceService extends Struct.CollectionTypeSchema {
       ]
     > &
       Schema.Attribute.DefaultTo<'etudiants'>;
+    contactEmail: Schema.Attribute.String;
+    contactName: Schema.Attribute.String;
+    contactPhone: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
+    details: Schema.Attribute.JSON;
     icon: Schema.Attribute.String;
     image: Schema.Attribute.Media<'images'>;
     isExternal: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1435,8 +1601,12 @@ declare module '@strapi/strapi' {
       'api::document.document': ApiDocumentDocument;
       'api::establishment.establishment': ApiEstablishmentEstablishment;
       'api::event.event': ApiEventEvent;
+      'api::external-service.external-service': ApiExternalServiceExternalService;
       'api::faq.faq': ApiFaqFaq;
+      'api::history-milestone.history-milestone': ApiHistoryMilestoneHistoryMilestone;
       'api::message.message': ApiMessageMessage;
+      'api::ministry-page.ministry-page': ApiMinistryPageMinistryPage;
+      'api::organizational-unit.organizational-unit': ApiOrganizationalUnitOrganizationalUnit;
       'api::partner.partner': ApiPartnerPartner;
       'api::service.service': ApiServiceService;
       'api::statistic.statistic': ApiStatisticStatistic;

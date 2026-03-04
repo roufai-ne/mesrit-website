@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExternalLink, GraduationCap, Award, FileCheck, ArrowRight } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapExternalService } from '@/utils/strapiMapper';
 
 export default function ExternalServices() {
   const { settings } = useSettings();
   const { isDark } = useTheme();
 
-  const services = [
+  const fallbackServices = [
     {
       title: "ANAB",
       description: "Agence Nationale des Allocations et Bourses",
@@ -34,6 +36,26 @@ export default function ExternalServices() {
       color: "purple"
     }
   ];
+
+  const [displayServices, setDisplayServices] = useState(fallbackServices);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetchAPI(endpoints.externalServices || 'external-services', {
+          sort: ['order:asc'],
+        });
+        const data = mapStrapiList(response, mapExternalService);
+        if (data.length > 0) {
+          setDisplayServices(data);
+        }
+      } catch {
+        // keep fallback
+      }
+    };
+    fetchServices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getColorClasses = (color) => {
     if (isDark) {
@@ -70,7 +92,7 @@ export default function ExternalServices() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
+          {displayServices.map((service, index) => (
             <div
               key={index}
               className={clsx(

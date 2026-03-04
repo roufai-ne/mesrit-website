@@ -3,8 +3,9 @@
 // ============================================
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import PageTransition from '@/components/PageTransition';
 
 const CookieConsent = dynamic(() => import('@/components/ui/CookieConsent'), { ssr: false });
 import '@/styles/globals.css';
@@ -15,7 +16,8 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/components/ui/toast';
 import { Toaster } from 'react-hot-toast';
-import { pageview, GoogleAnalytics } from '@/lib/analytics.js';
+import { pageview } from '@/lib/analytics.js';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import Head from 'next/head';
 
 const pageVariants = {
@@ -91,18 +93,10 @@ export default function App({ Component, pageProps }) {
 
             <CookieConsent onAccept={() => setHasConsent(true)} />
 
-            <main className={`${inter.variable} font-sans`}>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={router.pathname}
-                  variants={variants}
-                  initial="initial"
-                  animate="enter"
-                  exit="exit"
-                >
-                  <Component {...pageProps} />
-                </motion.div>
-              </AnimatePresence>
+            <div className={`${inter.variable} font-sans`}>
+              <PageTransition routeKey={router.pathname} variants={variants}>
+                <Component {...pageProps} />
+              </PageTransition>
               <Toaster
                 position="top-right"
                 toastOptions={{
@@ -116,7 +110,7 @@ export default function App({ Component, pageProps }) {
                   },
                 }}
               />
-            </main>
+            </div>
           </SettingsProvider>
         </ToastProvider>
       </AuthProvider>

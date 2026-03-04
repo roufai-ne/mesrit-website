@@ -128,7 +128,7 @@ export default function Sitemap() {
           </div>
           <div className="bg-white dark:bg-secondary-800 rounded-lg shadow-lg overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-niger-green to-niger-orange px-8 py-6">
+            <div className="bg-gradient-to-r from-niger-orange via-niger-orange-dark to-niger-green px-8 py-6">
               <div className="flex items-center text-white">
                 <Map className="w-8 h-8 mr-3" />
                 <div>

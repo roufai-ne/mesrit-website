@@ -7,6 +7,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const nextConfig = {
+  // Standalone output for minimal Docker image (~200MB vs 1GB+)
+  output: 'standalone',
+
   // Remove exposed environment variables for security
   // Environment variables should be accessed directly in API routes
 

@@ -1,7 +1,8 @@
 // src/pages/contact/ContactForm.js
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader, AlertCircle, XCircle, CheckCircle } from 'lucide-react';
-import { secureApi, useApiAction } from '@/lib/secureApi';
+import { secureApi } from '@/lib/secureApi';
+import { useApiAction } from '@/hooks/useApiAction';
 import Turnstile from 'react-turnstile';
 import { validators } from '@/lib/validation';
 

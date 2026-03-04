@@ -1,5 +1,6 @@
 // src/pages/api/ministere/content.js
 import logger from '@/lib/logger';
+import { fetchAPI } from '@/lib/strapi';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -7,8 +8,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Contenu statique pour l'instant (MongoDB retiré)
-    // À terme : connecter à Strapi Single Type
     const defaultContent = {
       hero: {
         title: "Le Ministère",
@@ -77,17 +76,54 @@ export default async function handler(req, res) {
       version: "1.0"
     };
 
-    // Log de l'accès
+    // Try to fetch from Strapi MinistryPage Single Type
+    let strapiContent = null;
+    try {
+      const response = await fetchAPI('/ministry-page', {});
+      if (response?.data) {
+        const attrs = response.data.attributes || response.data;
+        strapiContent = {
+          hero: {
+            title: attrs.heroTitle || defaultContent.hero.title,
+            subtitle: attrs.heroSubtitle || defaultContent.hero.subtitle,
+            description: attrs.heroDescription || defaultContent.hero.description,
+          },
+          sections: [
+            {
+              ...defaultContent.sections[0],
+              content: attrs.missionContent || defaultContent.sections[0].content,
+            },
+            {
+              ...defaultContent.sections[1],
+              content: attrs.organisationContent || defaultContent.sections[1].content,
+            },
+            {
+              ...defaultContent.sections[2],
+              content: attrs.directionContent || defaultContent.sections[2].content,
+            },
+          ],
+          quickLinks: defaultContent.quickLinks,
+          lastUpdated: attrs.updatedAt || new Date(),
+          version: "strapi"
+        };
+      }
+    } catch (strapiError) {
+      // Strapi unreachable or single type not set — use default
+      logger.warn('ministry_page_strapi_fallback', 'MinistryPage not available from Strapi, using defaults', {});
+    }
+
+    const content = strapiContent || defaultContent;
+
     logger.info('minister_content_accessed', 'Minister content accessed', {
-      hasCustomContent: false,
-      sectionsCount: defaultContent.sections.length,
+      hasCustomContent: !!strapiContent,
+      sectionsCount: content.sections.length,
       userAgent: req.headers['user-agent']
     });
 
     res.status(200).json({
       success: true,
-      data: defaultContent,
-      cached: true
+      data: content,
+      cached: !strapiContent
     });
 
   } catch (error) {

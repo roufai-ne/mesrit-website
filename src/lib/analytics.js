@@ -1,5 +1,6 @@
 // src/lib/analytics.js
-// Google Analytics 4 — utilitaires + composant React
+// Google Analytics 4 — utilitaires purs (pas de composant React ici)
+// Le composant <GoogleAnalytics /> est dans src/components/GoogleAnalytics.js
 
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
@@ -18,26 +19,3 @@ export const event = ({ action, category, label, value }) => {
     });
   }
 };
-
-export function GoogleAnalytics() {
-  if (!GA_MEASUREMENT_ID) return null;
-
-  return (
-    <>
-      <script
-        async
-        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-      />
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}', { page_path: window.location.pathname });
-          `,
-        }}
-      />
-    </>
-  );
-}

@@ -1,0 +1,59 @@
+# Caddyfile — Production reverse proxy for MESRIT website
+# Caddy automatically provisions and renews TLS certificates (Let's Encrypt)
+# Security headers are defined here — Next.js is configured to NOT add them in production
+#
+# Set DOMAIN env var before running, e.g.:
+#   DOMAIN=site.mesrit.com docker compose -f docker-compose.prod.yml up -d
+
+{$DOMAIN:localhost} {
+
+  # ── Reverse proxy to Next.js ──────────────────────────────────────────────
+  reverse_proxy frontend:3000
+
+  # ── Security headers (replaces Next.js headers in production) ────────────
+  header {
+    # HSTS (2 years, include subdomains)
+    Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+    # Prevent MIME sniffing
+    X-Content-Type-Options "nosniff"
+
+    # Clickjacking protection
+    X-Frame-Options "SAMEORIGIN"
+
+    # XSS filter (legacy browsers)
+    X-XSS-Protection "1; mode=block"
+
+    # Referrer policy
+    Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Permissions policy
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+    # Remove server fingerprints
+    -Server
+    -X-Powered-By
+
+    # Content Security Policy
+    Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com https://site.mesrit.com; connect-src 'self' https://www.google-analytics.com; frame-ancestors 'none';"
+  }
+
+  # ── Compression ───────────────────────────────────────────────────────────
+  encode gzip zstd
+
+  # ── Logging ───────────────────────────────────────────────────────────────
+  log {
+    output file /var/log/caddy/access.log
+    format json
+  }
+}
+
+# ── Strapi CMS admin (restricted to office IPs in production) ─────────────
+# Uncomment and set CMS_DOMAIN to expose the Strapi admin panel
+# {$CMS_DOMAIN:cms.localhost} {
+#   reverse_proxy backend:1337
+#   # Restrict to your office IP for security:
+#   # @office { remote_ip your.office.ip.here }
+#   # handle @office { reverse_proxy backend:1337 }
+#   # handle { respond 403 }
+# }

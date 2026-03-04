@@ -170,6 +170,10 @@ export const mapService = (service) => {
         priority: attrs.priority,
         isPopular: (attrs.priority || 0) > 5,
         image: getStrapiMedia(attrs.image),
+        contactName: attrs.contactName ?? null,
+        contactPhone: attrs.contactPhone ?? null,
+        contactEmail: attrs.contactEmail ?? null,
+        details: attrs.details ?? null,
     };
 };
 
@@ -196,6 +200,7 @@ export const mapDirector = (director) => {
         titre: attrs.titre,
         direction: attrs.direction, // Might be "DGES" or parent direction
         mission: attrs.mission,
+        message: attrs.message ?? null,
         email: attrs.email,
         telephone: attrs.telephone,
         photo: getStrapiMedia(attrs.photo),
@@ -305,5 +310,23 @@ export const mapOrgUnit = (unit) => {
         type: attrs.type || 'other',
         description: attrs.description,
         order: attrs.order || 0
+    };
+};
+
+/**
+ * Maps a Strapi ExternalService to the frontend format
+ */
+export const mapExternalService = (item) => {
+    if (!item) return null;
+    const attrs = item.attributes || item;
+    return {
+        id: item.id,
+        title: attrs.title,
+        description: attrs.description ?? null,
+        longDesc: attrs.longDesc ?? null,
+        url: attrs.url ?? null,
+        icon: attrs.icon || 'ExternalLink',
+        color: attrs.color || 'blue',
+        order: attrs.order || 0,
     };
 };

@@ -1,0 +1,67 @@
+# docker-compose.prod.yml — Production (Caddy as reverse proxy + TLS)
+# Strapi is NOT exposed publicly — only reachable internally by Next.js proxy
+# Usage: docker compose -f docker-compose.prod.yml up --build -d
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mesrit-backend
+    env_file: ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_CLIENT: sqlite
+      DATABASE_FILENAME: ./.tmp/data.db
+    volumes:
+      - strapi_data:/app/.tmp
+      - strapi_uploads:/app/public/uploads
+    # No public port — accessible only inside the Docker network
+    expose:
+      - "1337"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:1337/_health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesrit-frontend
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_STRAPI_API_URL: http://backend:1337
+      NEXT_PUBLIC_BASE_URL: http://frontend:3000
+    expose:
+      - "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: mesrit-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  strapi_data:
+  strapi_uploads:
+  caddy_data:
+  caddy_config:

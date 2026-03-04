@@ -3,7 +3,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { clsx } from 'clsx';
 import { Building2, Globe, GraduationCap, Award, BookOpen, Users } from 'lucide-react';
 import { fetchAPI, endpoints } from '@/lib/strapi';
-import { mapStrapiList } from '@/utils/strapiMapper';
+import { mapStrapiList, mapPartner } from '@/utils/strapiMapper';
 
 // Fallback partners if API fails or is empty
 const fallbackPartners = [
@@ -33,15 +33,8 @@ export default function Partners() {
                     }
                 });
 
-                // Custom mapper for partners since it might not be in generic mapper yet
-                const data = response?.data?.map(item => ({
-                    id: item.id,
-                    name: item.attributes.name,
-                    website: item.attributes.website,
-                    logo: item.attributes.logo?.data?.attributes?.url
-                        ? `${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}${item.attributes.logo.data.attributes.url}`
-                        : null
-                })) || [];
+                // Use shared mapPartner from strapiMapper
+                const data = mapStrapiList(response, mapPartner);
 
                 if (data.length > 0) {
                     setPartners(data);

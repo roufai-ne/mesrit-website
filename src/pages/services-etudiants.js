@@ -1,24 +1,36 @@
 // src/pages/services-etudiants.js
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { 
-  Users, 
-  ChevronRight, 
-  GraduationCap, 
+import {
+  Users,
+  ChevronRight,
+  GraduationCap,
   Heart,
   Home,
   Utensils,
   MapPin,
-  CreditCard,
   BookOpen,
   Award,
   Shield,
   Clock,
   Phone,
-  Mail
+  Mail,
+  CreditCard
 } from 'lucide-react';
 import Link from 'next/link';
 import SeoHead from '@/components/seo/SeoHead';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapService } from '@/utils/strapiMapper';
+
+const ICON_MAP = {
+  Award, GraduationCap, Home, Utensils, Heart, MapPin, BookOpen, Shield, Clock, Phone, Mail, Users,
+};
+
+function resolveIcon(icon) {
+  if (!icon) return Award;
+  if (typeof icon === 'string') return ICON_MAP[icon] || Award;
+  return icon;
+}
 
 // Fonction utilitaire pour les couleurs
 const getColorClasses = (color, variant = 'default') => {
@@ -63,142 +75,144 @@ const getColorClasses = (color, variant = 'default') => {
   return colorMap[color]?.[variant] || colorMap['niger-orange'].default;
 };
 
-export default function ServicesEtudiantsPage() {
+const fallbackServices = [
+  {
+    id: 'bourses',
+    title: 'Bourses et Aides Financières',
+    description: 'Informations sur les bourses nationales et internationales disponibles',
+    icon: 'Award',
+    color: 'blue',
+    details: [
+      "Bourses d'excellence académique",
+      'Aides sociales pour étudiants en difficulté',
+      'Bourses de mobilité internationale',
+      'Prêts étudiants à taux préférentiel'
+    ],
+    contactName: 'ANAB - Agence Nationale des Allocations et Bourses',
+    contactPhone: '+227 20 72 35 48',
+    contactEmail: 'info@anab.ne'
+  },
+  {
+    id: 'logement',
+    title: 'Logement Universitaire',
+    description: 'Hébergement dans les cités universitaires et logements privés',
+    icon: 'Home',
+    color: 'green',
+    details: [
+      'Cités universitaires publiques',
+      'Résidences privées conventionnées',
+      'Aide à la recherche de logement',
+      'Médiation locataire-propriétaire'
+    ],
+    contactName: 'CROU - Centre Régional des Œuvres Universitaires',
+    contactPhone: '+227 20 73 42 15',
+    contactEmail: 'logement@crou.ne'
+  },
+  {
+    id: 'restauration',
+    title: 'Restauration Universitaire',
+    description: 'Services de restauration dans les campus et restaurants universitaires',
+    icon: 'Utensils',
+    color: 'orange',
+    details: [
+      'Restaurants universitaires subventionnés',
+      'Tickets restaurant à tarif étudiant',
+      'Cafétérias sur les campus',
+      'Services de catering pour événements'
+    ],
+    contactName: 'CROU - Centre Régional des Œuvres Universitaires',
+    contactPhone: '+227 20 73 42 15',
+    contactEmail: 'restauration@crou.ne'
+  },
+  {
+    id: 'sante',
+    title: 'Santé et Bien-être',
+    description: 'Services médicaux et de bien-être pour les étudiants',
+    icon: 'Heart',
+    color: 'red',
+    details: [
+      'Centres de santé universitaires',
+      'Consultations médicales gratuites',
+      'Pharmacie universitaire',
+      'Soutien psychologique et conseil'
+    ],
+    contactName: 'Service de Santé Universitaire',
+    contactPhone: '+227 20 73 28 94',
+    contactEmail: 'sante@mesrit.gov.ne'
+  },
+  {
+    id: 'transport',
+    title: 'Transport et Mobilité',
+    description: 'Solutions de transport pour faciliter les déplacements étudiants',
+    icon: 'MapPin',
+    color: 'purple',
+    details: [
+      'Bus universitaires gratuits',
+      'Réductions sur les transports publics',
+      'Covoiturage étudiant organisé',
+      'Stationnement vélos sécurisé'
+    ],
+    contactName: 'Service des Transports Universitaires',
+    contactPhone: '+227 20 73 51 67',
+    contactEmail: 'transport@mesrit.gov.ne'
+  },
+  {
+    id: 'orientation',
+    title: 'Orientation et Conseil',
+    description: "Accompagnement dans les choix d'études et l'insertion professionnelle",
+    icon: 'BookOpen',
+    color: 'teal',
+    details: [
+      "Conseil d'orientation académique",
+      "Aide à l'insertion professionnelle",
+      'Ateliers de développement personnel',
+      'Mentorat par des anciens étudiants'
+    ],
+    contactName: "DOSCE - Direction de l'Orientation et du Suivi du Cursus",
+    contactPhone: '+227 20 73 19 83',
+    contactEmail: 'orientation@mesrit.gov.ne'
+  }
+];
+
+const etablissements = [
+  {
+    nom: 'CROU Niamey',
+    services: ['Logement', 'Restauration', 'Activités culturelles'],
+    adresse: 'Campus Universitaire de Niamey',
+    telephone: '+227 20 73 42 15'
+  },
+  {
+    nom: 'ANAB',
+    services: ['Bourses nationales', 'Bourses internationales', 'Aides sociales'],
+    adresse: 'Boulevard Mali Béro, Niamey',
+    telephone: '+227 20 72 35 48'
+  },
+  {
+    nom: 'Centre de Santé UAM',
+    services: ['Consultations', 'Pharmacie', 'Urgences'],
+    adresse: 'Université Abdou Moumouni',
+    telephone: '+227 20 73 28 94'
+  }
+];
+
+const getServiceColorClasses = (color) => {
+  const colors = {
+    blue: 'bg-blue-100 text-blue-800 border-blue-200',
+    green: 'bg-green-100 text-green-800 border-green-200',
+    orange: 'bg-orange-100 text-orange-800 border-orange-200',
+    red: 'bg-red-100 text-red-800 border-red-200',
+    purple: 'bg-purple-100 text-purple-800 border-purple-200',
+    teal: 'bg-teal-100 text-teal-800 border-teal-200'
+  };
+  return colors[color] || colors.blue;
+};
+
+export default function ServicesEtudiantsPage({ initialServices = [] }) {
   const [activeService, setActiveService] = useState('all');
 
-  const services = [
-    {
-      id: 'bourses',
-      title: 'Bourses et Aides Financières',
-      description: 'Informations sur les bourses nationales et internationales disponibles',
-      icon: Award,
-      color: 'blue',
-      details: [
-        'Bourses d\'excellence académique',
-        'Aides sociales pour étudiants en difficulté',
-        'Bourses de mobilité internationale',
-        'Prêts étudiants à taux préférentiel'
-      ],
-      contact: 'ANAB - Agence Nationale des Allocations et Bourses',
-      phone: '+227 20 72 35 48',
-      email: 'info@anab.ne'
-    },
-    {
-      id: 'logement',
-      title: 'Logement Universitaire',
-      description: 'Hébergement dans les cités universitaires et logements privés',
-      icon: Home,
-      color: 'green',
-      details: [
-        'Cités universitaires publiques',
-        'Résidences privées conventionnées',
-        'Aide à la recherche de logement',
-        'Médiation locataire-propriétaire'
-      ],
-      contact: 'CROU - Centre Régional des Œuvres Universitaires',
-      phone: '+227 20 73 42 15',
-      email: 'logement@crou.ne'
-    },
-    {
-      id: 'restauration',
-      title: 'Restauration Universitaire',
-      description: 'Services de restauration dans les campus et restaurants universitaires',
-      icon: Utensils,
-      color: 'orange',
-      details: [
-        'Restaurants universitaires subventionnés',
-        'Tickets restaurant à tarif étudiant',
-        'Cafétérias sur les campus',
-        'Services de catering pour événements'
-      ],
-      contact: 'CROU - Centre Régional des Œuvres Universitaires',
-      phone: '+227 20 73 42 15',
-      email: 'restauration@crou.ne'
-    },
-    {
-      id: 'sante',
-      title: 'Santé et Bien-être',
-      description: 'Services médicaux et de bien-être pour les étudiants',
-      icon: Heart,
-      color: 'red',
-      details: [
-        'Centres de santé universitaires',
-        'Consultations médicales gratuites',
-        'Pharmacie universitaire',
-        'Soutien psychologique et conseil'
-      ],
-      contact: 'Service de Santé Universitaire',
-      phone: '+227 20 73 28 94',
-      email: 'sante@mesrit.gov.ne'
-    },
-    {
-      id: 'transport',
-      title: 'Transport et Mobilité',
-      description: 'Solutions de transport pour faciliter les déplacements étudiants',
-      icon: MapPin,
-      color: 'purple',
-      details: [
-        'Bus universitaires gratuits',
-        'Réductions sur les transports publics',
-        'Covoiturage étudiant organisé',
-        'Stationnement vélos sécurisé'
-      ],
-      contact: 'Service des Transports Universitaires',
-      phone: '+227 20 73 51 67',
-      email: 'transport@mesrit.gov.ne'
-    },
-    {
-      id: 'orientation',
-      title: 'Orientation et Conseil',
-      description: 'Accompagnement dans les choix d\'études et l\'insertion professionnelle',
-      icon: BookOpen,
-      color: 'teal',
-      details: [
-        'Conseil d\'orientation académique',
-        'Aide à l\'insertion professionnelle',
-        'Ateliers de développement personnel',
-        'Mentorat par des anciens étudiants'
-      ],
-      contact: 'DOSCE - Direction de l\'Orientation et du Suivi du Cursus',
-      phone: '+227 20 73 19 83',
-      email: 'orientation@mesrit.gov.ne'
-    }
-  ];
+  const services = initialServices.length > 0 ? initialServices : fallbackServices;
 
-  const etablissements = [
-    {
-      nom: 'CROU Niamey',
-      services: ['Logement', 'Restauration', 'Activités culturelles'],
-      adresse: 'Campus Universitaire de Niamey',
-      telephone: '+227 20 73 42 15'
-    },
-    {
-      nom: 'ANAB',
-      services: ['Bourses nationales', 'Bourses internationales', 'Aides sociales'],
-      adresse: 'Boulevard Mali Béro, Niamey',
-      telephone: '+227 20 72 35 48'
-    },
-    {
-      nom: 'Centre de Santé UAM',
-      services: ['Consultations', 'Pharmacie', 'Urgences'],
-      adresse: 'Université Abdou Moumouni',
-      telephone: '+227 20 73 28 94'
-    }
-  ];
-
-  const getColorClasses = (color) => {
-    const colors = {
-      blue: 'bg-blue-100 text-blue-800 border-blue-200',
-      green: 'bg-green-100 text-green-800 border-green-200',
-      orange: 'bg-orange-100 text-orange-800 border-orange-200',
-      red: 'bg-red-100 text-red-800 border-red-200',
-      purple: 'bg-purple-100 text-purple-800 border-purple-200',
-      teal: 'bg-teal-100 text-teal-800 border-teal-200'
-    };
-    return colors[color] || colors.blue;
-  };
-
-  const filteredServices = activeService === 'all' ? services : services.filter(s => s.id === activeService);
+  const filteredServices = activeService === 'all' ? services : services.filter(s => (s.id || s._id) === activeService);
 
   return (
     <MainLayout>
@@ -275,28 +289,33 @@ export default function ServicesEtudiantsPage() {
               >
                 Tous les services
               </button>
-              {services.map((service) => (
+              {services.map((service) => {
+                const svcId = service.id || service._id;
+                return (
                 <button
-                  key={service.id}
-                  onClick={() => setActiveService(service.id)}
+                  key={svcId}
+                  onClick={() => setActiveService(svcId)}
                   className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 ${
-                    activeService === service.id
+                    activeService === svcId
                       ? 'bg-gradient-to-r from-niger-orange to-niger-green text-white shadow-lg'
                       : 'bg-white dark:bg-secondary-700 hover:bg-niger-orange/10 dark:hover:bg-niger-orange/20 shadow-md border border-niger-orange/20 text-niger-green dark:text-niger-green-light'
                   }`}
                 >
                   {service.title}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Services */}
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             {filteredServices.map((service) => {
-              const Icon = service.icon;
+              const Icon = resolveIcon(service.icon);
+              const svcId = service.id || service._id;
+              const details = Array.isArray(service.details) ? service.details : [];
               return (
-                <div key={service.id} className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-niger-orange/10 hover:border-niger-orange/30 transform hover:-translate-y-1 group p-6">
+                <div key={svcId} className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-niger-orange/10 hover:border-niger-orange/30 transform hover:-translate-y-1 group p-6">
                   <div className="flex items-center mb-4">
                     <div className="relative w-16 h-16 bg-gradient-to-br from-niger-orange/10 to-niger-green/10 dark:from-niger-orange/20 dark:to-niger-green/20 rounded-xl flex-shrink-0 p-3 mr-4 border border-niger-orange/20 group-hover:scale-110 transition-all duration-300">
                       <Icon className="w-8 h-8 text-niger-orange" />
@@ -306,11 +325,11 @@ export default function ServicesEtudiantsPage() {
                       <p className="text-readable-muted dark:text-muted-foreground text-sm">{service.description}</p>
                     </div>
                   </div>
-                  
+
                   <div className="mb-6">
                     <h4 className="font-medium text-niger-green dark:text-niger-green-light mb-3">Services proposés:</h4>
                     <ul className="space-y-2">
-                      {service.details.map((detail, index) => (
+                      {details.map((detail, index) => (
                         <li key={index} className="flex items-start text-sm text-readable dark:text-foreground">
                           <div className="w-2 h-2 bg-niger-orange rounded-full mr-3 mt-2 flex-shrink-0"></div>
                           {detail}
@@ -321,16 +340,16 @@ export default function ServicesEtudiantsPage() {
 
                   <div className="bg-niger-cream dark:bg-secondary-700 rounded-xl p-4 border border-niger-orange/10">
                     <div className="text-sm text-readable dark:text-foreground mb-3">
-                      <strong className="text-niger-green dark:text-niger-green-light">Contact:</strong> {service.contact}
+                      <strong className="text-niger-green dark:text-niger-green-light">Contact:</strong> {service.contactName}
                     </div>
                     <div className="flex flex-col space-y-2 text-sm">
                       <div className="flex items-center">
                         <Phone className="w-4 h-4 mr-2 text-niger-orange" />
-                        <span className="text-readable-muted dark:text-muted-foreground">{service.phone}</span>
+                        <span className="text-readable-muted dark:text-muted-foreground">{service.contactPhone}</span>
                       </div>
                       <div className="flex items-center">
                         <Mail className="w-4 h-4 mr-2 text-niger-orange" />
-                        <span className="text-readable-muted dark:text-muted-foreground">{service.email}</span>
+                        <span className="text-readable-muted dark:text-muted-foreground">{service.contactEmail}</span>
                       </div>
                     </div>
                   </div>
@@ -481,7 +500,15 @@ export default function ServicesEtudiantsPage() {
 
 // Forcer SSR pour éviter les erreurs durant le SSG
 export async function getStaticProps() {
-  return {
-    props: {}, revalidate: 3600
-  };
+  try {
+    const response = await fetchAPI(endpoints.services, {
+      filters: { category: { $eq: 'etudiants' } },
+      sort: ['priority:asc'],
+      pagination: { limit: 20 }
+    });
+    const initialServices = mapStrapiList(response, mapService) || [];
+    return { props: { initialServices }, revalidate: 3600 };
+  } catch {
+    return { props: { initialServices: [] }, revalidate: 3600 };
+  }
 }

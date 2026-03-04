@@ -137,7 +137,7 @@ export function useThemeAwareStyles(lightStyles, darkStyles) {
 }
 
 // Theme-aware class name utility (for use in components with theme context)
-export function getThemeClasses(theme, baseClasses, lightClasses = '', darkClasses = '') {
+function getThemeClasses(theme, baseClasses, lightClasses = '', darkClasses = '') {
   const isDark = theme?.isDark || false;
   const mounted = theme?.mounted || false;
   

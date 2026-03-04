@@ -1,0 +1,28 @@
+node_modules
+.tmp
+build
+dist
+
+# Uploads (mounted as volume)
+public/uploads
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+docker-entrypoint.sh
+
+# Dev / editor
+.vscode
+.idea
+*.md
+
+# Logs
+*.log

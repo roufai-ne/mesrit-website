@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "external_services",
+  "info": {
+    "singularName": "external-service",
+    "pluralName": "external-services",
+    "displayName": "Service Externe",
+    "description": "Plateformes et services externes liés au ministère (ANAB, OBEECS, ANAQ-SUP…)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "string"
+    },
+    "longDesc": {
+      "type": "text"
+    },
+    "url": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "enumeration",
+      "enum": [
+        "Award",
+        "GraduationCap",
+        "FileCheck",
+        "ExternalLink",
+        "Globe",
+        "Building2"
+      ],
+      "default": "ExternalLink"
+    },
+    "color": {
+      "type": "enumeration",
+      "enum": [
+        "blue",
+        "green",
+        "purple",
+        "orange",
+        "red"
+      ],
+      "default": "blue"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

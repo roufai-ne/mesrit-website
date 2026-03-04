@@ -8,20 +8,13 @@ import { AppError, parseApiError, handleFetchError, ERROR_TYPES } from '@/lib/er
 export const secureApi = {
   async fetch(url, options = {}, requireAuth = false) {
     try {
-      // Headers de base avec la clé API
+      // Headers de base
       const headers = {
         'Content-Type': 'application/json',
       };
 
-      // Ajouter l'API key seulement si elle est disponible
-      const apiKey = process.env.NEXT_PUBLIC_API_KEY || process.env.API_KEY;
-      if (apiKey) {
-        headers['X-API-Key'] = apiKey;
-      }
-
-      // Ajouter le token d'authentification uniquement si nécessaire
       if (requireAuth) {
-        // Auth removed
+        // Authentication handled via httpOnly cookies
       }
 
       // Log uniquement en développement
@@ -41,7 +34,6 @@ export const secureApi = {
       // Gérer les différents types de réponses
       const contentType = response.headers.get('content-type');
       if (!response.ok) {
-        // Auth redirection removed
         if (response.status === 401 || response.status === 403) {
           console.warn('Unauthorized access', url);
         }
@@ -118,16 +110,7 @@ export const secureApi = {
 
   async uploadFile(url, file, requireAuth = true) {
     try {
-      // Headers de base
-      const headers = {
-        'X-API-Key': process.env.NEXT_PUBLIC_API_KEY || process.env.API_KEY,
-      };
-
-      // Ajouter le token d'authentification si nécessaire
-      // With httpOnly cookies, authentication is handled automatically
-      // No need to manually add authorization header
-
-      // Préparer les données du fichier
+      // Cookies httpOnly gèrent l'authentification automatiquement
       const formData = new FormData();
       formData.append('file', file);
 
@@ -138,8 +121,7 @@ export const secureApi = {
 
       const response = await fetch(url, {
         method: 'POST',
-        credentials: 'include', // Ensure cookies are sent
-        headers,
+        credentials: 'include',
         body: formData
       });
 
@@ -176,27 +158,3 @@ export const secureApi = {
     return url.toString();
   }
 };
-
-// Hook pour la gestion des états de chargement et d'erreur
-import { useState, useCallback } from 'react';
-
-export function useApiAction() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const execute = useCallback(async (action) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await action();
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []); // Pas de dépendances, car setLoading et setError sont stables
-
-  return { execute, loading, error };
-}

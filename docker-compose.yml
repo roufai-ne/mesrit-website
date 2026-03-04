@@ -1,0 +1,49 @@
+# docker-compose.yml — Local development / staging
+# Exposes both Next.js (3000) and Strapi (1337) on localhost
+# Usage: docker compose up --build
+
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mesrit-backend
+    env_file: ./backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_CLIENT: sqlite
+      DATABASE_FILENAME: ./.tmp/data.db
+    volumes:
+      - strapi_data:/app/.tmp
+      - strapi_uploads:/app/public/uploads
+    ports:
+      - "1337:1337"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:1337/_health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesrit-frontend
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # Internal Docker hostname — used by proxy route + ISR self-calls
+      NEXT_PUBLIC_STRAPI_API_URL: http://backend:1337
+      NEXT_PUBLIC_BASE_URL: http://frontend:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  strapi_data:
+  strapi_uploads:

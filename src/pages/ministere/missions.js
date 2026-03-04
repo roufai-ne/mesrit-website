@@ -6,115 +6,115 @@ import Link from 'next/link';
 import { useMinisterMissions } from '@/hooks/useMinisterContent';
 import SeoHead from '@/components/seo/SeoHead';
 
+// Icônes mapping
+const iconMap = {
+  BookOpen,
+  Target,
+  Award,
+  Users
+};
+
+// Missions par défaut en cas d'erreur
+const fallbackMissions = [
+  {
+    title: "Enseignement Supérieur",
+    icon: BookOpen,
+    color: "from-niger-green to-niger-green-dark",
+    content: "Assurer le développement et la qualité de l'enseignement supérieur au Niger pour former les cadres de demain",
+    objectifs: [
+      {
+        text: "Améliorer l'accès à l'enseignement supérieur",
+        progress: 75,
+        description: "Augmentation du taux de scolarisation dans le supérieur"
+      },
+      {
+        text: "Garantir la qualité des formations",
+        progress: 85,
+        description: "Mise en place de standards d'accréditation"
+      },
+      {
+        text: "Renforcer les capacités des établissements",
+        progress: 60,
+        description: "Modernisation des infrastructures et équipements"
+      }
+    ],
+    stats: {
+      etablissements: "10+",
+      etudiants: "100k+",
+      programmes: "200+"
+    }
+  },
+  {
+    title: "Recherche",
+    icon: Target,
+    color: "from-niger-orange to-niger-orange-dark",
+    content: "Promouvoir la recherche scientifique et l'innovation pour le développement socio-économique du Niger",
+    objectifs: [
+      {
+        text: "Développer les infrastructures de recherche",
+        progress: 45,
+        description: "Construction de laboratoires et centres de recherche"
+      },
+      {
+        text: "Soutenir les projets de recherche",
+        progress: 70,
+        description: "Financement et accompagnement des chercheurs"
+      },
+      {
+        text: "Favoriser les partenariats internationaux",
+        progress: 80,
+        description: "Collaborations avec universités étrangères"
+      }
+    ],
+    stats: {
+      chercheurs: "500+",
+      projets: "150+",
+      publications: "300+"
+    }
+  },
+  {
+    title: "Innovation",
+    icon: Award,
+    color: "from-niger-green to-niger-green-dark",
+    content: "Stimuler l'innovation technologique et le transfert de connaissances vers le secteur productif",
+    objectifs: [
+      {
+        text: "Encourager les initiatives innovantes",
+        progress: 55,
+        description: "Incubateurs et pépinières d'entreprises"
+      },
+      {
+        text: "Faciliter le transfert technologique",
+        progress: 40,
+        description: "Partenariats université-industrie"
+      },
+      {
+        text: "Soutenir les startups universitaires",
+        progress: 65,
+        description: "Accompagnement entrepreneurial des étudiants"
+      }
+    ],
+    stats: {
+      startups: "50+",
+      brevets: "25+",
+      partenariats: "30+"
+    }
+  }
+];
+
+const getProgressColor = (progress) => {
+  if (progress >= 80) return "bg-green-500";
+  if (progress >= 60) return "bg-yellow-500";
+  return "bg-orange-500";
+};
+
 export default function MissionsPage() {
   const [selectedMission, setSelectedMission] = useState(0);
   const { missions: missionsData, loading, error, lastUpdated, refresh, isStale } = useMinisterMissions();
 
-  // Icônes mapping
-  const iconMap = {
-    BookOpen,
-    Target,
-    Award,
-    Users
-  };
-
-  // Missions par défaut en cas d'erreur
-  const fallbackMissions = [
-    {
-      title: "Enseignement Supérieur",
-      icon: BookOpen,
-      color: "from-niger-green to-niger-green-dark",
-      content: "Assurer le développement et la qualité de l'enseignement supérieur au Niger pour former les cadres de demain",
-      objectifs: [
-        {
-          text: "Améliorer l'accès à l'enseignement supérieur",
-          progress: 75,
-          description: "Augmentation du taux de scolarisation dans le supérieur"
-        },
-        {
-          text: "Garantir la qualité des formations",
-          progress: 85,
-          description: "Mise en place de standards d'accréditation"
-        },
-        {
-          text: "Renforcer les capacités des établissements",
-          progress: 60,
-          description: "Modernisation des infrastructures et équipements"
-        }
-      ],
-      stats: {
-        etablissements: "10+",
-        etudiants: "100k+",
-        programmes: "200+"
-      }
-    },
-    {
-      title: "Recherche",
-      icon: Target,
-      color: "from-niger-orange to-niger-orange-dark",
-      content: "Promouvoir la recherche scientifique et l'innovation pour le développement socio-économique du Niger",
-      objectifs: [
-        {
-          text: "Développer les infrastructures de recherche",
-          progress: 45,
-          description: "Construction de laboratoires et centres de recherche"
-        },
-        {
-          text: "Soutenir les projets de recherche",
-          progress: 70,
-          description: "Financement et accompagnement des chercheurs"
-        },
-        {
-          text: "Favoriser les partenariats internationaux",
-          progress: 80,
-          description: "Collaborations avec universités étrangères"
-        }
-      ],
-      stats: {
-        chercheurs: "500+",
-        projets: "150+",
-        publications: "300+"
-      }
-    },
-    {
-      title: "Innovation",
-      icon: Award,
-      color: "from-purple-500 to-purple-700",
-      content: "Stimuler l'innovation technologique et le transfert de connaissances vers le secteur productif",
-      objectifs: [
-        {
-          text: "Encourager les initiatives innovantes",
-          progress: 55,
-          description: "Incubateurs et pépinières d'entreprises"
-        },
-        {
-          text: "Faciliter le transfert technologique",
-          progress: 40,
-          description: "Partenariats université-industrie"
-        },
-        {
-          text: "Soutenir les startups universitaires",
-          progress: 65,
-          description: "Accompagnement entrepreneurial des étudiants"
-        }
-      ],
-      stats: {
-        startups: "50+",
-        brevets: "25+",
-        partenariats: "30+"
-      }
-    }
-  ];
-
   // Utiliser les données dynamiques ou les données par défaut
   const missions = missionsData?.missions || fallbackMissions;
   const globalStats = missionsData?.globalStats;
-
-  const getProgressColor = (progress) => {
-    if (progress >= 80) return "bg-green-500";
-    if (progress >= 60) return "bg-yellow-500";
-    return "bg-orange-500";
-  };
 
   return (
     <MainLayout>

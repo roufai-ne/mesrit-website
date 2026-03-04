@@ -1,0 +1,33 @@
+{
+  "kind": "singleType",
+  "collectionName": "ministry_page",
+  "info": {
+    "singularName": "ministry-page",
+    "pluralName": "ministry-pages",
+    "displayName": "Page Ministère",
+    "description": "Contenu éditorial de la page principale du ministère"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "heroTitle": {
+      "type": "string"
+    },
+    "heroSubtitle": {
+      "type": "string"
+    },
+    "heroDescription": {
+      "type": "text"
+    },
+    "missionContent": {
+      "type": "text"
+    },
+    "organisationContent": {
+      "type": "text"
+    },
+    "directionContent": {
+      "type": "text"
+    }
+  }
+}

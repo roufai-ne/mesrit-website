@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,52 +23,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import Navigation from "./Navigation";
 import { secureApi } from "../../lib/secureApi";
-import { checkApiKeyConfiguration } from "../../utils/checkApiKey";
-
-// Fallback search data for offline mode
-const fallbackSearchData = [
-  {
-    _id: "1",
-    title: "Bourses d'études 2024-2025",
-    type: "document",
-    category: "Bourses",
-    url: "/bourses/2024-2025",
-    description:
-      "Informations sur les bourses disponibles pour l'année académique 2024-2025",
-  },
-  {
-    _id: "2",
-    title: "Inscription en Master",
-    type: "news",
-    category: "Formations",
-    url: "/formations/master",
-    description: "Procédures d'inscription pour les programmes de Master",
-  },
-  {
-    _id: "3",
-    title: "Résultats examens Licence",
-    type: "document",
-    category: "Résultats",
-    url: "/resultats/licence",
-    description: "Publication des résultats des examens de Licence",
-  },
-  {
-    _id: "4",
-    title: "Programme de recherche en IA",
-    type: "news",
-    category: "Recherche",
-    url: "/recherche/ia",
-    description: "Nouveau programme de recherche en Intelligence Artificielle",
-  },
-  {
-    _id: "5",
-    title: "Conférence internationale sur l'innovation",
-    type: "news",
-    category: "Événements",
-    url: "/events/conference-innovation",
-    description: "Conférence sur l'innovation technologique et la recherche",
-  },
-];
+const fallbackSearchData = [];
 
 export default function Header() {
   const router = useRouter();
@@ -101,10 +56,37 @@ export default function Header() {
     };
   }, [isSearchOpen]);
 
+  const performLocalSearch = useCallback((query) => {
+    const lower = query.toLowerCase();
+    const filtered = fallbackSearchData.filter(
+      (item) =>
+        item.title.toLowerCase().includes(lower) ||
+        item.category.toLowerCase().includes(lower) ||
+        (item.description && item.description.toLowerCase().includes(lower))
+    );
+    setSearchResults(filtered);
+  }, []);
+
+  const performSearch = useCallback(async (query) => {
+    setIsSearching(true);
+    try {
+      const data = await secureApi.get(
+        `/api/search?q=${encodeURIComponent(query)}&type=all&limit=5`,
+        false
+      );
+      setSearchResults(data.results || []);
+    } catch {
+      performLocalSearch(query);
+    } finally {
+      setIsSearching(false);
+      setSelectedIndex(-1);
+    }
+  }, [performLocalSearch]);
+
   // Perform search with debounce
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      if (searchTerm.trim()) {
+      if (searchTerm.trim() && searchTerm.length <= 200) {
         performSearch(searchTerm);
       } else {
         setSearchResults([]);
@@ -112,57 +94,7 @@ export default function Header() {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm]);
-
-  // Perform search with fallback
-  const performSearch = async (query) => {
-    setIsSearching(true);
-
-    try {
-      // Vérifier la configuration de la clé API en développement
-      if (process.env.NODE_ENV === 'development') {
-        const apiKeyStatus = checkApiKeyConfiguration();
-        if (!apiKeyStatus.isValid) {
-          console.warn('⚠️ Clé API manquante ou invalide:', apiKeyStatus);
-        }
-      }
-
-      // Use secureApi for search with API key (public endpoint but requires key)
-      const data = await secureApi.get(
-        `/api/search?q=${encodeURIComponent(query)}&type=all&limit=5`,
-        false
-      );
-      setSearchResults(data.results || []);
-    } catch (error) {
-      console.error("Search error:", error);
-      
-      // Log plus détaillé en développement
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Détails de l'erreur de recherche:", {
-          message: error.message,
-          query: query,
-          apiKeyConfigured: !!process.env.NEXT_PUBLIC_API_KEY
-        });
-      }
-      
-      // Fallback to local search on network error
-      performLocalSearch(query);
-    } finally {
-      setIsSearching(false);
-      setSelectedIndex(-1);
-    }
-  };
-
-  const performLocalSearch = (query) => {
-    const filtered = fallbackSearchData.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.category.toLowerCase().includes(query.toLowerCase()) ||
-        (item.description &&
-          item.description.toLowerCase().includes(query.toLowerCase()))
-    );
-    setSearchResults(filtered);
-  };
+  }, [searchTerm, performSearch]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -515,11 +447,6 @@ export default function Header() {
                       {searchResults.length > 0 ? (
                         <div>
                           <div className="py-2">
-                            {/* Quick autocomplete suggestions */}
-                            {/* The original code had autocompleteSuggestions which is not defined.
-                                Assuming it's meant to be searchResults or a placeholder.
-                                For now, removing it as it's not part of the new_code. */}
-
                             {/* Search results */}
                             {searchResults.map((result, index) => (
                               <button
@@ -615,8 +542,6 @@ export default function Header() {
                               <span>
                                 Voir tous les résultats pour "{searchTerm}"
                               </span>
-                              {/* ArrowRight is not imported, assuming it's a placeholder or typo */}
-                              {/* <ArrowRight className="w-4 h-4" /> */}
                             </button>
                           </div>
                         </div>
