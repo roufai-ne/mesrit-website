@@ -287,8 +287,6 @@ export function withErrorHandler(handler) {
 
       if (!(isAuthMeEndpoint && isAuthError)) {
         console.error('API Error:', error);
-      } else if (process.env.NODE_ENV === 'development') {
-        console.log('Auth check result: not authenticated (normal)');
       }
 
       if (error instanceof AppError) {

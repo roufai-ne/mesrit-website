@@ -13,7 +13,7 @@ export class AutoNewsletterService {
    */
   static async notifyNewArticle(article, publishedBy = 'system') {
     if (!article || article.status !== 'published') {
-      console.log('Article non publié, pas d\'envoi newsletter');
+      console.warn('[Newsletter] Article non publié, envoi annulé.');
       return { success: false, reason: 'Article non publié' };
     }
 
@@ -36,7 +36,7 @@ export class AutoNewsletterService {
       const subscribers = subscribersData?.data || [];
 
       if (subscribers.length === 0) {
-        console.log('Aucun abonné actif trouvé');
+        console.info('[Newsletter] Aucun abonné actif.');
         return { success: false, reason: 'Aucun abonné actif' };
       }
 
@@ -108,7 +108,7 @@ export class AutoNewsletterService {
         }
       );
 
-      console.log(`Newsletter automatique envoyée: ${successCount} succès, ${errorCount} erreurs`);
+      console.info(`[Newsletter] Envoi terminé — ${successCount} succès, ${errorCount} erreurs.`);
 
       return {
         success: true,

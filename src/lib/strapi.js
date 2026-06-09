@@ -63,12 +63,26 @@ export async function fetchAPI(path, urlParamsObject = {}, options = {}) {
     }
     return data;
   } catch (error) {
-    if (error.status === 404) {
+    // DOMException (ex : TimeoutError de undici/fetch natif Node.js) a une propriété
+    // `message` en lecture seule. Next.js dev essaie de la muter → TypeError fatal.
+    // On convertit en Error ordinaire pour que le processus ne crashe pas.
+    let rethrow = error;
+    if (
+      error instanceof DOMException ||
+      error.name === 'TimeoutError' ||
+      error.name === 'AbortError'
+    ) {
+      rethrow = new Error(`Strapi timeout — ${requestUrl}`);
+      rethrow.cause = error;
+      rethrow.status = error.code;
+    }
+
+    if (rethrow.status === 404) {
       console.warn(`Strapi 404 — ressource non trouvée : ${requestUrl}`);
     } else {
-      console.warn(`Strapi indisponible — ${requestUrl}: ${error.message}`);
+      console.warn(`Strapi indisponible — ${requestUrl}: ${rethrow.message}`);
     }
-    throw error;
+    throw rethrow;
   }
 }
 

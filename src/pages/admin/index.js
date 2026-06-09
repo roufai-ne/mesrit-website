@@ -22,7 +22,13 @@ export default function AdminRedirect() {
                 <h1 className="text-xl font-semibold mb-2">Redirection en cours...</h1>
                 <p className="text-gray-600">Vous êtes redirigé vers le panneau d'administration.</p>
                 <p className="text-sm text-gray-500 mt-4">
-                    Si la redirection ne fonctionne pas, <a href="http://localhost:1337/admin" className="text-blue-600 hover:underline">cliquez ici</a>.
+                    Si la redirection ne fonctionne pas,{' '}
+                    <a
+                      href={process.env.NEXT_PUBLIC_STRAPI_ADMIN_URL || 'http://localhost:1337/admin'}
+                      className="text-blue-600 hover:underline"
+                    >
+                      cliquez ici
+                    </a>.
                 </p>
             </div>
         </div>

@@ -183,7 +183,7 @@ class SearchService {
       // If no valid keywords found (e.g. very short query), fallback to original query
       const searchTerms = keywords.length > 0 ? keywords : [query];
 
-      console.log('[Search] Recherche directeurs:', { query, keywords: searchTerms });
+      console.debug('[Search] Recherche directeurs:', { query, keywords: searchTerms });
 
       // Build OR filters for each keyword
       const orFilters = [];
@@ -230,7 +230,7 @@ class SearchService {
    */
   static async searchAll(query, options = {}) {
     const { maxResults = 5 } = options;
-    console.log(`[Search] Recherche unifiée: "${query}"`);
+    console.debug(`[Search] Recherche unifiée: "${query}"`);
 
     try {
       // Parallel requests

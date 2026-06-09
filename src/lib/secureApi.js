@@ -1,25 +1,15 @@
 // lib/secureApi.js
-import { AppError, handleFetchError, ERROR_TYPES, getErrorTypeFromStatus } from '@/lib/errorHandler';
-// Router import removed
+import { AppError, handleFetchError, getErrorTypeFromStatus } from '@/lib/errorHandler';
 
-/**
- * Client API sécurisé pour les appels frontend
- */
 export const secureApi = {
   async fetch(url, options = {}, requireAuth = false) {
     try {
-      // Headers de base
       const headers = {
         'Content-Type': 'application/json',
       };
 
-      if (requireAuth) {
-        // Authentication handled via httpOnly cookies
-      }
-
-      // Log uniquement en développement
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Requête à:', url, 'RequireAuth:', requireAuth);
+        console.debug('[secureApi] fetch', url, { requireAuth });
       }
 
       const response = await fetch(url, {
@@ -115,13 +105,11 @@ export const secureApi = {
 
   async uploadFile(url, file, requireAuth = true) {
     try {
-      // Cookies httpOnly gèrent l'authentification automatiquement
       const formData = new FormData();
       formData.append('file', file);
 
-      // Log uniquement en développement
       if (process.env.NODE_ENV !== 'production') {
-        console.log('Upload de fichier à:', url);
+        console.debug('[secureApi] upload', url);
       }
 
       const response = await fetch(url, {

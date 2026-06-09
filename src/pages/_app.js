@@ -31,20 +31,7 @@ const pageVariantsReduced = {
   exit: {},
 };
 
-export function reportWebVitals({ id, name, label, value }) {
-  if (
-    typeof window !== 'undefined' &&
-    typeof window.gtag !== 'undefined' &&
-    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
-  ) {
-    window.gtag('event', name, {
-      event_category: label === 'web-vital' ? 'Web Vitals' : 'Next.js custom metric',
-      value: Math.round(name === 'CLS' ? value * 1000 : value),
-      event_label: id,
-      non_interaction: true,
-    });
-  }
-}
+export { reportWebVitals } from '@/lib/webVitals';
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();

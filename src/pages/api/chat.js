@@ -19,12 +19,12 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    console.log('[Chat API] Nouvelle requête chat');
+    console.info('[Chat API] Nouvelle requête chat');
 
     // Validation du message
     const validation = AIChatService.validateMessage(message);
     if (!validation.valid) {
-      console.log('[Chat API] Message invalide:', validation.reason);
+      console.info('[Chat API] Message invalide:', validation.reason);
       return res.status(400).json({
         success: false,
         error: validation.reason
@@ -45,7 +45,7 @@ const sendMessage = async (req, res) => {
       .map(item => ({ role: item.role, content: item.content }))
       .slice(-10);
 
-    console.log('[Chat API] Message validé, génération de la réponse...');
+    console.info('[Chat API] Message validé, génération de la réponse...');
 
     // Générer la réponse
     const result = await AIChatService.chat(message, limitedHistory, provider);
@@ -61,7 +61,7 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    console.log('[Chat API] Réponse générée avec succès');
+    console.info('[Chat API] Réponse générée avec succès');
 
     // Logger l'interaction (non-bloquant)
     try {

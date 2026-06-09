@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { clsx } from 'clsx';
@@ -13,34 +13,21 @@ import {
   XIcon,
   ChevronDownIcon,
   ExternalLinkIcon,
-  UserIcon,
-  LogOutIcon,
-  SettingsIcon,
-  ShieldIcon
+  SettingsIcon
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
-import { useFocusTrap, useKeyboardNavigation, useAccessibleIds } from '@/lib/accessibility';
-import { Button } from '@/components/ui/button';
+import { useFocusTrap } from '@/lib/accessibility';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navigation() {
   const router = useRouter();
   const { isDark } = useTheme();
-  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
   const mobileMenuRef = useFocusTrap(isMobileMenuOpen);
-  const userDropdownRef = useRef(null);
-  const ids = useAccessibleIds('navigation');
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  const MOBILE_MENU_ID = 'nav-mobile-menu';
 
   // Styles neumorphiques - DÉPLACÉ ICI AVANT UTILISATION
   const neumorph = {
@@ -72,17 +59,11 @@ export default function Navigation() {
     setActiveDropdown(null);
   }, [router.pathname]);
 
-  // Close dropdowns when clicking outside - CORRIGÉ
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      // Gestion du dropdown de navigation
       if (!e.target.closest('[data-dropdown]')) {
         setActiveDropdown(null);
-      }
-
-      // Gestion du dropdown utilisateur
-      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target)) {
-        setIsUserDropdownOpen(false);
       }
     };
 
@@ -165,7 +146,12 @@ export default function Navigation() {
     setActiveDropdown(activeDropdown === index ? null : index);
   };
 
-
+  const handleKeyDown = (e, callback) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      callback();
+    }
+  };
 
   return (
     <nav
@@ -388,7 +374,7 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <ThemeToggle
               variant="ghost"
               className={clsx(
@@ -398,79 +384,6 @@ export default function Navigation() {
                   : 'text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
               )}
             />
-
-            {/* Auth Buttons - Client Side Only to prevent hydration mismatch */}
-            {hasMounted && (
-              user ? (
-                <div className="relative" ref={userDropdownRef}>
-                  <button
-                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className={clsx(
-                      'flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all duration-300',
-                      isDark
-                        ? 'bg-gray-800 border-gray-700 text-white hover:border-gray-500'
-                        : 'bg-white border-gray-200 text-gray-900 hover:border-gray-400'
-                    )}
-                  >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-green-600 p-0.5">
-                      <div className={clsx(
-                        "w-full h-full rounded-full flex items-center justify-center text-xs font-bold text-white",
-                        isDark ? "bg-gray-900" : "bg-white text-gray-900"
-                      )}>
-                        U
-                      </div>
-                    </div>
-                    <span className="font-medium text-sm">Mon Espace</span>
-                    <ChevronDownIcon className="w-4 h-4 ml-1" />
-                  </button>
-
-                  {isUserDropdownOpen && (
-                    <div className={clsx(
-                      'absolute right-0 mt-2 w-48 rounded-xl shadow-2xl border py-2 z-50',
-                      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                    )}>
-                      <Link
-                        href="/admin"
-                        className={clsx(
-                          'flex items-center px-4 py-2 text-sm space-x-2',
-                          isDark ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                        )}
-                      >
-                        <UserIcon className="w-4 h-4" />
-                        <span>Tableau de bord</span>
-                      </Link>
-                      <button
-                        onClick={logout}
-                        className={clsx(
-                          'w-full flex items-center px-4 py-2 text-sm space-x-2 text-red-500',
-                          isDark ? 'hover:bg-gray-700' : 'hover:bg-red-50'
-                        )}
-                      >
-                        <LogOutIcon className="w-4 h-4" />
-                        <span>Déconnexion</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href="/admin"
-                  className={clsx(
-                    'hidden lg:flex items-center px-4 py-1.5 rounded-xl font-semibold text-xs lg:text-sm transition-all duration-300 border-2',
-                    'hover:scale-105 hover:shadow-lg transform focus:outline-none focus:ring-4',
-                    isDark
-                      ? 'border-green-600 text-green-500 hover:bg-green-600 hover:text-white'
-                      : 'border-green-600 text-green-700 hover:bg-green-600 hover:text-white'
-                  )}
-                  style={{
-                    focusRingColor: '#228b2240'
-                  }}
-                >
-                  <UserIcon className="w-4 h-4 mr-2" />
-                  <span>Se connecter</span>
-                </Link>
-              )
-            )}
           </div>
         </div>
 
@@ -486,7 +399,7 @@ export default function Navigation() {
                   : 'text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
               )}
               aria-expanded={isMobileMenuOpen}
-              aria-controls={ids.mobileMenu}
+              aria-controls={MOBILE_MENU_ID}
               aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             >
               {isMobileMenuOpen ? (
@@ -504,7 +417,7 @@ export default function Navigation() {
             </span>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <ThemeToggle
               variant="ghost"
               size="sm"
@@ -515,16 +428,6 @@ export default function Navigation() {
                   : 'text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50'
               )}
             />
-
-            {/* Mobile Auth Button */}
-            {hasMounted && !user && (
-              <Link
-                href="/admin"
-                className="p-2 rounded-lg bg-green-600 text-white shadow-md active:scale-95 transition-all"
-              >
-                <UserIcon className="w-5 h-5" />
-              </Link>
-            )}
           </div>
         </div>
 
@@ -532,7 +435,7 @@ export default function Navigation() {
         {isMobileMenuOpen && (
           <div
             ref={mobileMenuRef}
-            id={ids.mobileMenu}
+            id={MOBILE_MENU_ID}
             className={clsx(
               'lg:hidden border-t py-4 backdrop-blur-lg',
               isDark
@@ -644,62 +547,6 @@ export default function Navigation() {
                 );
               })}
 
-              {/* Mobile Authentication Section */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                {hasMounted && (
-                  user ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center px-4 space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-green-600 p-0.5">
-                          <div className={clsx(
-                            "w-full h-full rounded-full flex items-center justify-center font-bold text-white",
-                            isDark ? "bg-gray-900" : "bg-white text-gray-900"
-                          )}>
-                            U
-                          </div>
-                        </div>
-                        <div>
-                          <p className={clsx("font-semibold", isDark ? "text-white" : "text-gray-900")}>Mon Compte</p>
-                          <p className={clsx("text-xs", isDark ? "text-gray-400" : "text-gray-500")}>Connecté</p>
-                        </div>
-                      </div>
-                      <Link
-                        href="/admin"
-                        className={clsx(
-                          "flex items-center space-x-3 px-4 py-3 mx-2 rounded-xl transition-colors",
-                          isDark ? "hover:bg-gray-800 text-gray-300" : "hover:bg-gray-50 text-gray-700"
-                        )}
-                      >
-                        <UserIcon className="w-5 h-5" />
-                        <span>Tableau de bord</span>
-                      </Link>
-                      <button
-                        onClick={logout}
-                        className={clsx(
-                          "w-full flex items-center space-x-3 px-4 py-3 mx-2 rounded-xl text-red-500 transition-colors",
-                          isDark ? "hover:bg-gray-800" : "hover:bg-red-50"
-                        )}
-                      >
-                        <LogOutIcon className="w-5 h-5" />
-                        <span>Déconnexion</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="px-2">
-                      <Link
-                        href="/admin"
-                        className="flex items-center justify-center w-full px-4 py-3 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all"
-                        style={{
-                          background: 'linear-gradient(135deg, #228b22 0%, #006400 100%)'
-                        }}
-                      >
-                        <UserIcon className="w-5 h-5 mr-2" />
-                        <span>Se connecter à l'espace membre</span>
-                      </Link>
-                    </div>
-                  )
-                )}
-              </div>
             </div>
           </div>
         )}

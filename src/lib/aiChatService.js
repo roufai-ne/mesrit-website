@@ -42,7 +42,7 @@ export class AIChatService {
       const wantsStats = userQuestion && /combien|nombre|statistique|chiffre|total|effectif/i.test(userQuestion);
 
       if (userQuestion) {
-        console.log('[AIChatService] Recherche de contenu pertinent pour:', userQuestion);
+        console.info('[AIChatService] Recherche de contenu pertinent pour:', userQuestion);
       }
 
       // Lancer recherche de contenu et stats en parallèle
@@ -228,7 +228,7 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
       }
 
       // Récupérer le contexte du site avec recherche intelligente
-      console.log('[AIChatService] Récupération du contexte pertinent pour:', userMessage);
+      console.info('[AIChatService] Récupération du contexte pertinent pour:', userMessage);
       const context = await this.getSiteContext(userMessage);
 
       // Construire les messages
@@ -244,7 +244,7 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
         }
       ];
 
-      console.log('[AIChatService] Appel API', apiProvider);
+      console.info('[AIChatService] Appel API', apiProvider);
 
       // Appeler l'API appropriée
       let response;
@@ -258,7 +258,7 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
 
       const assistantMessage = response.choices[0].message.content;
 
-      console.log('[AIChatService] Réponse générée avec succès');
+      console.info('[AIChatService] Réponse générée avec succès');
 
       return {
         success: true,
