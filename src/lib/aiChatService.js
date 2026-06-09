@@ -222,7 +222,9 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
         : process.env.ANTHROPIC_API_KEY;
 
       if (!apiKey) {
-        throw new Error(`Clé API ${apiProvider.toUpperCase()} non configurée`);
+        const err = new Error(`API_KEY_MISSING:${apiProvider}`);
+        err.isConfigError = true;
+        throw err;
       }
 
       // Récupérer le contexte du site avec recherche intelligente
@@ -270,9 +272,9 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
       // Message d'erreur user-friendly
       let errorMessage = "Désolé, je rencontre actuellement un problème technique. Veuillez réessayer dans quelques instants.";
 
-      if (error.message.includes('API key')) {
+      if (error.isConfigError || error.message.startsWith('API_KEY_MISSING') || error.message.toLowerCase().includes('api key')) {
         errorMessage = "Le service de chat n'est pas configuré. Veuillez contacter l'administrateur.";
-      } else if (error.message.includes('rate limit')) {
+      } else if (error.message.toLowerCase().includes('rate limit') || error.message.includes('429')) {
         errorMessage = "Le service est temporairement surchargé. Veuillez réessayer dans quelques minutes.";
       }
 

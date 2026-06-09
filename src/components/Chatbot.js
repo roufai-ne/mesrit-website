@@ -77,43 +77,40 @@ export default function Chatbot() {
 
       const data = await response.json();
 
+      // Afficher le message d'erreur de l'API directement dans le chat — pas de throw
+      // (un throw ici, même attrapé, déclenche l'overlay dev de Next.js)
       if (!data.success) {
-        throw new Error(data.error || 'Erreur inconnue');
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: data.error || "Désolé, je n'ai pas pu traiter votre demande.",
+          timestamp: new Date(),
+          isError: true
+        }]);
+        return;
       }
 
-      // Ajouter la réponse de l'assistant
-      const assistantMessage = {
+      setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.message,
         timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      }]);
 
     } catch (error) {
-      console.error('[Chatbot] Erreur:', error);
+      console.error('[Chatbot] Erreur réseau:', error);
 
-      // Message d'erreur détaillé selon le type d'erreur
       let errorContent = "Désolé, je n'ai pas pu traiter votre demande.";
-
       if (error.message?.includes('Failed to fetch')) {
         errorContent = "Impossible de contacter le serveur. Vérifiez votre connexion internet.";
-      } else if (error.message?.includes('API key')) {
-        errorContent = "Le service de chat n'est pas configuré. Veuillez contacter l'administrateur.";
-      } else if (error.message?.includes('rate limit')) {
-        errorContent = "Le service est temporairement surchargé. Veuillez réessayer dans quelques minutes.";
       } else if (error.message?.includes('timeout')) {
         errorContent = "Le serveur met trop de temps à répondre. Veuillez réessayer.";
       }
 
-      const errorMessage = {
+      setMessages(prev => [...prev, {
         role: 'assistant',
         content: errorContent,
         timestamp: new Date(),
         isError: true
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
+      }]);
     } finally {
       setIsLoading(false);
     }
