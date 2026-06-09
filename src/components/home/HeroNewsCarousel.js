@@ -171,7 +171,6 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                   className="object-cover object-center transition-transform duration-1000 ease-out"
                   style={{ objectPosition: 'center 25%' }}
                   priority={activeIndex === 0}
-                  loading={activeIndex === 0 ? "eager" : "lazy"}
                 />
               );
             } else if (currentNews?.mainVideo) {

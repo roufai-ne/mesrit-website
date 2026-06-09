@@ -13,28 +13,16 @@
   "icons": [
     {
       "src": "/images/logos/mesrit-logo.png",
-      "sizes": "192x192",
+      "sizes": "97x89",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/images/logos/mesrit-logo.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/images/logos/mesrit-logo.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "/images/hero/Slide4.png",
+      "src": "/images/hero/Slide1.jpg",
       "sizes": "1920x1080",
-      "type": "image/png",
+      "type": "image/jpeg",
       "label": "MESRIT Niger — Accueil"
     }
   ]
