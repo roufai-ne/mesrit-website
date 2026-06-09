@@ -1,9 +1,9 @@
 // src/pages/ministere/direction/index.js
-import { React, useEffect, useState } from 'react';
+import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import {
   Users, ChevronRight, ArrowLeft, Search, Mail, Phone,
-  Building, Loader, RefreshCw, Download, Share2, Eye, Quote
+  Building, Loader, RefreshCw, Share2, Eye, Quote
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,22 +12,40 @@ import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapDirector } from '@/utils/strapiMapper';
 import SeoHead from '@/components/seo/SeoHead';
 
-export default function DirectionPage() {
-  const [loading, setLoading] = useState(true);
-  const [ministre, setMinistre] = useState(null);
-  const [sg, setSg] = useState(null);
-  const [sga, setSga] = useState(null);
-  const [dgs, setDgs] = useState([]);
+function buildDirectorState(data) {
+  return {
+    ministre: data.find(d => d.key === 'MINISTRE') || null,
+    sg: data.find(d => d.key === 'SG') || null,
+    sga: data.find(d => d.key === 'SGA') || null,
+    igs: data.find(d => d.key === 'IGS') || null,
+    dgs: data.filter(d => ['DGES', 'DGRIT'].includes(d.key)),
+    sousDirections: data.reduce((acc, curr) => {
+      if (curr.direction) {
+        if (!acc[curr.direction]) acc[curr.direction] = [];
+        acc[curr.direction].push(curr);
+      }
+      return acc;
+    }, {}),
+  };
+}
+
+export default function DirectionPage({ initialDirectors = [] }) {
+  const initial = buildDirectorState(initialDirectors);
+
+  const [loading, setLoading] = useState(false);
+  const [ministre, setMinistre] = useState(initial.ministre);
+  const [sg, setSg] = useState(initial.sg);
+  const [sga, setSga] = useState(initial.sga);
+  const [igs, setIgs] = useState(initial.igs);
+  const [dgs, setDgs] = useState(initial.dgs);
   const [currentSection, setCurrentSection] = useState(null);
   const [currentDirection, setCurrentDirection] = useState(null);
-  const [sousDirections, setSousDirections] = useState({});
+  const [sousDirections, setSousDirections] = useState(initial.sousDirections);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [allDirectors, setAllDirectors] = useState([]);
+  const [allDirectors, setAllDirectors] = useState(initialDirectors);
   const [showContactInfo, setShowContactInfo] = useState({});
-
-  useEffect(() => { fetchDirectors(); }, []);
 
   const fetchDirectors = async () => {
     try {
@@ -38,19 +56,14 @@ export default function DirectionPage() {
       });
       const data = mapStrapiList(response, mapDirector);
       if (Array.isArray(data)) {
+        const state = buildDirectorState(data);
         setAllDirectors(data);
-        setMinistre(data.find(d => d.key === 'Ministre'));
-        setSg(data.find(d => d.key === 'SG'));
-        setSga(data.find(d => d.key === 'SGA'));
-        setDgs(data.filter(d => ['DGES', 'DGR'].includes(d.key)));
-        const sousDir = data.reduce((acc, curr) => {
-          if (curr.direction) {
-            if (!acc[curr.direction]) acc[curr.direction] = [];
-            acc[curr.direction].push(curr);
-          }
-          return acc;
-        }, {});
-        setSousDirections(sousDir);
+        setMinistre(state.ministre);
+        setSg(state.sg);
+        setSga(state.sga);
+        setIgs(state.igs);
+        setDgs(state.dgs);
+        setSousDirections(state.sousDirections);
       } else {
         setError('Format de données invalide');
         toast.error('Erreur de format des données');
@@ -69,8 +82,8 @@ export default function DirectionPage() {
       director.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       director.nomComplet?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === 'all' ||
-      (filterType === 'cabinet' && ['ministre', 'sg', 'sga'].includes(director.key?.toLowerCase())) ||
-      (filterType === 'dg' && ['dges', 'dgr'].includes(director.key?.toLowerCase())) ||
+      (filterType === 'cabinet' && ['ministre', 'sg', 'sga', 'igs'].includes(director.key?.toLowerCase())) ||
+      (filterType === 'dg' && ['dges', 'dgrit'].includes(director.key?.toLowerCase())) ||
       (filterType === 'direction' && director.direction);
     return matchesSearch && matchesFilter;
   });
@@ -93,34 +106,16 @@ export default function DirectionPage() {
     if (!ministre) return null;
     return (
       <div className="rounded-2xl overflow-hidden shadow-2xl">
-        {/* Photo as full-width background */}
         <div className="relative min-h-[480px] sm:min-h-[540px]">
-          <Image
-            src={ministre.photo || '/images/dir/default.jpeg'}
-            alt={ministre.nom}
-            fill
-            className="object-cover object-top"
-            sizes="100vw"
-            priority
-          />
-          {/* Dark gradient overlay */}
+          <Image src={ministre.photo || '/images/dir/default.jpeg'} alt={ministre.nom}
+            fill className="object-cover object-top" sizes="100vw" priority />
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/30" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-          {/* Content over photo */}
           <div className="relative z-10 h-full flex flex-col md:flex-row items-end md:items-center gap-8 p-6 sm:p-10 md:p-14">
-
-            {/* Left: identity card */}
             <div className="flex-shrink-0">
-              {/* Portrait badge */}
               <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-niger-orange shadow-2xl mx-auto md:mx-0">
-                <Image
-                  src={ministre.photo || '/images/dir/default.jpeg'}
-                  alt={ministre.nom}
-                  fill
-                  className="object-cover object-top"
-                  sizes="192px"
-                />
+                <Image src={ministre.photo || '/images/dir/default.jpeg'} alt={ministre.nom}
+                  fill className="object-cover object-top" sizes="192px" />
               </div>
               <div className="mt-4 text-center md:text-left">
                 <div className="inline-block px-3 py-1 rounded-full bg-niger-orange text-white text-xs font-semibold mb-2">
@@ -132,22 +127,18 @@ export default function DirectionPage() {
                   <div className="mt-3 space-y-1">
                     {ministre.email && (
                       <div className="flex items-center gap-2 text-white/70 text-sm justify-center md:justify-start">
-                        <Mail className="w-3.5 h-3.5" />
-                        <span>{ministre.email}</span>
+                        <Mail className="w-3.5 h-3.5" /><span>{ministre.email}</span>
                       </div>
                     )}
                     {ministre.telephone && (
                       <div className="flex items-center gap-2 text-white/70 text-sm justify-center md:justify-start">
-                        <Phone className="w-3.5 h-3.5" />
-                        <span>{ministre.telephone}</span>
+                        <Phone className="w-3.5 h-3.5" /><span>{ministre.telephone}</span>
                       </div>
                     )}
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Right: message */}
             <div className="flex-1 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 bg-niger-orange/90 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -159,17 +150,13 @@ export default function DirectionPage() {
                 {ministre.message || "Message du ministre non disponible pour le moment. Veuillez consulter ultérieurement."}
               </blockquote>
               <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => toggleContactInfo(ministre._id)}
-                  className="flex items-center gap-2 px-4 py-2 bg-niger-orange text-white rounded-lg hover:bg-niger-orange/90 transition-colors text-sm font-medium"
-                >
+                <button onClick={() => toggleContactInfo(ministre._id)}
+                  className="flex items-center gap-2 px-4 py-2 bg-niger-orange text-white rounded-lg hover:bg-niger-orange/90 transition-colors text-sm font-medium">
                   <Eye className="w-4 h-4" />
                   {showContactInfo[ministre._id] ? 'Masquer' : 'Contact'}
                 </button>
-                <button
-                  onClick={shareDirectory}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm border border-white/30"
-                >
+                <button onClick={shareDirectory}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm border border-white/30">
                   <Share2 className="w-4 h-4" />
                   Partager
                 </button>
@@ -185,24 +172,25 @@ export default function DirectionPage() {
   const renderDirectionCard = (data, showDirections = false) => {
     if (!data) return null;
     const showContact = showContactInfo[data._id];
+    const nom = data.nom && data.nom !== 'À compléter' ? data.nom : null;
     return (
       <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-6 relative group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <div className="flex items-center">
           <div className="relative w-32 h-32 flex-shrink-0">
-            <Image src={data.photo || '/images/dir/default.jpeg'} alt={data.nom} fill
-              className="rounded-full object-cover border-4 border-niger-orange/20" sizes="128px" />
+            <Image src={data.photo || '/images/dir/default.jpeg'} alt={nom || data.titre} fill
+              className="rounded-full object-cover border-4 border-gray-200" sizes="128px" />
             {data.key && (
-              <div className="absolute -top-2 -right-2 bg-niger-orange p-2 rounded-full shadow-lg">
+              <div className="absolute -top-2 -right-2 bg-niger-orange/80 p-2 rounded-full shadow-lg">
                 <Building className="w-4 h-4 text-white" />
               </div>
             )}
           </div>
           <div className="flex-grow ml-8">
-            <div className="bg-niger-orange inline-block px-4 py-2 rounded-full mb-3 shadow-sm">
+            <div className="bg-niger-green inline-block px-4 py-2 rounded-full mb-3 shadow-sm">
               <span className="text-white text-sm font-medium">{data.key || 'Direction'}</span>
             </div>
             <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light mb-2">{data.titre}</h2>
-            <p className="text-xl text-readable dark:text-foreground mb-2">{data.nom}</p>
+            {nom && <p className="text-xl text-readable dark:text-foreground mb-2">{nom}</p>}
             {data.mission && (
               <p className="text-sm text-readable-muted dark:text-muted-foreground italic">{data.mission}</p>
             )}
@@ -234,12 +222,14 @@ export default function DirectionPage() {
           )}
         </div>
         {showDirections && sousDirections[data.key]?.length > 0 && (
-          <button onClick={() => setCurrentSection(data)}
-            className="absolute bottom-0 left-0 right-0 bg-niger-orange text-white px-6 py-3 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 rounded-b-xl font-medium hover:bg-niger-orange-dark">
-            <Users className="w-5 h-5" />
-            <span>Voir les directions ({sousDirections[data.key].length})</span>
-            <ChevronRight className="w-5 h-5" />
-          </button>
+          <div className="mt-4">
+            <button onClick={() => setCurrentSection(data)}
+              className="w-full bg-niger-orange text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-niger-orange/90 transition-colors">
+              <Users className="w-5 h-5" />
+              <span>Voir les directions ({sousDirections[data.key].length})</span>
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         )}
       </div>
     );
@@ -247,19 +237,20 @@ export default function DirectionPage() {
 
   const renderSgaCard = (data) => {
     if (!data) return null;
+    const nom = data.nom && data.nom !== 'À compléter' ? data.nom : null;
     return (
       <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <div className="flex items-center">
           <div className="relative w-20 h-20 flex-shrink-0">
-            <Image src={data.photo || '/images/dir/default.jpeg'} alt={data.nom} fill
-              className="rounded-full object-cover border-2 border-niger-orange/30" sizes="80px" />
+            <Image src={data.photo || '/images/dir/default.jpeg'} alt={nom || data.titre} fill
+              className="rounded-full object-cover border-2 border-gray-200" sizes="80px" />
           </div>
           <div className="flex-grow ml-4">
-            <div className="bg-niger-orange/90 inline-block px-3 py-1 rounded-full mb-2">
+            <div className="bg-niger-green/90 inline-block px-3 py-1 rounded-full mb-2">
               <span className="text-white text-sm font-medium">{data.key || 'Direction'}</span>
             </div>
             <h3 className="text-lg font-semibold text-niger-green dark:text-niger-green-light">{data.titre}</h3>
-            <p className="text-readable dark:text-foreground">{data.nom}</p>
+            {nom && <p className="text-readable dark:text-foreground">{nom}</p>}
           </div>
         </div>
       </div>
@@ -299,7 +290,7 @@ export default function DirectionPage() {
                   <h3 className="font-semibold text-lg text-niger-green dark:text-niger-green-light">
                     {direction.nomComplet || direction.titre}
                   </h3>
-                  {direction.responsable && (
+                  {direction.responsable && direction.responsable !== 'À compléter' && (
                     <p className="text-readable-muted dark:text-muted-foreground text-sm">Responsable: {direction.responsable}</p>
                   )}
                 </div>
@@ -398,6 +389,15 @@ export default function DirectionPage() {
               <span className="text-sm text-readable-muted dark:text-muted-foreground">Haute direction</span>
             </div>
             {renderMinisterSection()}
+          </div>
+        )}
+        {igs && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Inspection Générale des Services</h2>
+              <span className="text-sm text-readable-muted dark:text-muted-foreground">Contrôle et évaluation</span>
+            </div>
+            {renderDirectionCard(igs)}
           </div>
         )}
         {sg && (
@@ -526,5 +526,16 @@ export default function DirectionPage() {
 }
 
 export async function getStaticProps() {
-  return { props: {}, revalidate: 3600 };
+  try {
+    const { fetchAPI, endpoints } = await import('@/lib/strapi');
+    const { mapStrapiList, mapDirector } = await import('@/utils/strapiMapper');
+    const response = await fetchAPI(endpoints.directors, {
+      pagination: { limit: 100 },
+      populate: ['photo'],
+    });
+    const initialDirectors = mapStrapiList(response, mapDirector) || [];
+    return { props: { initialDirectors }, revalidate: 3600 };
+  } catch {
+    return { props: { initialDirectors: [] }, revalidate: 60 };
+  }
 }

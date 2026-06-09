@@ -39,7 +39,7 @@ class SearchService {
             url: `/actualites/${mapped.slug}`,
             section: 'actualites',
             description: mapped.summary || '',
-            content: mapped.content ? mapped.content.substring(0, 5000) : '',
+            content: mapped.content ? mapped.content.substring(0, 800) : '',
             category: mapped.category,
             publishedAt: mapped.publishedAt,
             relevanceScore: 1.0
@@ -169,9 +169,6 @@ class SearchService {
   }
 
   /**
-   * Recherche unifiée
-   */
-  /**
    * Recherche dans les directeurs/responsables
    */
   static async searchDirectors(query, limit = 5) {
@@ -245,8 +242,9 @@ class SearchService {
         this.searchDirectors(query, Math.ceil(maxResults / 2))
       ]);
 
-      // Combine
-      const allResults = [...directors, ...articles, ...services, ...establishments, ...documents];
+      // Combine and sort by relevance score so the best matches surface first
+      const allResults = [...directors, ...articles, ...services, ...establishments, ...documents]
+        .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
 
       return allResults.slice(0, maxResults);
 
@@ -256,7 +254,12 @@ class SearchService {
     }
   }
 
-  // ... (smartSearch, adaptiveSearch remain same)
+  /**
+   * Recherche adaptative — alias de searchAll, utilisé par aiChatService
+   */
+  static async adaptiveSearch(query, options = {}) {
+    return this.searchAll(query, options);
+  }
 
   /**
    * Récupérer le contexte général (Derniers articles/services + Ministre)

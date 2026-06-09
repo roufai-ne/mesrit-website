@@ -212,7 +212,7 @@ export default function ActualiteDetail({ actualite: initialActualite = null }) 
     publisher: {
       '@type': 'GovernmentOrganization',
       name: 'MESRIT Niger',
-      logo: { '@type': 'ImageObject', url: `${BASE_URL}/images/logos/logo-mesrit.png` },
+      logo: { '@type': 'ImageObject', url: `${BASE_URL}/images/logos/mesrit-logo.png` },
     },
     ...(actualite.image && { image: actualite.image.startsWith('http') ? actualite.image : `${BASE_URL}${actualite.image}` }),
     url: articleUrl,

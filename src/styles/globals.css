@@ -181,26 +181,44 @@
   /* Button styles with Niger colors */
   .btn {
     @apply inline-flex items-center justify-center px-6 py-2.5 rounded-lg
-           font-medium transition-all duration-300 ease-in-out
+           font-medium
            focus:outline-none focus:ring-2 focus:ring-offset-2;
     position: relative;
     overflow: hidden;
+    /* Pas de transition-all ici — chaque variante déclare ses propres propriétés */
   }
 
+  /*
+   * Pseudo-element pour le dégradé hover : on fait varier opacity (composite-only)
+   * plutôt qu'interpoler background-image (repaint sur chaque frame).
+   */
   .btn-primary {
     background: linear-gradient(135deg, var(--niger-orange), var(--niger-orange-dark));
     color: white;
     border: none;
     box-shadow: 0 4px 14px 0 rgba(255, 140, 0, 0.2);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-  
-  .btn-primary:hover {
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
     background: linear-gradient(135deg, var(--niger-orange-dark), var(--niger-orange));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-primary:hover {
     box-shadow: 0 6px 20px 0 rgba(255, 140, 0, 0.3);
     transform: translateY(-2px);
   }
-  
+
+  .btn-primary:hover::after {
+    opacity: 1;
+  }
+
   .btn-primary:focus {
     box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.3);
   }
@@ -210,22 +228,35 @@
     color: white;
     border: none;
     box-shadow: 0 4px 14px 0 rgba(34, 139, 34, 0.2);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-  
-  .btn-secondary:hover {
+
+  .btn-secondary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
     background: linear-gradient(135deg, var(--niger-green-dark), var(--niger-green));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .btn-secondary:hover {
     box-shadow: 0 6px 20px 0 rgba(34, 139, 34, 0.3);
     transform: translateY(-2px);
   }
-  
+
+  .btn-secondary:hover::after {
+    opacity: 1;
+  }
+
   .btn-outline {
     background: transparent;
     color: var(--niger-orange);
     border: 2px solid var(--niger-orange);
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   }
-  
+
   .btn-outline:hover {
     background: var(--niger-orange);
     color: white;
@@ -237,8 +268,10 @@
     background-color: var(--card);
     color: var(--card-foreground);
     border: 1px solid var(--border);
-    @apply rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
+    @apply rounded-xl shadow-lg;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    /* Limiter la transition aux propriétés qui changent — évite le repaint global de transition-all */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   .card:hover {

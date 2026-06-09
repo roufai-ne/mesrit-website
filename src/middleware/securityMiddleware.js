@@ -11,8 +11,9 @@ class SimpleRateLimit {
         this.maxRequests = maxRequests;
         this.hits = new Map();
 
-        // Cleanup interval
-        setInterval(() => this.cleanup(), windowMs);
+        // Cleanup interval — handle stored so it can be cleared if needed
+        this._interval = setInterval(() => this.cleanup(), windowMs);
+        if (this._interval.unref) this._interval.unref(); // don't block process exit
     }
 
     cleanup() {
@@ -25,7 +26,11 @@ class SimpleRateLimit {
     }
 
     check(req, res) {
-        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+        // x-forwarded-for est fiable uniquement si l'app est derrière un reverse proxy
+        // de confiance (Caddy, Nginx…) qui strip/set ce header. Ne pas exposer ce port
+        // directement à internet sans proxy.
+        const forwarded = req.headers['x-forwarded-for'];
+        const ip = (forwarded ? forwarded.split(',')[0].trim() : null) || req.socket.remoteAddress || 'unknown';
         const now = Date.now();
 
         if (!this.hits.has(ip)) {

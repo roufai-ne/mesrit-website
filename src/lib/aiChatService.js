@@ -39,28 +39,28 @@ export class AIChatService {
     };
 
     try {
-      // Si une question est fournie, utiliser la recherche adaptative
-      let relevantContent = [];
+      const wantsStats = userQuestion && /combien|nombre|statistique|chiffre|total|effectif/i.test(userQuestion);
+
       if (userQuestion) {
         console.log('[AIChatService] Recherche de contenu pertinent pour:', userQuestion);
-        relevantContent = await SearchService.adaptiveSearch(userQuestion, { maxResults: 5 });
-      } else {
-        // Sinon, récupérer le contexte général
-        relevantContent = await SearchService.getGeneralContext(5);
       }
 
-      // Récupérer les statistiques si la question concerne des chiffres
-      let statistics = null;
-      if (userQuestion && /combien|nombre|statistique|chiffre|total|effectif/i.test(userQuestion)) {
-        try {
-          const statsResult = await StatsService.searchStats(userQuestion);
-          if (statsResult.hasData) {
-            statistics = StatsService.generateSummaryText(statsResult);
-          }
-        } catch (statsError) {
-          console.warn('[AIChatService] Stats unavailable:', statsError.message);
-        }
-      }
+      // Lancer recherche de contenu et stats en parallèle
+      const [relevantContent, statsResult] = await Promise.all([
+        userQuestion
+          ? SearchService.adaptiveSearch(userQuestion, { maxResults: 5 })
+          : SearchService.getGeneralContext(5),
+        wantsStats
+          ? StatsService.searchStats(userQuestion).catch(err => {
+              console.warn('[AIChatService] Stats unavailable:', err.message);
+              return null;
+            })
+          : Promise.resolve(null),
+      ]);
+
+      const statistics = statsResult?.hasData
+        ? StatsService.generateSummaryText(statsResult)
+        : null;
 
       return {
         siteInfo,
@@ -132,7 +132,7 @@ ${context.relevantContent.map((item, i) =>
       `${i + 1}. [${item.type === 'page' ? 'PAGE' : 'ACTUALITÉ'}] ${item.title}
    Section: ${item.section}
    ${item.description ? `Description: ${item.description}` : ''}
-   ${item.content ? `Contenu: ${item.content.substring(0, 500)}...` : ''}
+   ${item.content ? `Contenu: ${item.content}` : ''}
    URL: ${item.url}
 `).join('\n')}
 ` : ''}
@@ -151,7 +151,7 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         messages: messages,
         max_tokens: 500,
         temperature: 0.7,
@@ -185,7 +185,7 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
         system: systemMessage?.content || '',
         messages: userMessages
@@ -302,12 +302,25 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
       return { valid: false, reason: 'Message trop long (max 1000 caractères)' };
     }
 
-    // Filtrage basique de contenu inapproprié
-    const inappropriatePatterns = [
-      /\b(spam|hack|exploit)\b/i
+    // Filtrage des tentatives de prompt injection et contenu inapproprié
+    const blockedPatterns = [
+      // Prompt injection classique
+      /ignore\s+(all\s+)?(previous|prior|above)\s+instructions?/i,
+      /you\s+are\s+now\s+/i,
+      /act\s+as\s+(if\s+you\s+(are|were)|a\s+)/i,
+      /forget\s+(everything|all)\s+(you|your)/i,
+      /new\s+persona/i,
+      /jailbreak/i,
+      /DAN\b/,
+      // Tentatives d'exfiltration de la config système
+      /system\s+prompt/i,
+      /reveal\s+(your\s+)?(instructions?|prompt|system)/i,
+      /print\s+(your\s+)?(instructions?|prompt|system)/i,
+      // Contenu hors périmètre manifeste
+      /\b(spam|phishing)\b/i,
     ];
 
-    for (const pattern of inappropriatePatterns) {
+    for (const pattern of blockedPatterns) {
       if (pattern.test(trimmed)) {
         return { valid: false, reason: 'Contenu inapproprié détecté' };
       }

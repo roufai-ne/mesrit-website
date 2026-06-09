@@ -1,4 +1,4 @@
-import { fetchAPI } from '@/lib/strapi';
+import SearchService from '@/services/search';
 import { rateLimiters } from '@/middleware/securityMiddleware';
 
 const MAX_QUERY_LENGTH = 200;
@@ -32,32 +32,15 @@ export default async function handler(req, res) {
   );
 
   try {
-    const newsResponse = await fetchAPI('/news', {
-      filters: {
-        $or: [
-          { title: { $containsi: searchQuery } },
-          { content: { $containsi: searchQuery } },
-        ],
-      },
-      pagination: { limit: searchLimit },
-      populate: ['cover'],
-    });
+    const items = await SearchService.searchAll(searchQuery, { maxResults: searchLimit });
 
-    const results = [];
-
-    if (newsResponse?.data) {
-      newsResponse.data.forEach((item) => {
-        const attrs = item.attributes || item;
-        results.push({
-          id: item.id,
-          title: attrs.title,
-          type: 'news',
-          category: attrs.category || 'Actualités',
-          url: `/actualites/${attrs.slug}`,
-          description: attrs.summary || (attrs.content?.substring(0, 150) + '...'),
-        });
-      });
-    }
+    const results = items.map(item => ({
+      title: item.title,
+      type: item.type === 'news' ? 'news' : 'page',
+      category: item.category || 'Actualités',
+      url: item.url,
+      description: item.description || '',
+    }));
 
     return res.status(200).json({ results });
 

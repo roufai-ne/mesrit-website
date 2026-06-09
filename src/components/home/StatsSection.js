@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Users,
   Building2,
@@ -19,6 +19,8 @@ export default function StatsSection() {
   const [animatedStats, setAnimatedStats] = useState({});
   const [lastUpdated, setLastUpdated] = useState(null);
   const { isDark } = useTheme();
+  const rafRef = useRef(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     fetchStats();
@@ -28,7 +30,11 @@ export default function StatsSection() {
       fetchStats(true); // Actualisation silencieuse
     }, 5 * 60 * 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Annuler l'animation en cours au démontage
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Intentionnellement vide - fetchStats ne doit s'exécuter qu'au montage
 
@@ -60,23 +66,8 @@ export default function StatsSection() {
         }
 
         setStats((prevStats) => {
-          const hasChanged = JSON.stringify(prevStats) !== JSON.stringify(statsObject);
-
-          // Initialize animated stats
-          if (!prevStats) {
-            const initialAnimatedStats = {};
-            Object.entries(statsObject).forEach(([key, stat]) => {
-              initialAnimatedStats[key] = stat.value;
-            });
-            setAnimatedStats(initialAnimatedStats);
-          }
-
           setError(null);
           setLastUpdated(new Date());
-
-          if (hasChanged || !silent) {
-            setTimeout(() => animateCounters(statsObject), silent ? 200 : 500);
-          }
           return statsObject;
         });
 
@@ -106,16 +97,6 @@ export default function StatsSection() {
               }
             };
 
-            // Initialiser immédiatement les valeurs animées avec les valeurs par défaut
-            const initialAnimatedStats = {};
-            Object.entries(defaultStats).forEach(([key, stat]) => {
-              initialAnimatedStats[key] = stat.value;
-            });
-            setAnimatedStats(initialAnimatedStats);
-
-            // Déclencher l'animation même avec les données par défaut
-            setTimeout(() => animateCounters(defaultStats), 500);
-
             return defaultStats;
           }
           return prevStats;
@@ -132,28 +113,49 @@ export default function StatsSection() {
   const animateCounters = useCallback((statsToAnimate) => {
     if (!statsToAnimate) return;
 
-    // Reset des compteurs animés
+    // Pas d'animation si l'utilisateur préfère le mouvement réduit
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReduced) {
+      const final = {};
+      Object.entries(statsToAnimate).forEach(([key, stat]) => {
+        final[key] = stat.value;
+      });
+      setAnimatedStats(final);
+      return;
+    }
+
+    // Annuler tout RAF précédent
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    const targets = Object.fromEntries(
+      Object.entries(statsToAnimate).map(([k, s]) => [k, s.value])
+    );
+    const DURATION = 2000;
+    const startTime = performance.now();
+
     setAnimatedStats({});
 
-    Object.entries(statsToAnimate).forEach(([key, stat]) => {
-      let current = 0;
-      const target = stat.value;
-      const duration = 2000; // 2 secondes
-      const increment = target / 100;
-      const stepTime = duration / 100;
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / DURATION, 1);
+      // ease-out cubic — plus naturel qu'un incrément linéaire
+      const eased = 1 - Math.pow(1 - progress, 3);
 
-      const timer = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-          current = target;
-          clearInterval(timer);
-        }
-        setAnimatedStats((prev) => ({
-          ...prev,
-          [key]: Math.floor(current),
-        }));
-      }, stepTime);
-    });
+      const frame = {};
+      Object.entries(targets).forEach(([key, target]) => {
+        frame[key] = Math.floor(target * eased);
+      });
+      setAnimatedStats(frame);
+
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(step);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(step);
   }, []);
 
   const handleRefresh = async () => {
@@ -214,6 +216,22 @@ export default function StatsSection() {
     }
   };
 
+  // Déclencher l'animation uniquement quand la section entre dans le viewport
+  // Placé avant tout return conditionnel pour respecter les règles des hooks
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && stats) {
+          animateCounters(stats);
+        }
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [stats, animateCounters]);
+
   if (loading) {
     return (
       <section className="py-8 relative overflow-hidden">
@@ -261,7 +279,7 @@ export default function StatsSection() {
   }
 
   return (
-    <section className="py-8 relative overflow-hidden">
+    <section ref={sectionRef} className="py-8 relative overflow-hidden">
       {/* Arrière-plan avec gradient */}
       <div
         className={`absolute inset-0 ${isDark

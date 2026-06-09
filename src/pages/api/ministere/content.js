@@ -72,7 +72,7 @@ export default async function handler(req, res) {
           description: "Explorer nos institutions d'enseignement"
         }
       ],
-      lastUpdated: new Date(),
+      lastUpdated: null,
       version: "1.0"
     };
 

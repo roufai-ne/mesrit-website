@@ -214,9 +214,11 @@ export default function Hero() {
         <div
           key={slide.id}
           className={clsx(
-            'absolute inset-0 transition-all duration-1000 ease-in-out',
-            index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105',
-            prefersReducedMotion && 'transition-none'
+            'absolute inset-0 duration-1000 ease-in-out',
+            prefersReducedMotion
+              ? 'transition-none'
+              : 'transition-[opacity,transform]',
+            index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
           )}
           aria-hidden={index !== currentSlide}
         >
@@ -519,17 +521,17 @@ export default function Hero() {
         'absolute bottom-0 left-0 right-0 h-1',
         isDark ? 'bg-white/20' : 'bg-gray-300/60'
       )} aria-hidden="true">
+        {/* scaleX évite d'animer 'width' (layout) — seul le composite est touché */}
         <div
           className={clsx(
-            'h-full origin-left transition-all',
-            isDark ? 'bg-white' : 'bg-niger-orange',
-            isPlaying && !prefersReducedMotion ? 'duration-linear' : 'duration-300'
+            'h-full w-full origin-left',
+            isDark ? 'bg-white' : 'bg-niger-orange'
           )}
           style={{
-            width: `${((currentSlide + 1) / slides.length) * 100}%`,
-            ...(isPlaying && !prefersReducedMotion && {
-              transition: `width ${getSlideDuration(slides[currentSlide])}ms linear`
-            })
+            transform: `scaleX(${(currentSlide + 1) / slides.length})`,
+            transition: isPlaying && !prefersReducedMotion
+              ? `transform ${getSlideDuration(slides[currentSlide])}ms linear`
+              : 'transform 300ms ease'
           }}
         />
       </div>

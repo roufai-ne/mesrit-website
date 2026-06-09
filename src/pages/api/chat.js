@@ -1,15 +1,16 @@
 // src/pages/api/chat.js
-import { apiHandler, ROUTE_TYPES } from '@/middleware/securityMiddleware';
+import { apiHandler, ROUTE_TYPES, rateLimiters } from '@/middleware/securityMiddleware';
 import AIChatService from '@/lib/aiChatService';
 import logger, { LOG_TYPES } from '@/lib/logger';
 
 // POST - Envoyer un message au chatbot (public avec rate limiting)
 const sendMessage = async (req, res) => {
   try {
-    const { message, conversationHistory = [], provider = 'openai' } = req.body;
+    const { message, conversationHistory = [], provider: rawProvider = 'openai' } = req.body;
+    const VALID_PROVIDERS = ['openai', 'claude'];
+    const provider = VALID_PROVIDERS.includes(rawProvider) ? rawProvider : 'openai';
 
     // Check Rate Limit
-    const { rateLimiters } = require('@/middleware/securityMiddleware');
     if (!rateLimiters.chat.check(req, res)) {
       console.warn(`[Chat API] Rate limit exceeded for IP: ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
       return res.status(429).json({
@@ -30,8 +31,19 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    // Limiter l'historique pour éviter de dépasser les limites de tokens
-    const limitedHistory = conversationHistory.slice(-10); // Garder les 10 derniers messages
+    // Valider et assainir l'historique : exclure les rôles système, ne garder que
+    // les champs attendus, et limiter pour ne pas dépasser les quotas de tokens
+    const ALLOWED_ROLES = new Set(['user', 'assistant']);
+    const limitedHistory = (Array.isArray(conversationHistory) ? conversationHistory : [])
+      .filter(item =>
+        item &&
+        typeof item === 'object' &&
+        ALLOWED_ROLES.has(item.role) &&
+        typeof item.content === 'string' &&
+        item.content.length <= 2000
+      )
+      .map(item => ({ role: item.role, content: item.content }))
+      .slice(-10);
 
     console.log('[Chat API] Message validé, génération de la réponse...');
 

@@ -17,7 +17,12 @@
       "Bash(node -e \":*)",
       "Bash(node scripts/import-images-direct.mjs)",
       "Bash(xargs grep -l \"getServerSideProps\")",
-      "Bash(grep -A5 \"getServerSideProps\" src/pages/etablissements/ecoles.js src/pages/etablissements/instituts.js src/pages/etablissements/universites.js src/pages/etablissements/centres.js src/pages/etablissements/[id].js src/pages/documentation/index.js src/pages/ministere/missions.js)"
+      "Bash(grep -A5 \"getServerSideProps\" src/pages/etablissements/ecoles.js src/pages/etablissements/instituts.js src/pages/etablissements/universites.js src/pages/etablissements/centres.js src/pages/etablissements/[id].js src/pages/documentation/index.js src/pages/ministere/missions.js)",
+      "Bash(grep -l \"secureApi\" \"c:/Users/PAES/Desktop/Devs/mesrit-websiteV2/mesrit-website/src/lib\"/*)",
+      "Bash(curl -s \"http://localhost:1337/api/directors?filters[key][$in][0]=DGR&filters[key][$in][1]=DR&filters[key][$in][2]=DIT&pagination[limit]=10\")",
+      "Bash(node scripts/update-directors.mjs)",
+      "Bash(node scripts/check-raw.mjs)",
+      "Bash(node scripts/check-frontend.mjs)"
     ],
     "deny": [],
     "ask": []

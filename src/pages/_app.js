@@ -10,7 +10,6 @@ import PageTransition from '@/components/PageTransition';
 const CookieConsent = dynamic(() => import('@/components/ui/CookieConsent'), { ssr: false });
 import '@/styles/globals.css';
 import 'leaflet/dist/leaflet.css';
-import { Inter } from 'next/font/google';
 import { SettingsProvider } from '@/contexts/SettingsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -31,12 +30,6 @@ const pageVariantsReduced = {
   enter: {},
   exit: {},
 };
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 export function reportWebVitals({ id, name, label, value }) {
   if (
@@ -93,7 +86,7 @@ export default function App({ Component, pageProps }) {
 
             <CookieConsent onAccept={() => setHasConsent(true)} />
 
-            <div className={`${inter.variable} font-sans`}>
+            <div className="font-sans">
               <PageTransition routeKey={router.pathname} variants={variants}>
                 <Component {...pageProps} />
               </PageTransition>

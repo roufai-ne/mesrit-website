@@ -11,8 +11,8 @@ export default {
     extend: {
       // Design System Typography with fallbacks
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'Arial', 'Helvetica', 'sans-serif'],
-        display: ['var(--font-inter)', 'Inter', 'Arial', 'Helvetica', 'sans-serif'],
+        sans: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
+        display: ['Inter', 'Arial', 'Helvetica', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],

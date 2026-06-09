@@ -67,7 +67,7 @@ export default function FloatingParticles({
               opacityClasses[opacity],
               position,
               animation,
-              'transition-all duration-3000 ease-in-out'
+              'transition-[opacity,transform] duration-[3000ms] ease-in-out'
             )}
             style={{
               animationDelay: `${index * 200}ms`,

@@ -168,7 +168,7 @@ export const mapService = (service) => {
         url: attrs.url,
         isExternal: attrs.isExternal,
         priority: attrs.priority,
-        isPopular: (attrs.priority || 0) > 5,
+        isPopular: Number(attrs.priority ?? 0) > 5,
         image: getStrapiMedia(attrs.image),
         contactName: attrs.contactName ?? null,
         contactPhone: attrs.contactPhone ?? null,
@@ -186,11 +186,12 @@ export const mapDirector = (director) => {
     let key = attrs.key || null;
     if (!key) {
       const lowerTitre = (attrs.titre || '').toLowerCase();
-      if (lowerTitre.includes('ministre')) key = 'Ministre';
+      if (lowerTitre.includes('ministre')) key = 'MINISTRE';
       else if (lowerTitre.includes('secrétaire général') && !lowerTitre.includes('adjoint')) key = 'SG';
       else if (lowerTitre.includes('secrétaire général adjoint')) key = 'SGA';
+      else if (lowerTitre.includes('inspecteur général')) key = 'IGS';
       else if (lowerTitre.includes('enseignement')) key = 'DGES';
-      else if (lowerTitre.includes('recherche')) key = 'DGR';
+      else if (lowerTitre.includes('recherche')) key = 'DGRIT';
     }
 
     return {
@@ -248,13 +249,7 @@ export const mapEvent = (event) => {
 export const mapStatistic = (stat) => {
     if (!stat) return null;
 
-    // Defensive check for attributes
-    let attrs = stat;
-    if (stat.attributes) {
-        attrs = stat.attributes;
-    }
-
-    if (!attrs) return null;
+    const attrs = stat.attributes || stat;
 
     return {
         key: attrs.statKey || attrs.key || `stat_${stat.id}`, // fallback

@@ -1,5 +1,5 @@
 // lib/secureApi.js
-import { AppError, parseApiError, handleFetchError, ERROR_TYPES } from '@/lib/errorHandler';
+import { AppError, handleFetchError, ERROR_TYPES, getErrorTypeFromStatus } from '@/lib/errorHandler';
 // Router import removed
 
 /**
@@ -47,8 +47,13 @@ export const secureApi = {
         } catch (e) {
           errorData = { message: `Erreur HTTP ${response.status}` };
         }
-        const appError = await parseApiError(response);
-        throw appError;
+        // Build error from already-parsed body — response body can only be read once
+        throw new AppError(
+          errorData?.message || `Erreur HTTP ${response.status}`,
+          getErrorTypeFromStatus(response.status),
+          response.status,
+          errorData?.details || null
+        );
       }
 
       // Retourner le bon format selon le content-type
@@ -132,8 +137,12 @@ export const secureApi = {
         } catch (e) {
           errorData = { message: `Erreur HTTP ${response.status}` };
         }
-        const appError = await parseApiError(response);
-        throw appError;
+        throw new AppError(
+          errorData?.message || `Erreur HTTP ${response.status}`,
+          getErrorTypeFromStatus(response.status),
+          response.status,
+          errorData?.details || null
+        );
       }
 
       return response.json();

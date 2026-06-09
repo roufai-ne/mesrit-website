@@ -118,7 +118,6 @@ export const endpoints = {
   services: '/services',
   establishments: '/establishments',
   partners: '/partners',
-  alert: '/alerts',
   alerts: '/alerts',
   directors: '/directors',
   subscribers: '/subscribers',
