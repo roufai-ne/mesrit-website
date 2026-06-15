@@ -1,5 +1,6 @@
 // src/components/security/CSPScript.js
 import { useEffect } from 'react';
+import { sanitizeForReact } from '@/lib/sanitize';
 import { useCSPNonce } from '@/hooks/useCSPNonce';
 
 /**
@@ -163,17 +164,11 @@ export function CreateSecureStyle({ cssContent, children }) {
 export function SecureHTMLContent({ html, className, tag = 'div' }) {
   const nonce = useCSPNonce();
   const Tag = tag;
-  
-  // Nettoyer le HTML pour enlever les scripts inline dangereux
-  const cleanHTML = html
-    ?.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Supprimer les scripts
-    ?.replace(/on\w+="[^"]*"/gi, '') // Supprimer les event handlers inline
-    ?.replace(/javascript:/gi, ''); // Supprimer les liens javascript:
-  
+
   return (
-    <Tag 
+    <Tag
       className={className}
-      dangerouslySetInnerHTML={{ __html: cleanHTML }}
+      dangerouslySetInnerHTML={sanitizeForReact(html, 'rich')}
       data-nonce={nonce}
     />
   );

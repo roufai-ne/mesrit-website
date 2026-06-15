@@ -8,6 +8,28 @@ const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN;
 // Méthodes autorisées en lecture seule via ce proxy
 const ALLOWED_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 
+// Seules les collections publiques en lecture peuvent être proxifiées.
+// Les collections contenant des données personnelles (subscribers, messages, users)
+// ne sont JAMAIS accessibles via ce proxy — elles utilisent des routes dédiées avec auth.
+const ALLOWED_COLLECTIONS = new Set([
+  'articles',
+  'categories',
+  'documents',
+  'services',
+  'establishments',
+  'directors',
+  'statistics',
+  'events',
+  'partners',
+  'alerts',
+  'faqs',
+  'history-milestones',
+  'organizational-units',
+  'external-services',
+  'global',
+  'homepage',
+]);
+
 export default async function handler(req, res) {
   if (!ALLOWED_METHODS.includes(req.method)) {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -15,6 +37,12 @@ export default async function handler(req, res) {
 
   const { path } = req.query;
   const strapiPath = Array.isArray(path) ? path.join('/') : path;
+
+  // Vérification de l'allowlist avant tout forwarding
+  const rootSegment = strapiPath.split('/')[0].split('?')[0];
+  if (!ALLOWED_COLLECTIONS.has(rootSegment)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
 
   // Utiliser la query string brute de req.url pour préserver la notation brackets
   // (ex: populate[0]=cover) — URLSearchParams la corromprait en populate=cover
