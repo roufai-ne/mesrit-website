@@ -305,7 +305,7 @@ export default function StatsSection() {
                     : "bg-orange-100 text-orange-600"
                   }`}
               >
-                <Users className="w-4 h-4" />
+                <Users className="w-4 h-4" aria-hidden="true" />
               </div>
               <h2
                 className={`text-2xl font-bold bg-gradient-to-r ${isDark
@@ -319,18 +319,19 @@ export default function StatsSection() {
             <button
               onClick={handleRefresh}
               disabled={loading || refreshing}
-              className={`p-3 rounded-full border transition-all duration-300 hover:scale-110 transform ${isDark
+              aria-label="Actualiser les statistiques"
+              className={`p-3 rounded-full border transition-[border-color,color,background-color,box-shadow,transform] duration-300 hover:scale-110 ${isDark
                   ? "border-orange-500/30 text-orange-400 hover:bg-orange-500/20 hover:shadow-orange-500/20"
                   : "border-orange-200 text-orange-600 hover:bg-orange-50 hover:shadow-orange-500/20"
                 } ${loading || refreshing
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:shadow-xl"
                 }`}
-              title="Actualiser les statistiques"
             >
               <RefreshCw
                 className={`w-5 h-5 ${loading || refreshing ? "animate-spin" : ""
                   }`}
+                aria-hidden="true"
               />
             </button>
           </div>
@@ -381,14 +382,14 @@ export default function StatsSection() {
                   {/* Icône avec effet de background */}
                   <div className="relative mb-4">
                     <div
-                      className={`stats-icon w-12 h-12 mx-auto rounded-xl flex items-center justify-center ${isDark ? "bg-white/10" : "bg-white/80"
+                      className={`stats-icon size-12 mx-auto rounded-xl flex items-center justify-center ${isDark ? "bg-white/10" : "bg-white/80"
                         } shadow-lg`}
                     >
-                      <Icon className="w-6 h-6" />
+                      <Icon className="w-6 h-6" aria-hidden="true" />
                     </div>
                     {/* Effet de halo */}
                     <div
-                      className={`absolute inset-0 w-12 h-12 mx-auto rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl ${stat.color === "blue"
+                      className={`absolute inset-0 size-12 mx-auto rounded-xl opacity-0 group-hover:opacity-30 transition-opacity duration-300 blur-xl ${stat.color === "blue"
                           ? "bg-blue-500"
                           : stat.color === "green"
                             ? "bg-green-500"
@@ -401,7 +402,7 @@ export default function StatsSection() {
 
                   {/* Chiffre principal */}
                   <div className="text-center mb-3">
-                    <div className="text-2xl lg:text-3xl font-bold mb-1 bg-gradient-to-r from-current to-current/70 bg-clip-text">
+                    <div className="text-2xl lg:text-3xl font-bold mb-1 tabular-nums bg-gradient-to-r from-current to-current/70 bg-clip-text">
                       {formatNumber(animatedValue)}
                       {stat.suffix && (
                         <span className="text-lg opacity-70">

@@ -38,9 +38,9 @@ export default function CookieConsent({ onAccept, onDecline }) {
           animate={{ opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
           exit={{ opacity: 0, y: 80, transition: { duration: 0.25 } }}
           role="dialog"
+          aria-modal="true"
           aria-label="Consentement aux cookies"
-          aria-live="polite"
-          className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-sm z-[9000]
+          className="fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:max-w-sm z-40
                      bg-white dark:bg-gray-900
                      border border-gray-200 dark:border-gray-700
                      rounded-2xl shadow-2xl p-5

@@ -94,9 +94,9 @@ export default function FAQPage() {
           </nav>
 
           <div className="flex items-center gap-4 mb-8">
-            <HelpCircle className="w-10 h-10 flex-shrink-0" />
+            <HelpCircle className="w-10 h-10 flex-shrink-0" aria-hidden="true" />
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold">Foire Aux Questions</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-balance">Foire Aux Questions</h1>
               <p className="text-white/80 mt-1">Trouvez rapidement des réponses à vos questions</p>
             </div>
           </div>
@@ -107,6 +107,7 @@ export default function FAQPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
               <input
                 type="text"
+                aria-label="Rechercher une question"
                 className="block w-full rounded-xl pl-10 pr-4 py-3.5 bg-white/15 backdrop-blur-sm text-white placeholder-white/60 border border-white/25 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 text-sm"
                 placeholder="Rechercher une question..."
                 value={searchTerm}
@@ -140,8 +141,8 @@ export default function FAQPage() {
 
           {/* Chargement */}
           {isLoading && (
-            <div className="flex justify-center items-center p-12">
-              <Loader className="w-10 h-10 animate-spin text-niger-orange" />
+            <div className="flex justify-center items-center p-12" role="status">
+              <Loader className="w-10 h-10 animate-spin text-niger-orange" aria-hidden="true" />
               <span className="ml-3 text-readable dark:text-foreground">Chargement des questions...</span>
             </div>
           )}
@@ -149,7 +150,7 @@ export default function FAQPage() {
           {/* Erreur */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-6 rounded-xl flex items-start border border-red-200 dark:border-red-800">
-              <AlertCircle className="w-6 h-6 mr-3 flex-shrink-0" />
+              <AlertCircle className="w-6 h-6 mr-3 flex-shrink-0" aria-hidden="true" />
               <div><h3 className="font-bold">Erreur de chargement</h3><p>{error}</p></div>
             </div>
           )}
@@ -167,6 +168,7 @@ export default function FAQPage() {
                       className="w-full text-left px-6 py-5 flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-niger-orange/20 focus:ring-inset"
                       onClick={() => toggleExpand(faq._id)}
                       aria-expanded={expandedItems[faq._id]}
+                      aria-controls={`faq-panel-${faq._id}`}
                     >
                       <div className="flex items-start gap-4">
                         <div className="bg-niger-orange/10 dark:bg-niger-orange/20 rounded-lg p-2 flex-shrink-0">
@@ -176,14 +178,14 @@ export default function FAQPage() {
                       </div>
                       <div className="flex-shrink-0">
                         {expandedItems[faq._id]
-                          ? <Minus className="w-5 h-5 text-niger-orange" />
-                          : <Plus className="w-5 h-5 text-niger-orange" />
+                          ? <Minus className="w-5 h-5 text-niger-orange" aria-hidden="true" />
+                          : <Plus className="w-5 h-5 text-niger-orange" aria-hidden="true" />
                         }
                       </div>
                     </button>
 
                     {expandedItems[faq._id] && (
-                      <div className="px-6 pb-5 pt-1">
+                      <div id={`faq-panel-${faq._id}`} className="px-6 pb-5 pt-1">
                         <div className="border-t border-gray-100 dark:border-secondary-600 pt-4">
                           <div
                             className="prose max-w-none text-readable dark:text-foreground text-sm leading-relaxed"
@@ -204,9 +206,9 @@ export default function FAQPage() {
               ) : (
                 <div className="bg-white dark:bg-secondary-800 rounded-xl shadow-sm border border-gray-100 dark:border-secondary-700 p-8 text-center">
                   <div className="inline-flex items-center justify-center p-3 bg-niger-orange/10 dark:bg-niger-orange/20 rounded-full mb-4">
-                    <HelpCircle className="w-8 h-8 text-niger-orange" />
+                    <HelpCircle className="w-8 h-8 text-niger-orange" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Aucun résultat trouvé</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 text-balance">Aucun résultat trouvé</h3>
                   <p className="text-readable-muted dark:text-muted-foreground">
                     Aucune FAQ ne correspond à votre recherche. Essayez d'autres termes ou consultez toutes les questions.
                   </p>
@@ -236,7 +238,7 @@ export default function FAQPage() {
                             href={item.link}
                             className="flex items-center text-sm text-readable dark:text-foreground hover:text-niger-orange dark:hover:text-niger-orange-light transition-colors"
                           >
-                            <ChevronRight className="w-3.5 h-3.5 mr-1 text-niger-orange flex-shrink-0" />
+                            <ChevronRight className="w-3.5 h-3.5 mr-1 text-niger-orange flex-shrink-0" aria-hidden="true" />
                             {item.title}
                           </Link>
                         </li>
@@ -250,7 +252,7 @@ export default function FAQPage() {
 
           {/* Contact CTA */}
           <div className="bg-gradient-to-br from-niger-orange/10 to-niger-green/10 dark:from-niger-orange/20 dark:to-niger-green/20 rounded-2xl border border-niger-orange/20 p-8 text-center">
-            <h2 className="text-xl font-bold text-niger-green dark:text-niger-green-light mb-3">Vous n'avez pas trouvé votre réponse ?</h2>
+            <h2 className="text-xl font-bold text-niger-green dark:text-niger-green-light mb-3 text-balance">Vous n'avez pas trouvé votre réponse ?</h2>
             <p className="text-readable-muted dark:text-muted-foreground mb-6 max-w-2xl mx-auto text-sm">
               Si vous ne trouvez pas la réponse à votre question, n'hésitez pas à nous contacter directement.
               Notre équipe vous répondra dans les plus brefs délais.
@@ -259,7 +261,7 @@ export default function FAQPage() {
               href="/contact"
               className="inline-flex items-center gap-2 px-6 py-3 bg-niger-orange text-white font-medium rounded-xl hover:bg-niger-orange-dark transition-colors shadow-lg hover:shadow-xl"
             >
-              <Mail className="w-5 h-5" />
+              <Mail className="w-5 h-5" aria-hidden="true" />
               Nous contacter
             </Link>
           </div>

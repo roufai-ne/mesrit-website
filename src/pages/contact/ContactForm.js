@@ -241,8 +241,8 @@ export default function ContactForm() {
   return (
     <div className="bg-white dark:bg-secondary-800 rounded-2xl shadow-lg border border-niger-orange/10 p-8">
       <div className="flex items-center gap-2 mb-6">
-        <Send className="w-6 h-6 text-niger-orange" />
-        <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light">Envoyez-nous un message</h2>
+        <Send className="w-6 h-6 text-niger-orange" aria-hidden="true" />
+        <h2 className="text-2xl font-bold text-niger-green dark:text-niger-green-light text-balance">Envoyez-nous un message</h2>
       </div>
       <p className="text-readable-muted dark:text-muted-foreground mb-8">Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
 
@@ -263,18 +263,23 @@ export default function ContactForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
-              Nom complet <span className="text-red-500">*</span>
+            <label htmlFor="contact-name" className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
+              Nom complet <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <div className="relative">
               <input
+                id="contact-name"
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 onBlur={() => handleBlur('name')}
+                required
+                aria-required="true"
+                aria-invalid={!!(touched.name && fieldErrors.name)}
+                aria-describedby={touched.name && fieldErrors.name ? 'contact-name-error' : undefined}
                 className={`
-                  w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200
+                  w-full px-4 py-3 pr-12 rounded-xl border-2 transition-[border-color,box-shadow,background-color] duration-200
                   focus:ring-2 focus:ring-niger-orange/20
                   ${!touched.name || !formData.name
                     ? 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'
@@ -285,9 +290,8 @@ export default function ContactForm() {
                 `}
                 placeholder="Nom Prénom"
               />
-              {/* Icône de validation */}
               {touched.name && formData.name && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2" aria-hidden="true">
                   {!fieldErrors.name ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
@@ -297,13 +301,13 @@ export default function ContactForm() {
               )}
             </div>
             {touched.name && fieldErrors.name && (
-              <div className="flex items-center mt-1.5 text-red-500 text-sm">
-                <XCircle className="w-4 h-4 mr-1" />
+              <div id="contact-name-error" className="flex items-center mt-1.5 text-red-500 text-sm" role="alert">
+                <XCircle className="w-4 h-4 mr-1" aria-hidden="true" />
                 <span>{fieldErrors.name}</span>
               </div>
             )}
             {touched.name && formData.name && !fieldErrors.name && (
-              <div className="flex items-center mt-1.5 text-green-600 text-sm">
+              <div className="flex items-center mt-1.5 text-green-600 text-sm" aria-hidden="true">
                 <CheckCircle className="w-4 h-4 mr-1" />
                 <span>Nom valide</span>
               </div>
@@ -311,18 +315,23 @@ export default function ContactForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
-              Email <span className="text-red-500">*</span>
+            <label htmlFor="contact-email" className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
+              Email <span className="text-red-500" aria-hidden="true">*</span>
             </label>
             <div className="relative">
               <input
+                id="contact-email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={() => handleBlur('email')}
+                required
+                aria-required="true"
+                aria-invalid={!!(touched.email && !isEmailValid && formData.email)}
+                aria-describedby={touched.email && !isEmailValid && formData.email ? 'contact-email-error' : undefined}
                 className={`
-                  w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200
+                  w-full px-4 py-3 pr-12 rounded-xl border-2 transition-[border-color,box-shadow,background-color] duration-200
                   focus:ring-2 focus:ring-niger-orange/20
                   ${!touched.email || !formData.email
                     ? 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'
@@ -333,9 +342,8 @@ export default function ContactForm() {
                 `}
                 placeholder="mail@exemple.com"
               />
-              {/* Icône de validation */}
               {touched.email && formData.email && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2" aria-hidden="true">
                   {isEmailValid ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
@@ -345,13 +353,13 @@ export default function ContactForm() {
               )}
             </div>
             {touched.email && !isEmailValid && formData.email && (
-              <div className="flex items-center mt-1.5 text-red-500 text-sm">
-                <XCircle className="w-4 h-4 mr-1" />
+              <div id="contact-email-error" className="flex items-center mt-1.5 text-red-500 text-sm" role="alert">
+                <XCircle className="w-4 h-4 mr-1" aria-hidden="true" />
                 <span>{fieldErrors.email || 'Email invalide'}</span>
               </div>
             )}
             {touched.email && isEmailValid && (
-              <div className="flex items-center mt-1.5 text-green-600 text-sm">
+              <div className="flex items-center mt-1.5 text-green-600 text-sm" aria-hidden="true">
                 <CheckCircle className="w-4 h-4 mr-1" />
                 <span>Email valide</span>
               </div>
@@ -360,18 +368,23 @@ export default function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
-            Sujet <span className="text-red-500">*</span>
+          <label htmlFor="contact-subject" className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
+            Sujet <span className="text-red-500" aria-hidden="true">*</span>
           </label>
           <div className="relative">
             <input
+              id="contact-subject"
               type="text"
               name="subject"
               value={formData.subject}
               onChange={handleChange}
               onBlur={() => handleBlur('subject')}
+              required
+              aria-required="true"
+              aria-invalid={!!(touched.subject && fieldErrors.subject)}
+              aria-describedby={touched.subject && fieldErrors.subject ? 'contact-subject-error' : undefined}
               className={`
-                w-full px-4 py-3 pr-12 rounded-xl border-2 transition-all duration-200
+                w-full px-4 py-3 pr-12 rounded-xl border-2 transition-[border-color,box-shadow,background-color] duration-200
                 focus:ring-2 focus:ring-niger-orange/20
                 ${!touched.subject || !formData.subject
                   ? 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'
@@ -382,9 +395,8 @@ export default function ContactForm() {
               `}
               placeholder="Le sujet de votre message"
             />
-            {/* Icône de validation */}
             {touched.subject && formData.subject && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2" aria-hidden="true">
                 {!fieldErrors.subject ? (
                   <CheckCircle className="w-5 h-5 text-green-500" />
                 ) : (
@@ -394,13 +406,13 @@ export default function ContactForm() {
             )}
           </div>
           {touched.subject && fieldErrors.subject && (
-            <div className="flex items-center mt-1.5 text-red-500 text-sm">
-              <XCircle className="w-4 h-4 mr-1" />
+            <div id="contact-subject-error" className="flex items-center mt-1.5 text-red-500 text-sm" role="alert">
+              <XCircle className="w-4 h-4 mr-1" aria-hidden="true" />
               <span>{fieldErrors.subject}</span>
             </div>
           )}
           {touched.subject && formData.subject && !fieldErrors.subject && (
-            <div className="flex items-center mt-1.5 text-green-600 text-sm">
+            <div className="flex items-center mt-1.5 text-green-600 text-sm" aria-hidden="true">
               <CheckCircle className="w-4 h-4 mr-1" />
               <span>Sujet valide</span>
             </div>
@@ -408,22 +420,27 @@ export default function ContactForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
-            Message <span className="text-red-500">*</span>
+          <label htmlFor="contact-message" className="block text-sm font-medium text-niger-green dark:text-niger-green-light mb-2">
+            Message <span className="text-red-500" aria-hidden="true">*</span>
             {formData.message && (
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="text-xs text-gray-500 ml-2" aria-hidden="true">
                 ({formData.message.length} caractères{formData.message.length < 10 ? `, minimum 10` : ''})
               </span>
             )}
           </label>
           <textarea
+            id="contact-message"
             name="message"
             value={formData.message}
             onChange={handleChange}
             onBlur={() => handleBlur('message')}
             rows="6"
+            required
+            aria-required="true"
+            aria-invalid={!!(touched.message && fieldErrors.message)}
+            aria-describedby={touched.message && fieldErrors.message ? 'contact-message-error' : undefined}
             className={`
-              w-full px-4 py-3 rounded-xl border-2 transition-all duration-200
+              w-full px-4 py-3 rounded-xl border-2 transition-[border-color,box-shadow,background-color] duration-200
               focus:ring-2 focus:ring-niger-orange/20 resize-vertical
               ${!touched.message || !formData.message
                 ? 'border-niger-orange/20 hover:border-niger-orange/40 focus:border-niger-orange bg-white dark:bg-secondary-700 text-readable dark:text-foreground'
@@ -435,13 +452,13 @@ export default function ContactForm() {
             placeholder="Écrivez votre message ici..."
           ></textarea>
           {touched.message && fieldErrors.message && (
-            <div className="flex items-center mt-1.5 text-red-500 text-sm">
-              <XCircle className="w-4 h-4 mr-1" />
+            <div id="contact-message-error" className="flex items-center mt-1.5 text-red-500 text-sm" role="alert">
+              <XCircle className="w-4 h-4 mr-1" aria-hidden="true" />
               <span>{fieldErrors.message}</span>
             </div>
           )}
           {touched.message && formData.message && !fieldErrors.message && (
-            <div className="flex items-center mt-1.5 text-green-600 text-sm">
+            <div className="flex items-center mt-1.5 text-green-600 text-sm" aria-hidden="true">
               <CheckCircle className="w-4 h-4 mr-1" />
               <span>Message valide</span>
             </div>
@@ -472,7 +489,7 @@ export default function ContactForm() {
             text-white text-lg font-medium rounded-xl
             hover:from-niger-orange-dark hover:to-niger-green-dark
             focus:ring-4 focus:ring-niger-orange/20
-            transform transition-all duration-200
+            transition-[transform,box-shadow,opacity] duration-200
             disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-niger-orange disabled:hover:to-niger-green
             flex items-center justify-center shadow-lg hover:shadow-xl
           "
@@ -518,9 +535,10 @@ export default function ContactForm() {
           </div>
           <button
             onClick={() => setNotification(null)}
+            aria-label="Fermer la notification"
             className="ml-4 text-white hover:text-white/70"
           >
-            <XCircle className="w-5 h-5" />
+            <XCircle className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
       )}

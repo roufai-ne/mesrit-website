@@ -232,7 +232,8 @@ export default function Hero() {
                 fill
                 sizes="100vw"
                 className={clsx(
-                  'object-cover object-center transition-transform duration-3000', // Réduit de 8000ms à 3000ms
+                  'object-cover object-center',
+                  !prefersReducedMotion && 'transition-transform duration-3000',
                   index === currentSlide && !prefersReducedMotion ? 'scale-105' : 'scale-100'
                 )}
                 priority={slide.image === "/images/hero/Slide1.jpg" || slide.image === "/images/hero/Slide2.jpg" || slide.image === "/images/hero/Slide3.png" || index === 0}
@@ -251,7 +252,7 @@ export default function Hero() {
             ) : (
               // Fallback gradient background when no image is available
               <div className={clsx(
-                'absolute inset-0 transition-all duration-3000', // Réduit de 8000ms à 3000ms
+                'absolute inset-0 transition-[opacity,transform] duration-3000',
                 'bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800',
                 index === currentSlide && !prefersReducedMotion ? 'scale-105' : 'scale-100'
               )} />
@@ -266,7 +267,7 @@ export default function Hero() {
                 <div className="space-y-4 md:space-y-6">
                   {/* Category Badge */}
                   <div className={clsx(
-                    'transform transition-all duration-500 delay-200', // Réduit de 700ms à 500ms
+                    'transition-[opacity,transform] duration-500 delay-200',
                     index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
                     prefersReducedMotion && 'transition-none'
                   )}>
@@ -289,7 +290,7 @@ export default function Hero() {
                   {/* Title */}
                   <h1 className={clsx(
                     'text-hero-title', // Utilise la nouvelle classe typography
-                    'transform transition-all duration-500 delay-300', // Réduit de 700ms à 500ms
+                    'transition-[opacity,transform] duration-500 delay-300',
                     index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
                     prefersReducedMotion && 'transition-none',
                     isDark ? 'text-white' : 'text-gray-900 drop-shadow-lg'
@@ -300,7 +301,7 @@ export default function Hero() {
                   {/* Subtitle */}
                   <p className={clsx(
                     'text-body-large max-w-2xl', // Utilise la nouvelle classe typography
-                    'transform transition-all duration-500 delay-400', // Réduit de 700ms à 500ms
+                    'transition-[opacity,transform] duration-500 delay-400',
                     index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
                     prefersReducedMotion && 'transition-none',
                     isDark ? 'text-gray-100' : 'text-gray-700 drop-shadow-md'
@@ -312,7 +313,7 @@ export default function Hero() {
                   {slide.description && (
                     <p className={clsx(
                       'text-body max-w-xl', // Utilise la nouvelle classe typography
-                      'transform transition-all duration-500 delay-500', // Réduit de 700ms à 500ms
+                      'transition-[opacity,transform] duration-500 delay-500',
                       index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
                       prefersReducedMotion && 'transition-none',
                       isDark ? 'text-gray-200' : 'text-gray-600 drop-shadow-sm'
@@ -324,7 +325,7 @@ export default function Hero() {
                   {/* Action Buttons */}
                   <div className={clsx(
                     'flex flex-col sm:flex-row gap-4',
-                    'transform transition-all duration-500 delay-600', // Réduit de 700ms à 500ms
+                    'transition-[opacity,transform] duration-500 delay-600',
                     index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
                     prefersReducedMotion && 'transition-none'
                   )}>
@@ -340,7 +341,7 @@ export default function Hero() {
                     >
                       <Link href={getCtaLink(slide.cta)} className="flex items-center gap-2">
                         {slide.cta}
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-5 h-5" aria-hidden="true" />
                       </Link>
                     </Button>
                     {slide.ctaSecondary && (
@@ -369,7 +370,7 @@ export default function Hero() {
                 <div className="lg:col-span-5 xl:col-span-6">
                   <div className={clsx(
                     'grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-4',
-                    'transform transition-all duration-500 delay-700', // Réduit de 700ms à 500ms
+                    'transition-[opacity,transform] duration-500 delay-700',
                     index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
                     prefersReducedMotion && 'transition-none'
                   )}>
@@ -447,9 +448,9 @@ export default function Hero() {
           aria-label={isPlaying ? 'Mettre en pause' : 'Reprendre'}
         >
           {isPlaying ? (
-            <Pause className="w-4 h-4 md:w-5 md:h-5" />
+            <Pause className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
           ) : (
-            <Play className="w-4 h-4 md:w-5 md:h-5" />
+            <Play className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
           )}
         </button>
         
@@ -465,7 +466,7 @@ export default function Hero() {
           )}
           aria-label="Diapositive précédente"
         >
-          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-0.5 transition-transform" />
+          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-0.5 transition-transform" aria-hidden="true" />
         </button>
         
         {/* Next */}
@@ -480,7 +481,7 @@ export default function Hero() {
           )}
           aria-label="Diapositive suivante"
         >
-          <ChevronRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-0.5 transition-transform" />
+          <ChevronRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
         </button>
       </div>
       

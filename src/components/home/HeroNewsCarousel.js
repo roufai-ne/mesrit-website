@@ -104,9 +104,9 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
 
   if (loading) {
     return (
-      <section className="relative min-h-[600px] flex items-center justify-center">
+      <section className="relative min-h-[600px] flex items-center justify-center" role="status">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-niger-orange" />
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-niger-orange" aria-hidden="true" />
           <p className="text-gray-600 dark:text-gray-400">Chargement des actualités...</p>
         </div>
       </section>
@@ -117,7 +117,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
     return (
       <section className="relative min-h-[400px] flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
-          <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" aria-hidden="true" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             {error ? 'Erreur de chargement' : 'Aucune actualité disponible'}
           </h3>
@@ -235,7 +235,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
               // Displaying image but has videos
               return (
                 <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-black/50 text-white rounded-full font-medium shadow-lg backdrop-blur-sm">
-                  <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
                   <span className="hidden sm:inline">{videosCount} vidéo{videosCount > 1 ? 's' : ''}</span>
                   <span className="sm:hidden">🎥 {videosCount}</span>
                 </span>
@@ -252,7 +252,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
               // Only has video
               return (
                 <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm bg-black/50 text-white rounded-full font-medium shadow-lg backdrop-blur-sm">
-                  <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3" aria-hidden="true" />
                   <span className="hidden sm:inline">Vidéo</span>
                   <span className="sm:hidden">▶</span>
                 </span>
@@ -285,7 +285,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                 >
                   <span className="hidden xs:inline">Lire l'article</span>
                   <span className="xs:hidden">Lire</span>
-                  <Play className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
                 </Link>
 
                 {/* Bouton lecture vidéo dans le hero */}
@@ -309,7 +309,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                       }}
                       className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all duration-300 backdrop-blur-sm font-medium border border-white/20 text-xs sm:text-sm md:text-base"
                     >
-                      <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-white" />
+                      <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-white" aria-hidden="true" />
                       <span className="hidden sm:inline">Regarder la vidéo</span>
                       <span className="sm:hidden">▶</span>
                     </button>
@@ -369,7 +369,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                 {/* Badge Play Icon - Visible quand pas survolé */}
                 {hoveredVideoIndex !== videoIdx && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-all duration-300 pointer-events-none">
-                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg" />
+                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg" aria-hidden="true" />
                   </div>
                 )}
 
@@ -410,6 +410,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                       : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white/75'
                   )}
                   aria-label={`Aller à l'actualité ${index + 1}`}
+                  aria-current={index === activeIndex ? 'true' : undefined}
                 />
               ))}
             </div>

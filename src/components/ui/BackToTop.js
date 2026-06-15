@@ -25,8 +25,8 @@ export default function BackToTop() {
           exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
           onClick={scrollToTop}
           aria-label="Retour en haut de la page"
-          className="fixed bottom-24 right-5 z-[900]
-                     w-11 h-11 rounded-full
+          className="fixed bottom-24 right-5 z-40
+                     size-11 rounded-full
                      bg-gradient-to-br from-niger-orange to-niger-orange-dark
                      text-white
                      flex items-center justify-center

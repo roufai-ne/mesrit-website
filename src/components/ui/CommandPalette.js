@@ -136,7 +136,7 @@ export default function CommandPalette({ isOpen, onClose }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={onClose}
-            className="fixed inset-0 z-[9100] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             aria-hidden="true"
           />
 
@@ -148,7 +148,7 @@ export default function CommandPalette({ isOpen, onClose }) {
             role="dialog"
             aria-modal="true"
             aria-label="Palette de commandes — recherche rapide"
-            className="fixed top-[10vh] left-1/2 -translate-x-1/2 z-[9200]
+            className="fixed top-[10vh] left-1/2 -translate-x-1/2 z-50
                        w-full max-w-xl mx-4
                        bg-white dark:bg-gray-900
                        border border-gray-200 dark:border-gray-700

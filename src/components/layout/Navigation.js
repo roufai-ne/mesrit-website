@@ -156,7 +156,7 @@ export default function Navigation() {
   return (
     <nav
       className={clsx(
-        'sticky top-0 z-50 transition-all duration-300',
+        'sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300',
         isDark
           ? 'bg-gray-900/95 backdrop-blur-lg border-b border-gray-800'
           : 'bg-white/95 backdrop-blur-lg border-b border-gray-200',
@@ -209,12 +209,13 @@ export default function Navigation() {
                           }}
                         >
                           <Icon className={clsx(
-                            'w-4 h-4 transition-all duration-300',
+                            'w-4 h-4 transition-[color,transform] duration-300',
                             isActive ? 'text-white' : 'group-hover:scale-110'
                           )}
                             style={{
                               color: isActive ? 'white' : item.color
-                            }} />
+                            }}
+                            aria-hidden="true" />
                           <span>{item.label}</span>
                         </Link>
 
@@ -239,6 +240,7 @@ export default function Navigation() {
                               'w-4 h-4 transition-transform duration-300',
                               activeDropdown === index && 'rotate-180'
                             )}
+                            aria-hidden="true"
                           />
                         </button>
 
@@ -287,7 +289,7 @@ export default function Navigation() {
                               </div>
                             </div>
                             <ExternalLinkIcon className={clsx(
-                              'w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-110',
+                              'w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-[opacity,transform] duration-200 group-hover:scale-110',
                               isDark ? 'text-gray-500' : 'text-gray-400'
                             )}
                               style={{
@@ -324,12 +326,13 @@ export default function Navigation() {
                                 </div>
                               </div>
                               <ExternalLinkIcon className={clsx(
-                                'w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-110',
+                                'w-4 h-4 mt-1 opacity-0 group-hover:opacity-100 transition-[opacity,transform] duration-200 group-hover:scale-110',
                                 isDark ? 'text-gray-500' : 'text-gray-400'
                               )}
                                 style={{
                                   color: item.color
-                                }} />
+                                }}
+                                aria-hidden="true" />
                             </Link>
                           ))}
                         </div>
@@ -403,9 +406,9 @@ export default function Navigation() {
               aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             >
               {isMobileMenuOpen ? (
-                <XIcon className="w-6 h-6" />
+                <XIcon className="w-6 h-6" aria-hidden="true" />
               ) : (
-                <MenuIcon className="w-6 h-6" />
+                <MenuIcon className="w-6 h-6" aria-hidden="true" />
               )}
             </button>
 
@@ -498,6 +501,7 @@ export default function Navigation() {
                                 'w-5 h-5 transition-transform duration-300',
                                 activeDropdown === index && 'rotate-180'
                               )}
+                              aria-hidden="true"
                             />
                           </button>
                         </div>
@@ -538,7 +542,7 @@ export default function Navigation() {
                           background: isActive ? `linear-gradient(135deg, ${item.color}, ${item.color}cc)` : 'transparent'
                         }}
                       >
-                        <Icon className="w-5 h-5"
+                        <Icon className="w-5 h-5" aria-hidden="true"
                           style={{ color: isActive ? 'white' : item.color }} />
                         <span>{item.label}</span>
                       </Link>

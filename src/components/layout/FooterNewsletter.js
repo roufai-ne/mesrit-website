@@ -128,10 +128,10 @@ export default function FooterNewsletter({ isDark }) {
       <div className="container mx-auto px-4 lg:px-6 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-8">
-            <h3 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+            <h3 className="text-3xl font-bold text-white mb-4 drop-shadow-lg text-balance">
               Restez informé des dernières actualités
             </h3>
-            <p className="text-lg text-niger-cream/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-niger-cream/90 max-w-2xl mx-auto leading-relaxed text-pretty">
               Inscrivez-vous à notre newsletter pour recevoir les dernières nouvelles du Ministère
             </p>
           </div>
@@ -149,19 +149,25 @@ export default function FooterNewsletter({ isDark }) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex-1 relative">
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Adresse email
+                </label>
                 <div className="relative">
                   <input
+                    id="newsletter-email"
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
                     onBlur={handleEmailBlur}
                     placeholder="Votre adresse email"
                     disabled={status === 'loading'}
+                    required
+                    aria-required="true"
+                    aria-invalid={!!(emailTouched && !isEmailValid && email)}
+                    aria-describedby={emailTouched && !isEmailValid && email ? 'newsletter-email-error' : undefined}
                     className={clsx(
-                      'w-full px-6 py-4 pr-12 rounded-xl border-2 focus:ring-4 focus:outline-none transition-all duration-300 text-base shadow-lg',
-                      // Couleurs de base
+                      'w-full px-6 py-4 pr-12 rounded-xl border-2 focus:ring-4 focus:outline-none transition-[border-color,box-shadow] duration-300 text-base shadow-lg',
                       isDark ? 'bg-gray-800 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500',
-                      // Bordures conditionnelles
                       !emailTouched || !email
                         ? (isDark ? 'border-orange-500/50 focus:border-orange-400 focus:ring-orange-500/30' : 'border-orange-400/60 focus:border-orange-500 focus:ring-orange-400/30')
                         : isEmailValid
@@ -169,9 +175,8 @@ export default function FooterNewsletter({ isDark }) {
                         : 'border-red-500 focus:border-red-500 focus:ring-red-500/30'
                     )}
                   />
-                  {/* Icône de validation */}
                   {emailTouched && email && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2" aria-hidden="true">
                       {isEmailValid ? (
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       ) : (
@@ -180,16 +185,14 @@ export default function FooterNewsletter({ isDark }) {
                     </div>
                   )}
                 </div>
-                {/* Message d'erreur */}
                 {emailTouched && !isEmailValid && email && (
-                  <p className="mt-2 text-sm text-red-300 flex items-center gap-1">
-                    <XCircle className="w-4 h-4" />
+                  <p id="newsletter-email-error" className="mt-2 text-sm text-red-300 flex items-center gap-1" role="alert">
+                    <XCircle className="w-4 h-4" aria-hidden="true" />
                     {emailError || 'Adresse email invalide'}
                   </p>
                 )}
-                {/* Message de succès */}
                 {emailTouched && isEmailValid && (
-                  <p className="mt-2 text-sm text-green-300 flex items-center gap-1">
+                  <p className="mt-2 text-sm text-green-300 flex items-center gap-1" aria-hidden="true">
                     <CheckCircle className="w-4 h-4" />
                     Email valide
                   </p>
@@ -217,7 +220,7 @@ export default function FooterNewsletter({ isDark }) {
                 type="submit"
                 disabled={isSubmitDisabled}
                 className={clsx(
-                  'w-full px-6 py-4 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-white text-base',
+                  'w-full px-6 py-4 rounded-xl transition-[transform,box-shadow,opacity] flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 text-white text-base',
                   isDark ? 'bg-orange-500 hover:bg-orange-600' : 'bg-orange-600 hover:bg-orange-700'
                 )}
               >
