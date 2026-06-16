@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_mission_objectifs",
+  "info": {
+    "displayName": "Objectif",
+    "icon": "check-square"
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string",
+      "required": true
+    },
+    "progress": {
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "default": 0
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

@@ -309,6 +309,32 @@ export const mapOrgUnit = (unit) => {
 };
 
 /**
+ * Maps a Strapi Mission to the frontend format
+ */
+export const mapMission = (mission) => {
+    if (!mission) return null;
+    const attrs = mission.attributes || mission;
+    return {
+        id: mission.id,
+        title: attrs.title,
+        icon: attrs.icon || 'Target',
+        color: attrs.color,
+        content: attrs.content,
+        order: attrs.order || 0,
+        achievements: attrs.achievements || [],
+        objectifs: (attrs.objectifs || []).map(o => ({
+            text: o.text,
+            progress: o.progress || 0,
+            description: o.description
+        })),
+        stats: (attrs.stats || []).reduce((acc, s) => {
+            if (s?.label) acc[s.label] = s.value;
+            return acc;
+        }, {})
+    };
+};
+
+/**
  * Maps a Strapi ExternalService to the frontend format
  */
 export const mapExternalService = (item) => {

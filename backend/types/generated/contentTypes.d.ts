@@ -874,6 +874,45 @@ export interface ApiMinistryPageMinistryPage extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiMissionMission extends Struct.CollectionTypeSchema {
+  collectionName: 'missions';
+  info: {
+    description: 'Missions strat\u00E9giques du minist\u00E8re (enseignement, recherche, innovation\u2026)';
+    displayName: 'Mission';
+    pluralName: 'missions';
+    singularName: 'mission';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    achievements: Schema.Attribute.JSON;
+    color: Schema.Attribute.String;
+    content: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    icon: Schema.Attribute.Enumeration<
+      ['BookOpen', 'Target', 'Award', 'Users']
+    > &
+      Schema.Attribute.DefaultTo<'Target'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::mission.mission'
+    > &
+      Schema.Attribute.Private;
+    objectifs: Schema.Attribute.Component<'mission.objectif', true>;
+    order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    stats: Schema.Attribute.Component<'mission.stat', true>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiOrganizationalUnitOrganizationalUnit
   extends Struct.CollectionTypeSchema {
   collectionName: 'organizational_units';
@@ -1606,6 +1645,7 @@ declare module '@strapi/strapi' {
       'api::history-milestone.history-milestone': ApiHistoryMilestoneHistoryMilestone;
       'api::message.message': ApiMessageMessage;
       'api::ministry-page.ministry-page': ApiMinistryPageMinistryPage;
+      'api::mission.mission': ApiMissionMission;
       'api::organizational-unit.organizational-unit': ApiOrganizationalUnitOrganizationalUnit;
       'api::partner.partner': ApiPartnerPartner;
       'api::service.service': ApiServiceService;

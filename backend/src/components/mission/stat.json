@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_mission_stats",
+  "info": {
+    "displayName": "Statistique",
+    "icon": "chart-bar"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

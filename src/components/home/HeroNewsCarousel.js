@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Newspaper, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,17 +8,20 @@ import VideoPlayer from '@/components/communication/VideoPlayer';
 import { clsx } from 'clsx';
 import { fetchAPI, endpoints } from '@/lib/strapi';
 import { mapStrapiList, mapArticleToNews } from '@/utils/strapiMapper';
+import { useReducedMotion } from '@/lib/accessibility';
 
 export default function HeroNewsCarousel({ initialNews = [] }) {
   const [news, setNews] = useState(initialNews);
   const [activeIndex, setActiveIndex] = useState(0);
   const [thumbnailMediaView, setThumbnailMediaView] = useState({}); // Track which view (photos/videos) for each thumbnail
   const [isCarouselPaused, setIsCarouselPaused] = useState(false); // Pause carousel on hover
-  const [hoveredVideoIndex, setHoveredVideoIndex] = useState(null); // Track which video is hovered in mini-previews
-  const [isPlayingHeroVideo, setIsPlayingHeroVideo] = useState(false); // Play video inline in hero
+  const [hoveredPreviewVideo, setHoveredPreviewVideo] = useState(null); // { url, poster } | null — aperçu survolé dans le filmstrip
+  const [isPlayingHeroVideo, setIsPlayingHeroVideo] = useState(null); // null | URL de la vidéo jouée en plein dans le hero
   const [loading, setLoading] = useState(initialNews.length === 0);
   const [error, setError] = useState(null);
   const { isDark } = useTheme();
+  const filmstripRefs = useRef([]); // filmstripRefs.current[i] = <video> DOM node du filmstrip
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     // Si des données initiales SSR sont disponibles, pas besoin de refetch immédiatement
@@ -29,7 +32,8 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
 
   // Réinitialiser la lecture vidéo hero au changement d'article
   useEffect(() => {
-    setIsPlayingHeroVideo(false);
+    setIsPlayingHeroVideo(null);
+    setHoveredPreviewVideo(null);
   }, [activeIndex]);
 
   // Auto rotation pour le carrousel
@@ -145,11 +149,11 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
       <div className="hero-news-carousel relative h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] xl:h-[600px] overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl">
         {/* Image/Vidéo Principale */}
         <div className="absolute inset-0">
-          {isPlayingHeroVideo && currentNews?.mainVideo ? (
+          {isPlayingHeroVideo ? (
             /* Lecture vidéo inline dans le hero */
             <VideoPlayer
-              src={currentNews.mainVideo}
-              poster={currentNews.videos?.find(v => v.isMain)?.thumbnail || currentNews.images?.[0]?.url || currentNews.image || '/images/news-placeholder.svg'}
+              src={isPlayingHeroVideo}
+              poster={currentNews.videos?.find(v => v.url === isPlayingHeroVideo)?.thumbnail || currentNews.images?.[0]?.url || currentNews.image || '/images/news-placeholder.svg'}
               title={currentNews.title}
               newsId={currentNews._id}
               className="w-full h-full object-cover"
@@ -214,6 +218,21 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
               );
             }
           })()}
+
+          {/* Overlay vidéo au survol du filmstrip — fondu vers l'aperçu, ne joue pas si reduced motion */}
+          {hoveredPreviewVideo && !isPlayingHeroVideo && (
+            <video
+              key={hoveredPreviewVideo.url}
+              src={hoveredPreviewVideo.url}
+              poster={hoveredPreviewVideo.poster}
+              className="absolute inset-0 w-full h-full object-cover z-10 opacity-0 transition-opacity duration-300"
+              muted
+              loop
+              playsInline
+              autoPlay={!prefersReducedMotion}
+              onCanPlay={(e) => e.currentTarget.classList.replace('opacity-0', 'opacity-100')}
+            />
+          )}
         </div>
 
         {/* Overlay gradiant */}
@@ -293,7 +312,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                   isPlayingHeroVideo ? (
                     <button
                       onClick={() => {
-                        setIsPlayingHeroVideo(false);
+                        setIsPlayingHeroVideo(null);
                         setIsCarouselPaused(false);
                       }}
                       className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-niger-orange/90 text-white rounded-lg hover:bg-niger-orange transition-all duration-300 font-medium border border-niger-orange/50 text-xs sm:text-sm md:text-base"
@@ -304,7 +323,7 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                   ) : (
                     <button
                       onClick={() => {
-                        setIsPlayingHeroVideo(true);
+                        setIsPlayingHeroVideo(currentNews.mainVideo);
                         setIsCarouselPaused(true);
                       }}
                       className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3 md:px-4 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all duration-300 backdrop-blur-sm font-medium border border-white/20 text-xs sm:text-sm md:text-base"
@@ -325,74 +344,83 @@ export default function HeroNewsCarousel({ initialNews = [] }) {
                   <span className="sm:hidden">+</span>
                 </Link>
               </div>
+
+              {/* Filmstrip vidéo horizontal — Yahoo-style, hover-to-play impératif */}
+              {currentNews?.videos && currentNews.videos.length > 1 && (
+                <>
+                  <div
+                    className="video-filmstrip mt-3 sm:mt-4 hidden sm:flex"
+                    role="group"
+                    aria-label="Aperçus vidéo de cet article"
+                    onMouseEnter={() => setIsCarouselPaused(true)}
+                    onMouseLeave={() => {
+                      setIsCarouselPaused(false);
+                      setHoveredPreviewVideo(null);
+                    }}
+                  >
+                    {currentNews.videos.slice(0, 5).map((video, videoIdx) => {
+                      const fallbackPoster = currentNews.images?.[0]?.url || '/images/news-placeholder.svg';
+                      return (
+                        <button
+                          key={videoIdx}
+                          type="button"
+                          aria-label={`${video.title || `Vidéo ${videoIdx + 1}`} — aperçu`}
+                          className="video-filmstrip__item focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-niger-orange focus-visible:ring-offset-1 focus-visible:ring-offset-black/50"
+                          onMouseEnter={() => {
+                            if (!prefersReducedMotion) {
+                              filmstripRefs.current[videoIdx]?.play().catch(() => {});
+                            }
+                            setHoveredPreviewVideo({ url: video.url, poster: video.thumbnail || fallbackPoster });
+                          }}
+                          onMouseLeave={() => {
+                            filmstripRefs.current[videoIdx]?.pause();
+                            setHoveredPreviewVideo(null);
+                          }}
+                          onFocus={() => setHoveredPreviewVideo({ url: video.url, poster: video.thumbnail || fallbackPoster })}
+                          onBlur={() => {
+                            filmstripRefs.current[videoIdx]?.pause();
+                            setHoveredPreviewVideo(null);
+                          }}
+                          onClick={() => {
+                            setIsPlayingHeroVideo(video.url);
+                            setIsCarouselPaused(true);
+                          }}
+                        >
+                          <video
+                            ref={(el) => { filmstripRefs.current[videoIdx] = el; }}
+                            src={video.url}
+                            poster={video.thumbnail || fallbackPoster}
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            className="video-filmstrip__video"
+                          />
+                          <span className="video-filmstrip__play-icon" aria-hidden="true">
+                            <Play className="w-3 h-3 text-white fill-white" />
+                          </span>
+                          <span className="video-filmstrip__badge" aria-hidden="true">
+                            {videoIdx + 1}/{currentNews.videos.length}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Mobile : badge compact remplaçant le filmstrip */}
+                  <div className="mt-2 sm:hidden">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-black/50 text-white text-xs rounded-full backdrop-blur-sm border border-white/20">
+                      <Play className="w-2.5 h-2.5 fill-white" aria-hidden="true" />
+                      +{currentNews.videos.length - 1} vidéo{currentNews.videos.length > 2 ? 's' : ''}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Mini Previews des Vidéos - Empilées verticalement en haut à droite */}
-        {currentNews?.videos && currentNews.videos.length > 0 && (
-          <div
-            className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 flex flex-col gap-3"
-            onMouseEnter={() => setIsCarouselPaused(true)}
-            onMouseLeave={() => {
-              setIsCarouselPaused(false);
-              setHoveredVideoIndex(null);
-            }}
-          >
-            {currentNews.videos.slice(0, 3).map((video, videoIdx) => (
-              <div
-                key={videoIdx}
-                onMouseEnter={() => setHoveredVideoIndex(videoIdx)}
-                onMouseLeave={() => setHoveredVideoIndex(null)}
-                className={clsx(
-                  'relative rounded-lg overflow-hidden shadow-xl transition-all duration-300 cursor-pointer',
-                  'w-32 sm:w-40 md:w-48 aspect-video',
-                  hoveredVideoIndex === videoIdx
-                    ? 'ring-3 ring-niger-orange scale-110 z-20 shadow-2xl shadow-niger-orange/50'
-                    : 'hover:ring-2 hover:ring-white/70 hover:scale-105'
-                )}
-              >
-                {/* Vidéo Aperçu - Toujours visible, avec play overlay */}
-                <div className="absolute inset-0">
-                  <VideoPlayer
-                    src={video.url}
-                    poster={video.thumbnail}
-                    title={video.title || `Vidéo ${videoIdx + 1}`}
-                    newsId={currentNews._id}
-                    className="w-full h-full object-cover"
-                    controls={false}
-                    autoPlay={hoveredVideoIndex === videoIdx}
-                    muted={true}
-                  />
-                </div>
-
-                {/* Badge Play Icon - Visible quand pas survolé */}
-                {hoveredVideoIndex !== videoIdx && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 transition-all duration-300 pointer-events-none">
-                    <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1 drop-shadow-lg" aria-hidden="true" />
-                  </div>
-                )}
-
-                {/* Overlay indicateur si survolé */}
-                {hoveredVideoIndex === videoIdx && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-niger-orange/60 via-transparent to-transparent pointer-events-none" />
-                )}
-
-                {/* Numéro vidéo */}
-                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs sm:text-sm px-2 py-1 rounded-full font-medium">
-                  {videoIdx + 1}/{currentNews.videos.length}
-                </div>
-
-                {/* Titre vidéo au survol */}
-                {hoveredVideoIndex === videoIdx && video.title && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2">
-                    <p className="text-white text-xs sm:text-sm line-clamp-2">{video.title}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Contrôles de Navigation */}
         {news.length > 1 && (

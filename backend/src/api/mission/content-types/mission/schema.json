@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "missions",
+  "info": {
+    "singularName": "mission",
+    "pluralName": "missions",
+    "displayName": "Mission",
+    "description": "Missions stratégiques du ministère (enseignement, recherche, innovation…)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "icon": {
+      "type": "enumeration",
+      "enum": [
+        "BookOpen",
+        "Target",
+        "Award",
+        "Users"
+      ],
+      "default": "Target"
+    },
+    "color": {
+      "type": "string"
+    },
+    "content": {
+      "type": "text"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    },
+    "achievements": {
+      "type": "json"
+    },
+    "objectifs": {
+      "type": "component",
+      "repeatable": true,
+      "component": "mission.objectif"
+    },
+    "stats": {
+      "type": "component",
+      "repeatable": true,
+      "component": "mission.stat"
+    }
+  }
+}

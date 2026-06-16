@@ -19,6 +19,7 @@ export default function VideoPlayer({
   className = '',
   autoPlay = false,
   controls = true,
+  muted = false,
   width = '100%',
   height = 'auto'
 }) {
@@ -29,7 +30,7 @@ export default function VideoPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(muted);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -219,6 +220,8 @@ export default function VideoPlayer({
         poster={poster}
         className="w-full h-full object-contain"
         autoPlay={autoPlay}
+        muted={isMuted}
+        playsInline
         onClick={togglePlay}
         onDoubleClick={toggleFullscreen}
       />

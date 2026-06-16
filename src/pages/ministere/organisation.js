@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import {
   Building2,
@@ -16,6 +16,70 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import SeoHead from '@/components/seo/SeoHead';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapOrgUnit } from '@/utils/strapiMapper';
+
+// Fallback affiché si Strapi est indisponible (contenu identique à l'ancien orgData)
+const FALLBACK_ORG_UNITS = [
+  { type: 'cabinet', name: 'Conseillers Techniques', order: 0 },
+  { type: 'cabinet', name: 'Responsable de la communication', order: 1 },
+  { type: 'cabinet', name: 'Chef de Cabinet', order: 2 },
+  { type: 'cabinet', name: 'Attaché de Protocole', order: 3 },
+  { type: 'cabinet', name: 'Secrétaire Particulier', order: 4 },
+  { type: 'sg_direct', name: 'Attachés académiques', order: 0 },
+  { type: 'sg_direct', name: 'Cellule Santé Universitaire et des Grandes Écoles', order: 1 },
+  { type: 'sg_direct', name: 'Cellule Genre', order: 2 },
+  { type: 'sg_direct', name: "Bureau d'Ordre", order: 3 },
+  { type: 'sg_direct', name: 'Secrétariat', order: 4 },
+  { type: 'dge', name: "Direction de l'Enseignement Supérieur Public (DESP)", order: 0 },
+  { type: 'dge', name: "Direction de l'Enseignement Supérieur Privé (DESPRI)", order: 1 },
+  { type: 'dge', name: 'Direction des Sports et des Activités Culturelles Universitaires et des Grandes Écoles (DSAC/U/GE)', order: 2 },
+  { type: 'dge', name: "Direction de l'Enseignement Supérieur Arabe (DESA)", order: 3 },
+  { type: 'dge', name: "Direction de l'Orientation et du Suivi du Cursus des Étudiants (DOSCE)", order: 4 },
+  { type: 'dgrit', name: 'Direction de la Recherche (DR)', order: 0 },
+  { type: 'dgrit', name: "Direction de l'Innovation Technologique (DIT)", order: 1 },
+  { type: 'centrales', name: 'Direction des Études et de la Programmation (DEP)', order: 0 },
+  { type: 'centrales', name: 'Direction des Ressources Humaines (DRH)', order: 1 },
+  { type: 'centrales', name: 'Direction des Ressources Financières et du Matériel (DRFM)', order: 2 },
+  { type: 'centrales', name: 'Direction des Marchés Publics et de Délégation de Service Public (DMP/DSP)', order: 3 },
+  { type: 'centrales', name: "Direction des Statistiques et de l'Informatique (DSI)", order: 4 },
+  { type: 'centrales', name: 'Direction de la Législation (DL)', order: 5 },
+  { type: 'centrales', name: 'Direction des Archives, de l\'Information, de la Documentation et des Relations Publiques (DAIDRP)', order: 6 },
+  { type: 'centrales', name: 'Direction des Infrastructures et Équipements Universitaires (DIEU)', order: 7 },
+  { type: 'centrales', name: 'Direction des Affaires Financières et du Matériel (DAF)', order: 8 },
+  { type: 'rattaches', name: 'Agence Nigérienne des Allocations et des Bourses (ANAB)', order: 0 },
+  { type: 'rattaches', name: "Agence Nationale pour l'Assurance Qualité de l'Enseignement Supérieur et de la Recherche (ANAQ-Sup)", order: 1 },
+  { type: 'rattaches', name: 'Centres Régionaux des Œuvres Universitaires (CROU)', order: 2 },
+  { type: 'rattaches', name: 'Office du Baccalauréat, des Équivalences et des Examens et Concours du Supérieur (OBEECS)', order: 3 },
+  { type: 'rattaches', name: 'Académie des Sciences du Niger (ASNI)', order: 4 },
+  { type: 'etablissements', name: 'Université Abdou Moumouni de Niamey (UAM)', order: 0 },
+  { type: 'etablissements', name: 'Université Numérique du Niger (UNN)', order: 1 },
+  { type: 'etablissements', name: 'Université Dan Dicko Dankoulodo de Maradi (UDDM)', order: 2 },
+  { type: 'etablissements', name: 'Université Djibo Hamani de Tahoua (UDH)', order: 3 },
+  { type: 'etablissements', name: 'Université André Salifou de Zinder (UAS)', order: 4 },
+  { type: 'etablissements', name: 'Université Boubacar Bah de Tillabéry (UBBA)', order: 5 },
+  { type: 'etablissements', name: 'Université de Dosso (UDO)', order: 6 },
+  { type: 'etablissements', name: "Université d'Agadez (UAZ)", order: 7 },
+  { type: 'etablissements', name: 'Université de Diffa (UDA)', order: 8 },
+  { type: 'etablissements', name: 'Université Islamique au Niger (UIN)', order: 9 },
+  { type: 'etablissements', name: "École des Mines de l'Industrie et de la Géologie (EMIG)", order: 10 },
+];
+
+const ORG_TYPES = ['cabinet', 'sg_direct', 'dge', 'dgrit', 'centrales', 'rattaches', 'etablissements'];
+
+// Regroupe une liste plate d'unités organisationnelles (Strapi) par catégorie,
+// triées par `order`, sous la forme attendue par le rendu existant.
+const groupOrgUnits = (units) => {
+  const grouped = ORG_TYPES.reduce((acc, type) => ({ ...acc, [type]: [] }), {});
+  [...units]
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+    .forEach((unit) => {
+      if (grouped[unit.type]) {
+        grouped[unit.type].push(unit.name);
+      }
+    });
+  return grouped;
+};
 
 const OrgSection = ({ title, icon: Icon, children, className = "", isExpandable = false }) => {
   const [isExpanded, setIsExpanded] = useState(!isExpandable);
@@ -73,61 +137,13 @@ const DirectionList = ({ items, searchTerm = "" }) => {
   );
 };
 
-export default function OrganisationPage() {
+export default function OrganisationPage({ initialOrgUnits = [] }) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const orgData = {
-    cabinet: [
-      "Conseillers Techniques", "Responsable de la communication", "Chef de Cabinet",
-      "Attaché de Protocole", "Secrétaire Particulier"
-    ],
-    sg_direct: [
-      "Attachés académiques", "Cellule Santé Universitaire et des Grandes Écoles",
-      "Cellule Genre", "Bureau d'Ordre", "Secrétariat"
-    ],
-    dges: [
-      "Direction de l'Enseignement Supérieur Public (DESP)",
-      "Direction de l'Enseignement Supérieur Privé (DESPRI)",
-      "Direction des Sports et des Activités Culturelles Universitaires et des Grandes Écoles (DSAC/U/GE)",
-      "Direction de l'Enseignement Supérieur Arabe (DESA)",
-      "Direction de l'Orientation et du Suivi du Cursus des Étudiants (DOSCE)"
-    ],
-    dgrit: [
-      "Direction de la Recherche (DR)",
-      "Direction de l'Innovation Technologique (DIT)"
-    ],
-    centrales: [
-      "Direction des Études et de la Programmation (DEP)",
-      "Direction des Ressources Humaines (DRH)",
-      "Direction des Ressources Financières et du Matériel (DRFM)",
-      "Direction des Marchés Publics et de Délégation de Service Public (DMP/DSP)",
-      "Direction des Statistiques et de l'Informatique (DSI)",
-      "Direction de la Législation (DL)",
-      "Direction des Archives, de l'Information, de la Documentation et des Relations Publiques (DAIDRP)",
-      "Direction des Infrastructures et Équipements Universitaires (DIEU)",
-      "Direction des Affaires Financières et du Matériel (DAF)"
-    ],
-    rattaches: [
-      "Agence Nigérienne des Allocations et des Bourses (ANAB)",
-      "Agence Nationale pour l'Assurance Qualité de l'Enseignement Supérieur et de la Recherche (ANAQ-Sup)",
-      "Centres Régionaux des Œuvres Universitaires (CROU)",
-      "Office du Baccalauréat, des Équivalences et des Examens et Concours du Supérieur (OBEECS)",
-      "Académie des Sciences du Niger (ASNI)"
-    ],
-    etablissements: [
-      "Université Abdou Moumouni de Niamey (UAM)",
-      "Université Numérique du Niger (UNN)",
-      "Université Dan Dicko Dankoulodo de Maradi (UDDM)",
-      "Université Djibo Hamani de Tahoua (UDH)",
-      "Université André Salifou de Zinder (UAS)",
-      "Université Boubacar Bah de Tillabéry (UBBA)",
-      "Université de Dosso (UDO)",
-      "Université d'Agadez (UAZ)",
-      "Université de Diffa (UDA)",
-      "Université Islamique au Niger (UIN)",
-      "École des Mines de l'Industrie et de la Géologie (EMIG)"
-    ]
-  };
+  const orgData = useMemo(
+    () => groupOrgUnits(initialOrgUnits.length ? initialOrgUnits : FALLBACK_ORG_UNITS),
+    [initialOrgUnits]
+  );
 
   return (
     <MainLayout>
@@ -254,7 +270,7 @@ export default function OrganisationPage() {
                     icon={GraduationCap}
                     isExpandable={true}
                   >
-                    <DirectionList searchTerm={searchTerm} items={orgData.dges} />
+                    <DirectionList searchTerm={searchTerm} items={orgData.dge} />
                   </OrgSection>
 
                   <OrgSection
@@ -353,9 +369,15 @@ export default function OrganisationPage() {
   );
 }
 
-// Forcer SSR pour éviter les erreurs de contexte durant le SSG
 export async function getStaticProps() {
-  return {
-    props: {}, revalidate: 3600
-  };
+  try {
+    const response = await fetchAPI(endpoints.organisation, {
+      sort: ['order:asc'],
+      pagination: { limit: 100 },
+    });
+    const initialOrgUnits = mapStrapiList(response, mapOrgUnit) || [];
+    return { props: { initialOrgUnits }, revalidate: 3600 };
+  } catch {
+    return { props: { initialOrgUnits: [] }, revalidate: 60 };
+  }
 }

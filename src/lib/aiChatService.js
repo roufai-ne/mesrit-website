@@ -170,6 +170,37 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
   }
 
   /**
+   * Appeler l'API Groq (gratuite, format compatible OpenAI)
+   * Modèle Llama 3.3 70B — bonnes performances en français, inférence très rapide
+   * Clé gratuite sur https://console.groq.com/keys
+   */
+  static async callGroq(messages, apiKey) {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: messages,
+        max_tokens: 500,
+        temperature: 0.7,
+        top_p: 1,
+        frequency_penalty: 0.5,
+        presence_penalty: 0.5
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Erreur API Groq');
+    }
+
+    return await response.json();
+  }
+
+  /**
    * Appeler l'API Claude (Anthropic)
    */
   static async callClaude(messages, apiKey) {
@@ -214,12 +245,15 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
   /**
    * Générer une réponse du chatbot
    */
-  static async chat(userMessage, conversationHistory = [], apiProvider = 'openai') {
+  static async chat(userMessage, conversationHistory = [], apiProvider = 'groq') {
     try {
       // Récupérer la clé API depuis les variables d'environnement
-      const apiKey = apiProvider === 'openai'
-        ? process.env.OPENAI_API_KEY
-        : process.env.ANTHROPIC_API_KEY;
+      const API_KEYS_BY_PROVIDER = {
+        groq: process.env.GROQ_API_KEY,
+        openai: process.env.OPENAI_API_KEY,
+        claude: process.env.ANTHROPIC_API_KEY
+      };
+      const apiKey = API_KEYS_BY_PROVIDER[apiProvider];
 
       if (!apiKey) {
         const err = new Error(`API_KEY_MISSING:${apiProvider}`);
@@ -248,7 +282,9 @@ Réponds toujours en français, de manière professionnelle et concise. Cite les
 
       // Appeler l'API appropriée
       let response;
-      if (apiProvider === 'openai') {
+      if (apiProvider === 'groq') {
+        response = await this.callGroq(messages, apiKey);
+      } else if (apiProvider === 'openai') {
         response = await this.callOpenAI(messages, apiKey);
       } else if (apiProvider === 'claude') {
         response = await this.callClaude(messages, apiKey);

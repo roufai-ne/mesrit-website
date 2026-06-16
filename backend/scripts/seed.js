@@ -164,23 +164,75 @@ if (mpExists) {
 
 /* ──────────────────────────────────────────────────────────────
    4. UNITÉS ORGANISATIONNELLES
+   (remplace l'ancien jeu de données générique par le contenu réel
+   précédemment codé en dur dans src/pages/ministere/organisation.js)
 ────────────────────────────────────────────────────────────── */
 console.log('\n=== Unités Organisationnelles ===');
+
+// Nettoyage ponctuel des entrées génériques d'une précédente version de ce seed
+const OLD_PLACEHOLDER_NAMES = [
+  'Cabinet du Ministre', 'Secrétariat Général', 'Direction Générale des Enseignements',
+  'Direction Générale de la Recherche et de l\'Innovation Technologique',
+  'Direction des Ressources Humaines', 'Direction des Affaires Financières',
+  'Direction des Affaires Juridiques', 'ANAB', 'ANAQ-SUP', 'OBEECS',
+  'Université Abdou Moumouni de Niamey', 'Université de Zinder', 'Université de Tahoua',
+  'Université Dan Dicko DanKoulodo de Maradi',
+];
+const deleteOldUnit = db.prepare('DELETE FROM "organizational_units" WHERE "name" = ?');
+OLD_PLACEHOLDER_NAMES.forEach(name => {
+  const { changes } = deleteOldUnit.run(name);
+  if (changes > 0) console.log(`  ✗  [organizational_units] supprimé (ancien placeholder) "${name}"`);
+});
+
 [
-  { document_id: randomUUID(), name: 'Cabinet du Ministre', type: 'cabinet', description: 'Organe de conseil et d\'appui direct au Ministre, comprenant les conseillers techniques et le chef de cabinet.', order: 0, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Secrétariat Général', type: 'sg_direct', description: 'Coordination administrative de l\'ensemble des services du ministère et supervision des directions centrales.', order: 1, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Direction Générale des Enseignements', type: 'dge', description: 'Supervision, coordination et développement des enseignements supérieurs dans les établissements publics et privés.', order: 2, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Direction Générale de la Recherche et de l\'Innovation Technologique', type: 'dgrit', description: 'Promotion et coordination de la recherche scientifique, du développement technologique et de l\'innovation.', order: 3, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Direction des Ressources Humaines', type: 'centrales', description: 'Gestion du personnel, recrutement et développement des compétences du ministère.', order: 4, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Direction des Affaires Financières', type: 'centrales', description: 'Gestion du budget, des dépenses et du contrôle financier du ministère.', order: 5, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Direction des Affaires Juridiques', type: 'centrales', description: 'Conseil juridique, élaboration des textes réglementaires et suivi du contentieux.', order: 6, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'ANAB', type: 'rattaches', description: 'Agence Nationale des Allocations et Bourses — gestion des aides financières aux étudiants.', order: 7, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'ANAQ-SUP', type: 'rattaches', description: 'Agence Nationale d\'Assurance Qualité de l\'Enseignement Supérieur — accréditation et évaluation.', order: 8, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'OBEECS', type: 'rattaches', description: 'Office du Baccalauréat et des Examens et Concours du Supérieur.', order: 9, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Université Abdou Moumouni de Niamey', type: 'etablissements', description: 'Principale université nationale du Niger, fondée en 1973. Offre des formations dans toutes les disciplines.', order: 10, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Université de Zinder', type: 'etablissements', description: 'Université régionale au service du développement de la région de Zinder.', order: 11, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Université de Tahoua', type: 'etablissements', description: 'Université régionale contribuant au développement académique dans la région de Tahoua.', order: 12, created_at: now, updated_at: now, published_at: now },
-  { document_id: randomUUID(), name: 'Université Dan Dicko DanKoulodo de Maradi', type: 'etablissements', description: 'Université régionale de Maradi, offrant des formations pluridisciplinaires.', order: 13, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Conseillers Techniques', type: 'cabinet', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Responsable de la communication', type: 'cabinet', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Chef de Cabinet', type: 'cabinet', description: null, order: 2, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Attaché de Protocole', type: 'cabinet', description: null, order: 3, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Secrétaire Particulier', type: 'cabinet', description: null, order: 4, created_at: now, updated_at: now, published_at: now },
+
+  { document_id: randomUUID(), name: 'Attachés académiques', type: 'sg_direct', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Cellule Santé Universitaire et des Grandes Écoles', type: 'sg_direct', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Cellule Genre', type: 'sg_direct', description: null, order: 2, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Bureau d\'Ordre', type: 'sg_direct', description: null, order: 3, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Secrétariat', type: 'sg_direct', description: null, order: 4, created_at: now, updated_at: now, published_at: now },
+
+  { document_id: randomUUID(), name: 'Direction de l\'Enseignement Supérieur Public (DESP)', type: 'dge', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction de l\'Enseignement Supérieur Privé (DESPRI)', type: 'dge', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Sports et des Activités Culturelles Universitaires et des Grandes Écoles (DSAC/U/GE)', type: 'dge', description: null, order: 2, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction de l\'Enseignement Supérieur Arabe (DESA)', type: 'dge', description: null, order: 3, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction de l\'Orientation et du Suivi du Cursus des Étudiants (DOSCE)', type: 'dge', description: null, order: 4, created_at: now, updated_at: now, published_at: now },
+
+  { document_id: randomUUID(), name: 'Direction de la Recherche (DR)', type: 'dgrit', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction de l\'Innovation Technologique (DIT)', type: 'dgrit', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+
+  { document_id: randomUUID(), name: 'Direction des Études et de la Programmation (DEP)', type: 'centrales', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Ressources Humaines (DRH)', type: 'centrales', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Ressources Financières et du Matériel (DRFM)', type: 'centrales', description: null, order: 2, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Marchés Publics et de Délégation de Service Public (DMP/DSP)', type: 'centrales', description: null, order: 3, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Statistiques et de l\'Informatique (DSI)', type: 'centrales', description: null, order: 4, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction de la Législation (DL)', type: 'centrales', description: null, order: 5, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Archives, de l\'Information, de la Documentation et des Relations Publiques (DAIDRP)', type: 'centrales', description: null, order: 6, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Infrastructures et Équipements Universitaires (DIEU)', type: 'centrales', description: null, order: 7, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Direction des Affaires Financières et du Matériel (DAF)', type: 'centrales', description: null, order: 8, created_at: now, updated_at: now, published_at: now },
+
+  { document_id: randomUUID(), name: 'Agence Nigérienne des Allocations et des Bourses (ANAB)', type: 'rattaches', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Agence Nationale pour l\'Assurance Qualité de l\'Enseignement Supérieur et de la Recherche (ANAQ-Sup)', type: 'rattaches', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Centres Régionaux des Œuvres Universitaires (CROU)', type: 'rattaches', description: null, order: 2, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Office du Baccalauréat, des Équivalences et des Examens et Concours du Supérieur (OBEECS)', type: 'rattaches', description: null, order: 3, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Académie des Sciences du Niger (ASNI)', type: 'rattaches', description: null, order: 4, created_at: now, updated_at: now, published_at: now },
+
+  { document_id: randomUUID(), name: 'Université Abdou Moumouni de Niamey (UAM)', type: 'etablissements', description: null, order: 0, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université Numérique du Niger (UNN)', type: 'etablissements', description: null, order: 1, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université Dan Dicko Dankoulodo de Maradi (UDDM)', type: 'etablissements', description: null, order: 2, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université Djibo Hamani de Tahoua (UDH)', type: 'etablissements', description: null, order: 3, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université André Salifou de Zinder (UAS)', type: 'etablissements', description: null, order: 4, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université Boubacar Bah de Tillabéry (UBBA)', type: 'etablissements', description: null, order: 5, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université de Dosso (UDO)', type: 'etablissements', description: null, order: 6, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université d\'Agadez (UAZ)', type: 'etablissements', description: null, order: 7, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université de Diffa (UDA)', type: 'etablissements', description: null, order: 8, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'Université Islamique au Niger (UIN)', type: 'etablissements', description: null, order: 9, created_at: now, updated_at: now, published_at: now },
+  { document_id: randomUUID(), name: 'École des Mines de l\'Industrie et de la Géologie (EMIG)', type: 'etablissements', description: null, order: 10, created_at: now, updated_at: now, published_at: now },
 ].forEach(item => insert('organizational_units', item, 'name'));
 
 /* ──────────────────────────────────────────────────────────────

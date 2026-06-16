@@ -6,9 +6,9 @@ import logger, { LOG_TYPES } from '@/lib/logger';
 // POST - Envoyer un message au chatbot (public avec rate limiting)
 const sendMessage = async (req, res) => {
   try {
-    const { message, conversationHistory = [], provider: rawProvider = 'openai' } = req.body;
-    const VALID_PROVIDERS = ['openai', 'claude'];
-    const provider = VALID_PROVIDERS.includes(rawProvider) ? rawProvider : 'openai';
+    const { message, conversationHistory = [], provider: rawProvider = 'groq' } = req.body;
+    const VALID_PROVIDERS = ['groq', 'openai', 'claude'];
+    const provider = VALID_PROVIDERS.includes(rawProvider) ? rawProvider : 'groq';
 
     // Check Rate Limit
     if (!rateLimiters.chat.check(req, res)) {

@@ -1,5 +1,7 @@
 // src/pages/api/ministere/missions.js
 import logger from '@/lib/logger';
+import { fetchAPI, endpoints } from '@/lib/strapi';
+import { mapStrapiList, mapMission } from '@/utils/strapiMapper';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -7,8 +9,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Missions statiques pour l'instant - sera migré vers Strapi plus tard
-    const missionsData = null;
+    // Tente de récupérer les missions depuis Strapi ; si la collection est
+    // vide ou Strapi indisponible, on retombe sur le contenu par défaut.
+    let missionsData = null;
+    try {
+      const response = await fetchAPI(endpoints.missions, { sort: ['order:asc'] });
+      const fetched = mapStrapiList(response, mapMission) || [];
+      if (fetched.length > 0) {
+        missionsData = { missions: fetched };
+      }
+    } catch (strapiError) {
+      logger.warn('missions_strapi_fallback', 'Missions not available from Strapi, using defaults', {});
+    }
 
     // Missions par défaut avec données réalistes
     const defaultMissions = {
@@ -147,7 +159,11 @@ export default async function handler(req, res) {
       version: "2.0"
     };
 
-    const missions = missionsData || defaultMissions;
+    // globalStats reste géré ici pour l'instant (pas encore modélisé dans Strapi) ;
+    // seule la liste des missions elle-même vient de la collection `missions` quand disponible.
+    const missions = missionsData
+      ? { ...defaultMissions, ...missionsData, version: 'strapi' }
+      : defaultMissions;
 
     // Log de l'accès
     logger.info('minister_content_accessed', 'Minister missions accessed', {

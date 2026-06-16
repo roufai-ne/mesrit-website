@@ -918,6 +918,91 @@
     100% { left: 100%; }
   }
 
+  /* ============================================================
+     VIDEO FILMSTRIP — aperçus horizontaux Yahoo/YouTube-style
+     Hover-to-play impératif (refs), zéro re-render React
+     ============================================================ */
+  .video-filmstrip {
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: 3px; /* évite que le ring soit rogné */
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  }
+  .video-filmstrip::-webkit-scrollbar { display: none; }
+
+  .video-filmstrip__item {
+    position: relative;
+    flex-shrink: 0;
+    width: 80px;
+    height: 45px; /* 16:9 */
+    border-radius: 0.375rem;
+    overflow: visible;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    scroll-snap-align: start;
+    transition: transform 0.18s ease;
+  }
+  .video-filmstrip__item:hover,
+  .video-filmstrip__item:focus-visible {
+    transform: scale(1.1) translateY(-3px);
+    z-index: 10;
+  }
+  .video-filmstrip__item:hover .video-filmstrip__video,
+  .video-filmstrip__item:focus-visible .video-filmstrip__video {
+    outline: 2px solid var(--niger-orange);
+    outline-offset: 1px;
+  }
+
+  .video-filmstrip__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.375rem;
+    display: block;
+    pointer-events: none;
+  }
+
+  .video-filmstrip__play-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.38);
+    border-radius: 0.375rem;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+  .video-filmstrip__item:hover .video-filmstrip__play-icon,
+  .video-filmstrip__item:focus-visible .video-filmstrip__play-icon {
+    opacity: 0; /* masqué pendant la lecture */
+  }
+
+  .video-filmstrip__badge {
+    position: absolute;
+    top: 3px;
+    left: 4px;
+    font-size: 0.6rem;
+    line-height: 1;
+    font-weight: 600;
+    color: white;
+    background: rgba(0, 0, 0, 0.65);
+    padding: 2px 4px;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .video-filmstrip__item { transition: none; }
+    .video-filmstrip__item:hover .video-filmstrip__play-icon { opacity: 1; }
+  }
+
   /* Animations pour les statistiques */
   @keyframes fadeInUp {
     from {

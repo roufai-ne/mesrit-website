@@ -103,16 +103,24 @@ const Etablissements = ({ initialEstablishments = [] }) => {
     }
   };
 
-  // Filtrage des établissements
-  const filteredEstablishments = establishments.filter(etab => {
+  // Vérifie si un établissement correspond à un jeu de critères donné.
+  // searchTerm est toujours appliqué ; type/region/status sont optionnels
+  // (omis = ce critère n'est pas pris en compte), ce qui permet de calculer
+  // des compteurs "facettés" qui ignorent leur propre filtre.
+  const matchesEtab = (etab, { type = 'all', region = 'all', status = 'all' } = {}) => {
     const matchesSearch = etab.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (etab.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || etab.type === selectedType;
-    const matchesRegion = selectedRegion === 'all' || etab.region === selectedRegion;
-    const matchesStatus = selectedStatus === 'all' || etab.statut === selectedStatus;
+    const matchesType = type === 'all' || etab.type === type;
+    const matchesRegion = region === 'all' || etab.region === region;
+    const matchesStatus = status === 'all' || etab.statut === status;
 
     return matchesSearch && matchesType && matchesRegion && matchesStatus;
-  });
+  };
+
+  // Filtrage des établissements
+  const filteredEstablishments = establishments.filter(etab =>
+    matchesEtab(etab, { type: selectedType, region: selectedRegion, status: selectedStatus })
+  );
 
   // Pagination
   const totalPages = Math.ceil(filteredEstablishments.length / itemsPerPage);
@@ -125,17 +133,28 @@ const Etablissements = ({ initialEstablishments = [] }) => {
     setCurrentPage(1);
   }, [searchTerm, selectedType, selectedRegion, selectedStatus]);
 
-  // Statistiques par catégorie avec useMemo pour recalcul automatique
+  // Statistiques par catégorie, "facettées" : chaque groupe de cartes (statut / type)
+  // reflète les autres filtres actifs (recherche, région, l'autre groupe) mais pas
+  // son propre filtre, afin de rester utilisable comme sélecteur de bascule.
+  const statsBaseForStatus = useMemo(
+    () => establishments.filter(e => matchesEtab(e, { type: selectedType, region: selectedRegion })),
+    [establishments, searchTerm, selectedType, selectedRegion]
+  );
+  const statsBaseForType = useMemo(
+    () => establishments.filter(e => matchesEtab(e, { region: selectedRegion, status: selectedStatus })),
+    [establishments, searchTerm, selectedRegion, selectedStatus]
+  );
+
   const statistics = useMemo(() => {
     return {
-      total: establishments.length,
-      public: establishments.filter(e => e.statut === 'public').length,
-      prive: establishments.filter(e => e.statut === 'privé').length,
-      universite: establishments.filter(e => e.type === 'Université').length,
-      institut: establishments.filter(e => e.type === 'Institut').length,
-      ecole: establishments.filter(e => e.type === 'École').length
+      total: statsBaseForStatus.length,
+      public: statsBaseForStatus.filter(e => e.statut === 'public').length,
+      prive: statsBaseForStatus.filter(e => e.statut === 'privé').length,
+      universite: statsBaseForType.filter(e => e.type === 'Université').length,
+      institut: statsBaseForType.filter(e => e.type === 'Institut').length,
+      ecole: statsBaseForType.filter(e => e.type === 'École').length
     };
-  }, [establishments]);
+  }, [statsBaseForStatus, statsBaseForType]);
   const types = useMemo(() => {
     return [...new Set(establishments.map(etab => etab.type))];
   }, [establishments]);

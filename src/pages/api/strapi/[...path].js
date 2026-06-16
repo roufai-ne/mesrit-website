@@ -25,6 +25,7 @@ const ALLOWED_COLLECTIONS = new Set([
   'faqs',
   'history-milestones',
   'organizational-units',
+  'missions',
   'external-services',
   'global',
   'homepage',

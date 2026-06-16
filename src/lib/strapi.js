@@ -142,4 +142,5 @@ export const endpoints = {
   externalServices: '/external-services',
   history: '/history-milestones',
   organisation: '/organizational-units',
+  missions: '/missions',
 };

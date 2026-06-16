@@ -5,31 +5,17 @@ import { Clock, ChevronRight, Calendar, Award, Building } from 'lucide-react';
 import Link from 'next/link';
 import SeoHead from '@/components/seo/SeoHead';
 
-export default function HistoriquePage() {
-  const fallbackMilestones = [
-    { year: "1962", title: "Création du Ministère de l'Éducation Nationale", content: "Après l'indépendance du Niger, création du premier ministère en charge de l'éducation.", icon: "Building" },
-    { year: "1975", title: "Création de l'Université de Niamey", content: "Fondation de la première université du Niger, qui deviendra plus tard l'Université Abdou Moumouni.", icon: "Award" },
-    { year: "1992", title: "Réorganisation du système éducatif", content: "Restructuration majeure avec la séparation entre l'enseignement de base et l'enseignement supérieur.", icon: "Building" },
-    { year: "2000", title: "Expansion universitaire", content: "Lancement du programme d'expansion avec la création de nouvelles universités régionales.", icon: "Award" },
-    { year: "2010", title: "Modernisation technologique", content: "Introduction des TIC dans l'enseignement supérieur et développement de l'e-learning.", icon: "Building" },
-    { year: "2020", title: "Création du MESRIT", content: "Formation du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique.", icon: "Award" }
-  ];
+const FALLBACK_MILESTONES = [
+  { year: "1962", title: "Création du Ministère de l'Éducation Nationale", content: "Après l'indépendance du Niger, création du premier ministère en charge de l'éducation.", icon: "Building" },
+  { year: "1975", title: "Création de l'Université de Niamey", content: "Fondation de la première université du Niger, qui deviendra plus tard l'Université Abdou Moumouni.", icon: "Award" },
+  { year: "1992", title: "Réorganisation du système éducatif", content: "Restructuration majeure avec la séparation entre l'enseignement de base et l'enseignement supérieur.", icon: "Building" },
+  { year: "2000", title: "Expansion universitaire", content: "Lancement du programme d'expansion avec la création de nouvelles universités régionales.", icon: "Award" },
+  { year: "2010", title: "Modernisation technologique", content: "Introduction des TIC dans l'enseignement supérieur et développement de l'e-learning.", icon: "Building" },
+  { year: "2020", title: "Création du MESRIT", content: "Formation du Ministère de l'Enseignement Supérieur, de la Recherche et de l'Innovation Technologique.", icon: "Award" }
+];
 
-  const [milestones, setMilestones] = React.useState(fallbackMilestones);
-
-  React.useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const { fetchAPI, endpoints } = require('@/lib/strapi');
-        const { mapStrapiList, mapHistoryMilestone } = require('@/utils/strapiMapper');
-        const response = await fetchAPI(endpoints.history, { sort: ['order:asc', 'year:asc'], pagination: { limit: 50 } });
-        if (response?.data?.length > 0) setMilestones(mapStrapiList(response, mapHistoryMilestone));
-      } catch (err) {
-        console.warn('Failed to fetch history, using fallback');
-      }
-    };
-    loadHistory();
-  }, []);
+export default function HistoriquePage({ initialMilestones = [] }) {
+  const milestones = initialMilestones.length ? initialMilestones : FALLBACK_MILESTONES;
 
   const achievements = [
     { title: "60 ans d'excellence", description: "Plus de six décennies au service de l'éducation nationale", stats: "1962-2024" },
@@ -157,5 +143,16 @@ export default function HistoriquePage() {
 }
 
 export async function getStaticProps() {
-  return { props: {}, revalidate: 3600 };
+  try {
+    const { fetchAPI, endpoints } = await import('@/lib/strapi');
+    const { mapStrapiList, mapHistoryMilestone } = await import('@/utils/strapiMapper');
+    const response = await fetchAPI(endpoints.history, {
+      sort: ['order:asc', 'year:asc'],
+      pagination: { limit: 50 },
+    });
+    const initialMilestones = mapStrapiList(response, mapHistoryMilestone) || [];
+    return { props: { initialMilestones }, revalidate: 3600 };
+  } catch {
+    return { props: { initialMilestones: [] }, revalidate: 60 };
+  }
 }
